@@ -191,13 +191,12 @@ const dashboard = useMemo(() => {
               <div className="space-y-2">
                 {games.map((g) => (
                <div key={g.id} className="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-950 text-sm">
-  <div>
-    {viewMode === "team" && <>Week {g.week}: </>}
-    {g.awayTeam} @ {g.homeTeam} —{" "}
-    <span className="font-medium">
-      {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
-    </span>
-  </div>
+<div>
+  Week {g.week}: {g.awayTeam} @ {g.homeTeam} —{" "}
+  <span className="font-medium">
+    {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
+  </span>
+</div>
 
   {g.status === "final" && g.winner && picks[g.id] && (
     <div className="text-lg">
