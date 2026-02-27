@@ -22,6 +22,13 @@ export default function Home() {
         >
           Go to Week 2 (not built yet)
         </Link>
+
+        <Link
+  href="/my-picks"
+  className="block rounded-lg border px-4 py-3 hover:border-black"
+>
+  View My Picks
+</Link>
       </div>
     </main>
   );
