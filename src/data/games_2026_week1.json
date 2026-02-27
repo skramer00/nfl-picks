@@ -1,23 +1,29 @@
 [
-  {
-    "id": "2026_w1_g1",
-    "week": 1,
-    "kickoffISO": "2026-09-10T17:20:00-07:00",
-    "awayTeam": "BUF",
-    "homeTeam": "KC"
-  },
+{
+  "id": "2026_w1_g1",
+  "week": 1,
+  "kickoffISO": "2026-09-10T17:20:00-07:00",
+  "awayTeam": "BUF",
+  "homeTeam": "KC",
+  "status": "final",
+  "winner": "KC"
+},
   {
     "id": "2026_w1_g2",
     "week": 1,
     "kickoffISO": "2026-09-13T10:00:00-07:00",
     "awayTeam": "LAC",
-    "homeTeam": "DEN"
+    "homeTeam": "DEN",
+    "status": "final",
+    "winner": "LAC"
   },
   {
     "id": "2026_w1_g3",
     "week": 1,
     "kickoffISO": "2026-09-13T13:25:00-07:00",
     "awayTeam": "SF",
-    "homeTeam": "SEA"
+    "homeTeam": "SEA",
+    "status": "final",
+    "winner": "SEA"
   }
 ]

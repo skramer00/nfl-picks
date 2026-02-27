@@ -12,6 +12,8 @@ type Game = {
   kickoffISO: string;
   awayTeam: string;
   homeTeam: string;
+  status?: "scheduled" | "final";
+  winner?: string;
 };
 
 const allGames: Game[] = [
@@ -48,6 +50,17 @@ export default function MyPicksPage() {
     return grouped;
   }, []);
 
+  const stats = useMemo(() => {
+    const finalGames = allGames.filter((g) => g.status === "final" && g.winner);
+    const pickedFinalGames = finalGames.filter((g) => picks[g.id]);
+
+    const correct = pickedFinalGames.filter((g) => picks[g.id] === g.winner).length;
+    const total = pickedFinalGames.length;
+
+    const pct = total > 0 ? Math.round((correct / total) * 1000) / 10 : 0; // 1 decimal
+    return { correct, total, pct, finalGamesCount: finalGames.length };
+  }, [picks]);
+
   return (
     <main className="mx-auto max-w-4xl p-6">
       <Link href="/" className="text-sm text-blue-600 hover:underline">
@@ -55,6 +68,16 @@ export default function MyPicksPage() {
       </Link>
 
       <h1 className="mt-4 text-2xl font-semibold">My Picks</h1>
+
+      <div className="mt-4 rounded-xl border p-4">
+        <div className="text-sm text-gray-600">Season accuracy (final games you picked)</div>
+        <div className="mt-1 text-2xl font-semibold">
+          {stats.correct} / {stats.total} ({stats.pct}%)
+        </div>
+        <div className="mt-1 text-xs text-gray-500">
+          Final games available: {stats.finalGamesCount} (you’ve picked {stats.total})
+        </div>
+      </div>
 
       <div className="mt-4 flex gap-2">
         <button
@@ -85,9 +108,14 @@ export default function MyPicksPage() {
                 {games.map((g) => (
                   <div key={g.id} className="rounded border p-3 text-sm">
                     {g.awayTeam} @ {g.homeTeam} —{" "}
-                    <span className="font-medium">
-                      {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
-                    </span>
+                   <span className="font-medium">
+  {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
+</span>
+{g.status === "final" && g.winner && (
+  <span className="ml-2 text-xs text-gray-600">
+    • Final: {g.winner} {picks[g.id] ? (picks[g.id] === g.winner ? "✅" : "❌") : ""}
+  </span>
+)}
                   </div>
                 ))}
               </div>
@@ -103,8 +131,13 @@ export default function MyPicksPage() {
                   <div key={g.id} className="rounded border p-3 text-sm">
                     Week {g.week}: {g.awayTeam} @ {g.homeTeam} —{" "}
                     <span className="font-medium">
-                      {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
-                    </span>
+  {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
+</span>
+{g.status === "final" && g.winner && (
+  <span className="ml-2 text-xs text-gray-600">
+    • Final: {g.winner} {picks[g.id] ? (picks[g.id] === g.winner ? "✅" : "❌") : ""}
+  </span>
+)}
                   </div>
                 ))}
               </div>
