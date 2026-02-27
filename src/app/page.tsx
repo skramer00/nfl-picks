@@ -29,6 +29,13 @@ export default function Home() {
 >
   View My Picks
 </Link>
+
+<Link
+  href="/leaderboard"
+  className="block rounded-lg border px-4 py-3 hover:border-black"
+>
+  View Leaderboard
+</Link>
       </div>
     </main>
   );

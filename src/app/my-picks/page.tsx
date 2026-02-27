@@ -50,6 +50,30 @@ export default function MyPicksPage() {
     return grouped;
   }, []);
 
+const dashboard = useMemo(() => {
+  const totalGames = allGames.length;
+  const picksMade = allGames.filter((g) => Boolean(picks[g.id])).length;
+
+  const finalGames = allGames.filter((g) => g.status === "final" && g.winner);
+  const finalPicked = finalGames.filter((g) => Boolean(picks[g.id]));
+  const correct = finalPicked.filter((g) => picks[g.id] === g.winner).length;
+
+  const accuracy =
+    finalPicked.length > 0 ? Math.round((correct / finalPicked.length) * 1000) / 10 : 0;
+
+  const pctPicked = totalGames > 0 ? Math.round((picksMade / totalGames) * 100) : 0;
+
+  return {
+    totalGames,
+    picksMade,
+    pctPicked,
+    finalGamesCount: finalGames.length,
+    finalPickedCount: finalPicked.length,
+    correct,
+    accuracy,
+  };
+}, [picks]);
+
   const stats = useMemo(() => {
     const finalGames = allGames.filter((g) => g.status === "final" && g.winner);
     const pickedFinalGames = finalGames.filter((g) => picks[g.id]);
@@ -63,11 +87,71 @@ export default function MyPicksPage() {
 
   return (
     <main className="mx-auto max-w-4xl p-6">
-      <Link href="/" className="text-sm text-blue-600 hover:underline">
-        ← Back to Home
-      </Link>
 
       <h1 className="mt-4 text-2xl font-semibold">My Picks</h1>
+
+<div className="mt-4 grid gap-4 md:grid-cols-3">
+  <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+    <div className="text-xs text-gray-400">Season accuracy</div>
+    <div className="mt-1 text-2xl font-semibold">
+      {dashboard.correct}/{dashboard.finalPickedCount}{" "}
+      <span className="text-base font-normal text-gray-300">
+        ({dashboard.accuracy}%)
+      </span>
+    </div>
+    <div className="mt-1 text-xs text-gray-500">
+      Final games available: {dashboard.finalGamesCount}
+    </div>
+  </div>
+
+  <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+    <div className="text-xs text-gray-400">Picks made</div>
+    <div className="mt-1 text-2xl font-semibold">
+      {dashboard.picksMade}/{dashboard.totalGames}{" "}
+      <span className="text-base font-normal text-gray-300">
+        ({dashboard.pctPicked}%)
+      </span>
+    </div>
+
+    <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-gray-800">
+      <div
+        className="h-full rounded-full bg-gray-200"
+        style={{ width: `${dashboard.pctPicked}%` }}
+      />
+    </div>
+
+    <div className="mt-2 text-xs text-gray-500">
+      Tip: make picks early—everything locks at kickoff later.
+    </div>
+  </div>
+
+  <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
+    <div className="text-xs text-gray-400">View</div>
+    <div className="mt-2 flex gap-2">
+      <button
+        onClick={() => setViewMode("week")}
+        className={`rounded-lg border px-3 py-2 text-sm ${
+          viewMode === "week"
+            ? "border-gray-200 bg-gray-800 text-white"
+            : "border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
+        }`}
+      >
+        By Week
+      </button>
+
+      <button
+        onClick={() => setViewMode("team")}
+        className={`rounded-lg border px-3 py-2 text-sm ${
+          viewMode === "team"
+            ? "border-gray-200 bg-gray-800 text-white"
+            : "border-gray-800 bg-gray-900 text-gray-200 hover:bg-gray-800"
+        }`}
+      >
+        By Team
+      </button>
+    </div>
+  </div>
+</div>
 
       <div className="mt-4 rounded-xl border p-4">
         <div className="text-sm text-gray-600">Season accuracy (final games you picked)</div>
@@ -106,17 +190,21 @@ export default function MyPicksPage() {
               <h2 className="mb-2 text-lg font-semibold">Week {week}</h2>
               <div className="space-y-2">
                 {games.map((g) => (
-                  <div key={g.id} className="rounded border p-3 text-sm">
-                    {g.awayTeam} @ {g.homeTeam} —{" "}
-                   <span className="font-medium">
-  {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
-</span>
-{g.status === "final" && g.winner && (
-  <span className="ml-2 text-xs text-gray-600">
-    • Final: {g.winner} {picks[g.id] ? (picks[g.id] === g.winner ? "✅" : "❌") : ""}
-  </span>
-)}
-                  </div>
+               <div key={g.id} className="flex items-center justify-between rounded-xl border border-gray-800 bg-gray-950 text-sm">
+  <div>
+    {viewMode === "team" && <>Week {g.week}: </>}
+    {g.awayTeam} @ {g.homeTeam} —{" "}
+    <span className="font-medium">
+      {picks[g.id] ? `Picked: ${picks[g.id]}` : "No pick"}
+    </span>
+  </div>
+
+  {g.status === "final" && g.winner && picks[g.id] && (
+    <div className="text-lg">
+      {picks[g.id] === g.winner ? "✅" : "❌"}
+    </div>
+  )}
+</div>
                 ))}
               </div>
             </div>
