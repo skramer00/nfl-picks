@@ -20,7 +20,7 @@ export default function Home() {
           href="/week/2"
           className="block rounded-lg border px-4 py-3 hover:border-black"
         >
-          Go to Week 2 (not built yet)
+          Go to Week 2
         </Link>
 
         <Link
