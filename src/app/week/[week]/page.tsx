@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import week1 from "@/data/games_2026_week1.json";
+import week2 from "@/data/games_2026_week2.json";
 import { loadPicks, setPick, PickMap } from "@/lib/picks";
 
 type Game = {
@@ -23,10 +24,11 @@ export default function WeekPage() {
   const weekParam = params.week;
   const weekNumber = Number(Array.isArray(weekParam) ? weekParam[0] : weekParam);
 
-  const games = useMemo(() => {
-    if (weekNumber === 1) return week1 as Game[];
-    return [] as Game[];
-  }, [weekNumber]);
+const games = useMemo(() => {
+  if (weekNumber === 1) return week1 as Game[];
+  if (weekNumber === 2) return week2 as Game[];
+  return [] as Game[];
+}, [weekNumber]);
 
   const [picks, setPicks] = useState<PickMap>({});
 
@@ -43,6 +45,21 @@ export default function WeekPage() {
       <p className="mt-2 text-sm text-gray-600">
         Click a team to pick the winner. Picks lock at kickoff (placeholder logic for now).
       </p>
+
+      <div className="mt-4 flex gap-2">
+  <a
+    href={`/week/${Math.max(1, weekNumber - 1)}`}
+    className="rounded-lg border px-3 py-2 text-sm hover:border-black"
+  >
+    ← Prev
+  </a>
+  <a
+    href={`/week/${weekNumber + 1}`}
+    className="rounded-lg border px-3 py-2 text-sm hover:border-black"
+  >
+    Next →
+  </a>
+</div>
 
       <div className="mt-6 space-y-4">
         {games.length === 0 && (

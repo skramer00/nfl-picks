@@ -1,0 +1,23 @@
+[
+  {
+    "id": "2026_w2_g1",
+    "week": 2,
+    "kickoffISO": "2026-09-17T17:20:00-07:00",
+    "awayTeam": "NYJ",
+    "homeTeam": "MIA"
+  },
+  {
+    "id": "2026_w2_g2",
+    "week": 2,
+    "kickoffISO": "2026-09-20T10:00:00-07:00",
+    "awayTeam": "DEN",
+    "homeTeam": "LAC"
+  },
+  {
+    "id": "2026_w2_g3",
+    "week": 2,
+    "kickoffISO": "2026-09-20T13:25:00-07:00",
+    "awayTeam": "DAL",
+    "homeTeam": "PHI"
+  }
+]
