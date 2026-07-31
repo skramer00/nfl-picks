@@ -5,20 +5,20 @@ type PickSelection = {
   picked_team_id: string;
 };
 
-export async function getUserPicks(): Promise<Record<string, string>> {
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-
-  if (userError?.name === "AuthSessionMissingError") return {};
-  if (userError) throw userError;
-  if (!user) return {};
+export async function getUserPicks(knownUserId?: string): Promise<Record<string, string>> {
+  let userId = knownUserId;
+  if (!userId) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError?.name === "AuthSessionMissingError") return {};
+    if (userError) throw userError;
+    if (!user) return {};
+    userId = user.id;
+  }
 
   const { data, error } = await supabase
     .from("picks")
     .select("game_id, picked_team_id")
-    .eq("user_id", user.id);
+    .eq("user_id", userId);
 
   if (error) throw error;
 

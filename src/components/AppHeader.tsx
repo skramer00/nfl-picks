@@ -89,6 +89,7 @@ export default function AppHeader() {
           <nav className="flex items-center gap-1">
             <NavLink href="/week" label="Make Picks" />
             <NavLink href="/my-picks" label="My Season" />
+            <NavLink href="/postseason" label="Postseason" />
             <NavLink href="/leaderboard" label="Leaderboard" />
             {isAdmin ? <NavLink href="/admin" label="Admin" /> : null}
           </nav>

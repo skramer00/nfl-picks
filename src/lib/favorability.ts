@@ -13,6 +13,10 @@ const HOME_FIELD_ELO = 55;
 const WEEK_ONE_CONFIDENCE = 2 / 3;
 const WEEK_ONE_MAX = 0.74;
 
+export function teamStrength(abbreviation: string) {
+  return TEAM_ELO[abbreviation] ?? 1505;
+}
+
 function applyWeekOneUncertainty(homeProbability: number) {
   const regressed = 0.5 + (homeProbability - 0.5) * WEEK_ONE_CONFIDENCE;
   return Math.min(WEEK_ONE_MAX, Math.max(1 - WEEK_ONE_MAX, regressed));

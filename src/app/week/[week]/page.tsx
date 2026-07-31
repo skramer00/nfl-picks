@@ -8,6 +8,7 @@ import { getGamesByWeek, type ScheduleGame } from "@/lib/gamesDb";
 import { getUserPicks, upsertPick } from "@/lib/picksDb";
 import { supabase } from "@/lib/supabaseClient";
 import { formatFavorability } from "@/lib/favorability";
+import { selectedTeamStyle } from "@/lib/teamColors";
 
 const SEASON = 2026;
 const WEEKS = Array.from({ length: 18 }, (_, index) => index + 1);
@@ -199,30 +200,32 @@ export default function WeekPage() {
                   type="button"
                   disabled={savingGameId === game.id || Date.now() >= new Date(game.kickoff_at).getTime()}
                   onClick={() => chooseTeam(game, game.away_team.id)}
-                  className={`flex w-full items-center justify-between gap-4 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${picks[game.id] === game.away_team.id ? "border-blue-500 bg-blue-950/50" : "border-gray-800 hover:border-gray-600"}`}
+                  style={picks[game.id] === game.away_team.id ? selectedTeamStyle(game.away_team.abbreviation) : undefined}
+                  className={`flex w-full items-center justify-between gap-4 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${picks[game.id] === game.away_team.id ? "text-white" : "border-gray-800 hover:border-gray-600"}`}
                 >
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Away</p>
+                    <p className={`text-xs uppercase tracking-wide ${picks[game.id] === game.away_team.id ? "text-white/70" : "text-gray-500"}`}>Away</p>
                     <p className="mt-1 text-lg font-semibold">{game.away_team.name}</p>
                   </div>
                   <div className="text-right">
-                    <span className="block text-xl font-bold text-gray-300">{formatFavorability(game.away_win_prob)}</span>
-                    <span className="text-xs text-gray-500">favorability · {game.away_team.abbreviation}</span>
+                    <span className={`block text-xl font-bold ${picks[game.id] === game.away_team.id ? "text-white" : "text-gray-300"}`}>{formatFavorability(game.away_win_prob)}</span>
+                    <span className={`text-xs ${picks[game.id] === game.away_team.id ? "text-white/70" : "text-gray-500"}`}>favorability · {game.away_team.abbreviation}</span>
                   </div>
                 </button>
                 <button
                   type="button"
                   disabled={savingGameId === game.id || Date.now() >= new Date(game.kickoff_at).getTime()}
                   onClick={() => chooseTeam(game, game.home_team.id)}
-                  className={`flex w-full items-center justify-between gap-4 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${picks[game.id] === game.home_team.id ? "border-blue-500 bg-blue-950/50" : "border-gray-800 hover:border-gray-600"}`}
+                  style={picks[game.id] === game.home_team.id ? selectedTeamStyle(game.home_team.abbreviation) : undefined}
+                  className={`flex w-full items-center justify-between gap-4 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${picks[game.id] === game.home_team.id ? "text-white" : "border-gray-800 hover:border-gray-600"}`}
                 >
                   <div>
-                    <p className="text-xs uppercase tracking-wide text-gray-500">Home</p>
+                    <p className={`text-xs uppercase tracking-wide ${picks[game.id] === game.home_team.id ? "text-white/70" : "text-gray-500"}`}>Home</p>
                     <p className="mt-1 text-lg font-semibold">{game.home_team.name}</p>
                   </div>
                   <div className="text-right">
-                    <span className="block text-xl font-bold text-gray-300">{formatFavorability(game.home_win_prob)}</span>
-                    <span className="text-xs text-gray-500">favorability · {game.home_team.abbreviation}</span>
+                    <span className={`block text-xl font-bold ${picks[game.id] === game.home_team.id ? "text-white" : "text-gray-300"}`}>{formatFavorability(game.home_win_prob)}</span>
+                    <span className={`text-xs ${picks[game.id] === game.home_team.id ? "text-white/70" : "text-gray-500"}`}>favorability · {game.home_team.abbreviation}</span>
                   </div>
                 </button>
               </div>

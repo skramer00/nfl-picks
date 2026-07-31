@@ -5,6 +5,8 @@ export type Team = {
   id: string;
   abbreviation: string;
   name: string;
+  conference: string;
+  division: string;
 };
 
 export type ScheduleGame = {
@@ -86,8 +88,8 @@ export async function getGamesByWeek(season: number, week: number) {
       kickoff_at,
       venue,
       status,
-      away_team:teams!games_away_team_id_fkey(id, abbreviation, name),
-      home_team:teams!games_home_team_id_fkey(id, abbreviation, name)
+      away_team:teams!games_away_team_id_fkey(id, abbreviation, name, conference, division),
+      home_team:teams!games_home_team_id_fkey(id, abbreviation, name, conference, division)
     `)
     .eq("season", season)
     .eq("season_type", "REG")
@@ -114,8 +116,8 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
     .select(
       `id, season, week, kickoff_at, away_team_id, home_team_id, away_score, home_score,
        status, winner_team_id, updated_at,
-       away_team:teams!games_away_team_id_fkey(id, abbreviation, name),
-       home_team:teams!games_home_team_id_fkey(id, abbreviation, name)`
+       away_team:teams!games_away_team_id_fkey(id, abbreviation, name, conference, division),
+       home_team:teams!games_home_team_id_fkey(id, abbreviation, name, conference, division)`
     )
     .eq("season", season)
     .order("week", { ascending: true })
