@@ -17,6 +17,7 @@ export type ScheduleGame = {
   home_team: Team;
   away_win_prob: number;
   home_win_prob: number;
+  favorability_override_reason: string | null;
 };
 
 // Compatibility shape used by the existing admin and My Picks screens.
@@ -33,11 +34,48 @@ export type GameRow = {
   winner_team_id: string | null;
   home_win_prob: number | null;
   away_win_prob: number | null;
+  favorability_override_reason: string | null;
   playoff_round: string | null;
   updated_at: string;
   away_team: Team;
   home_team: Team;
 };
+
+type FavorabilityOverride = {
+  game_id: string;
+  home_win_probability: number;
+  reason: string;
+};
+
+async function getFavorabilityOverrides(gameIds: string[]) {
+  if (gameIds.length === 0) return new Map<string, FavorabilityOverride>();
+  const { data, error } = await supabase
+    .from("favorability_overrides")
+    .select("game_id, home_win_probability, reason")
+    .in("game_id", gameIds);
+  if (error) throw error;
+  return new Map((data ?? []).map((override) => [override.game_id, override]));
+}
+
+function favorabilityForGame(
+  game: { id: string; week: number; away_team: Team; home_team: Team },
+  overrides: Map<string, FavorabilityOverride>
+) {
+  const override = overrides.get(game.id);
+  if (override) {
+    return {
+      away: 1 - override.home_win_probability,
+      home: override.home_win_probability,
+      reason: override.reason,
+    };
+  }
+  const calculated = matchupFavorability(
+    game.away_team.abbreviation,
+    game.home_team.abbreviation,
+    game.week
+  );
+  return { ...calculated, reason: null };
+}
 
 export async function getGamesByWeek(season: number, week: number) {
   const { data, error } = await supabase
@@ -58,13 +96,15 @@ export async function getGamesByWeek(season: number, week: number) {
 
   if (error) throw error;
   const games = (data ?? []) as unknown as Omit<ScheduleGame, "away_win_prob" | "home_win_prob">[];
+  const overrides = await getFavorabilityOverrides(games.map((game) => game.id));
   return games.map((game) => {
-    const favorability = matchupFavorability(
-      game.away_team.abbreviation,
-      game.home_team.abbreviation,
-      game.week
-    );
-    return { ...game, away_win_prob: favorability.away, home_win_prob: favorability.home };
+    const favorability = favorabilityForGame(game, overrides);
+    return {
+      ...game,
+      away_win_prob: favorability.away,
+      home_win_prob: favorability.home,
+      favorability_override_reason: favorability.reason,
+    };
   });
 }
 
@@ -84,22 +124,21 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
   if (error) throw error;
 
   const games = (data ?? []) as unknown as Array<
-    Omit<GameRow, "kickoff_iso" | "home_win_prob" | "away_win_prob" | "playoff_round"> & {
+    Omit<GameRow, "kickoff_iso" | "home_win_prob" | "away_win_prob" | "favorability_override_reason" | "playoff_round"> & {
       kickoff_at: string;
     }
   >;
 
+  const overrides = await getFavorabilityOverrides(games.map((game) => game.id));
+
   return games.map((game) => {
-    const favorability = matchupFavorability(
-      game.away_team.abbreviation,
-      game.home_team.abbreviation,
-      game.week
-    );
+    const favorability = favorabilityForGame(game, overrides);
     return {
       ...game,
       kickoff_iso: game.kickoff_at,
       home_win_prob: favorability.home,
       away_win_prob: favorability.away,
+      favorability_override_reason: favorability.reason,
       playoff_round: null,
     };
   });

@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorability_overrides: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          game_id: string
+          home_win_probability: number
+          reason: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          game_id: string
+          home_win_probability: number
+          reason: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          game_id?: string
+          home_win_probability?: number
+          reason?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorability_overrides_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foods: {
         Row: {
           created_at: string | null
@@ -230,6 +265,57 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
           want_to_try?: boolean | null
+        }
+        Relationships: []
+      }
+      sync_runs: {
+        Row: {
+          error: string | null
+          finished_at: string | null
+          id: number
+          matched: number
+          provider_games: number
+          requested_by: string | null
+          season: number
+          source: string
+          started_at: string
+          status: string
+          unchanged: number
+          unmatched: Json
+          updated: number
+          weeks: number[]
+        }
+        Insert: {
+          error?: string | null
+          finished_at?: string | null
+          id?: number
+          matched?: number
+          provider_games?: number
+          requested_by?: string | null
+          season: number
+          source: string
+          started_at?: string
+          status?: string
+          unchanged?: number
+          unmatched?: Json
+          updated?: number
+          weeks?: number[]
+        }
+        Update: {
+          error?: string | null
+          finished_at?: string | null
+          id?: number
+          matched?: number
+          provider_games?: number
+          requested_by?: string | null
+          season?: number
+          source?: string
+          started_at?: string
+          status?: string
+          unchanged?: number
+          unmatched?: Json
+          updated?: number
+          weeks?: number[]
         }
         Relationships: []
       }

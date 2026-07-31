@@ -1,5 +1,6 @@
 import { createSupabaseAdmin } from "@/lib/supabaseAdmin";
-import { findActiveWeeks, syncResults } from "@/lib/results/sync";
+import { findActiveWeeks } from "@/lib/results/sync";
+import { runTrackedSync } from "@/lib/results/runSync";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -26,7 +27,12 @@ export async function GET(request: Request) {
       return Response.json({ ok: true, message: "No games are in the active sync window.", weeks });
     }
 
-    const summary = await syncResults({ supabase, season: SEASON, weeks });
+    const summary = await runTrackedSync({
+      supabase,
+      season: SEASON,
+      weeks,
+      source: "cron",
+    });
     return Response.json({ ok: true, summary });
   } catch (error) {
     console.error("Results sync failed", error);

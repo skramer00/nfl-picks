@@ -227,6 +227,12 @@ export default function WeekPage() {
                 </button>
               </div>
 
+              {game.favorability_override_reason ? (
+                <p className="mt-4 rounded-lg border border-amber-900/80 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
+                  Adjusted favorability: {game.favorability_override_reason}
+                </p>
+              ) : null}
+
               <p className="mt-5 text-sm text-gray-500">{game.venue ?? "Venue TBD"}</p>
             </article>
           ))}
