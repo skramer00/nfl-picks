@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { getGamesByWeek, type ScheduleGame } from "@/lib/gamesDb";
 import { getUserPicks, upsertPick } from "@/lib/picksDb";
 import { supabase } from "@/lib/supabaseClient";
+import { formatFavorability } from "@/lib/favorability";
 
 const SEASON = 2026;
 const WEEKS = Array.from({ length: 18 }, (_, index) => index + 1);
@@ -204,7 +205,10 @@ export default function WeekPage() {
                     <p className="text-xs uppercase tracking-wide text-gray-500">Away</p>
                     <p className="mt-1 text-lg font-semibold">{game.away_team.name}</p>
                   </div>
-                  <span className="text-xl font-bold text-gray-400">{game.away_team.abbreviation}</span>
+                  <div className="text-right">
+                    <span className="block text-xl font-bold text-gray-300">{formatFavorability(game.away_win_prob)}</span>
+                    <span className="text-xs text-gray-500">favorability · {game.away_team.abbreviation}</span>
+                  </div>
                 </button>
                 <button
                   type="button"
@@ -216,7 +220,10 @@ export default function WeekPage() {
                     <p className="text-xs uppercase tracking-wide text-gray-500">Home</p>
                     <p className="mt-1 text-lg font-semibold">{game.home_team.name}</p>
                   </div>
-                  <span className="text-xl font-bold text-gray-400">{game.home_team.abbreviation}</span>
+                  <div className="text-right">
+                    <span className="block text-xl font-bold text-gray-300">{formatFavorability(game.home_win_prob)}</span>
+                    <span className="text-xs text-gray-500">favorability · {game.home_team.abbreviation}</span>
+                  </div>
                 </button>
               </div>
 

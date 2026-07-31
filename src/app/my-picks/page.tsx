@@ -13,6 +13,10 @@ type Game = {
   kickoffISO: string | null;
   awayTeamId: string;
   homeTeamId: string;
+  awayTeamName: string;
+  homeTeamName: string;
+  awayTeamAbbreviation: string;
+  homeTeamAbbreviation: string;
   status: "scheduled" | "final";
   winnerTeamId: string | null;
   awayWinProb: number | null;
@@ -35,9 +39,7 @@ function weekTitle(w: number) {
 
 function pct(n: number | null | undefined) {
   if (n == null) return "—";
-  const p = n * 100;
-  if (p >= 45 && p <= 55) return "Even";
-  return `${Math.round(p)}%`;
+  return `${Math.round(n * 100)}%`;
 }
 
 export default function MyPicksPage() {
@@ -60,6 +62,10 @@ export default function MyPicksPage() {
             kickoffISO: r.kickoff_iso,
             awayTeamId: r.away_team_id,
             homeTeamId: r.home_team_id,
+            awayTeamName: r.away_team.name,
+            homeTeamName: r.home_team.name,
+            awayTeamAbbreviation: r.away_team.abbreviation,
+            homeTeamAbbreviation: r.home_team.abbreviation,
             status: (r.status as Game["status"]) ?? "scheduled",
             winnerTeamId: r.winner_team_id ?? null,
             awayWinProb: r.away_win_prob ?? null,
@@ -135,6 +141,15 @@ export default function MyPicksPage() {
       accuracy,
     };
   }, [games, picks]);
+
+  const teamById = useMemo(() => {
+    const teams: Record<string, { name: string; abbreviation: string }> = {};
+    for (const game of games) {
+      teams[game.awayTeamId] = { name: game.awayTeamName, abbreviation: game.awayTeamAbbreviation };
+      teams[game.homeTeamId] = { name: game.homeTeamName, abbreviation: game.homeTeamAbbreviation };
+    }
+    return teams;
+  }, [games]);
 
   return (
     <main className="mx-auto max-w-4xl p-6">
@@ -239,9 +254,9 @@ export default function MyPicksPage() {
                           className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-gray-800 bg-gray-950 p-3 text-sm"
                         >
                           <div className="text-gray-200">
-                            {g.awayTeamId} @ {g.homeTeamId}{" "}
-                            <span className="text-xs text-gray-500">
-                              • {pct(g.awayWinProb)} / {pct(g.homeWinProb)}
+                            <span>{g.awayTeamName} @ {g.homeTeamName}</span>
+                            <span className="ml-1 text-xs text-gray-500">
+                              • Favorability: {g.awayTeamAbbreviation} {pct(g.awayWinProb)} · {g.homeTeamAbbreviation} {pct(g.homeWinProb)}
                             </span>
                           </div>
 
@@ -249,7 +264,7 @@ export default function MyPicksPage() {
                             <div className="text-gray-300">
                               {picked ? (
                                 <span>
-                                  Picked: <span className="font-medium">{picked}</span>
+                                  Picked: <span className="font-medium">{teamById[picked]?.name ?? "Unknown team"}</span>
                                 </span>
                               ) : (
                                 <span className="text-gray-500">No pick</span>
@@ -272,10 +287,10 @@ export default function MyPicksPage() {
 
         {viewMode === "team" &&
           Object.entries(groupedByTeam)
-            .sort((a, b) => a[0].localeCompare(b[0]))
+            .sort((a, b) => (teamById[a[0]]?.name ?? a[0]).localeCompare(teamById[b[0]]?.name ?? b[0]))
             .map(([team, teamGames]) => (
               <div key={team}>
-                <h2 className="mb-2 text-lg font-semibold">{team}</h2>
+                <h2 className="mb-2 text-lg font-semibold">{teamById[team]?.name ?? "Unknown team"}</h2>
 
                 <div className="space-y-2">
                   {teamGames.map((g) => {
@@ -287,14 +302,14 @@ export default function MyPicksPage() {
                         key={g.id}
                         className="rounded-xl border border-gray-800 bg-gray-950 p-3 text-sm"
                       >
-                        Week {g.week}: {g.awayTeamId} @ {g.homeTeamId}{" "}
+                        Week {g.week}: {g.awayTeamName} @ {g.homeTeamName}{" "}
                         <span className="text-xs text-gray-500">
-                          • {pct(g.awayWinProb)} / {pct(g.homeWinProb)}
+                          • Favorability: {g.awayTeamAbbreviation} {pct(g.awayWinProb)} · {g.homeTeamAbbreviation} {pct(g.homeWinProb)}
                         </span>
                         <div className="mt-1">
                           {picked ? (
                             <span className="text-gray-200">
-                              Picked: <span className="font-medium">{picked}</span>
+                              Picked: <span className="font-medium">{teamById[picked]?.name ?? "Unknown team"}</span>
                             </span>
                           ) : (
                             <span className="text-gray-500">No pick</span>
@@ -302,7 +317,7 @@ export default function MyPicksPage() {
 
                           {isFinal ? (
                             <span className="ml-2 text-xs text-gray-500">
-                              • Final: {g.winnerTeamId}{" "}
+                              • Final: {g.winnerTeamId ? teamById[g.winnerTeamId]?.name ?? "Unknown team" : ""}{" "}
                               {picked ? (picked === g.winnerTeamId ? "✅" : "❌") : ""}
                             </span>
                           ) : null}

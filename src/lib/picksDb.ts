@@ -11,6 +11,7 @@ export async function getUserPicks(): Promise<Record<string, string>> {
     error: userError,
   } = await supabase.auth.getUser();
 
+  if (userError?.name === "AuthSessionMissingError") return {};
   if (userError) throw userError;
   if (!user) return {};
 
