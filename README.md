@@ -34,3 +34,19 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# NFL Picks
+
+## Automated results
+
+Production runs `GET /api/cron/sync-results` daily at 12:00 UTC through Vercel Cron. The route:
+
+- requires Vercel's `Authorization: Bearer $CRON_SECRET` header;
+- reads the ESPN NFL scoreboard through an isolated provider adapter;
+- matches games by season, week, away team, and home team;
+- updates kickoff changes, game status, scores, and the winner;
+- is idempotent, so duplicate invocations do not duplicate results;
+- automatically feeds the existing accuracy and leaderboard queries.
+
+Server-only environment variables are `SUPABASE_SECRET_KEY` and `CRON_SECRET`. Never prefix either with `NEXT_PUBLIC_` or commit their values.
+
+For a protected manual run, request `/api/cron/sync-results?week=1` with the same bearer token. Without a week, the job syncs games from 72 hours ago through 24 hours ahead.
