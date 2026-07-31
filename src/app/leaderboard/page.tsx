@@ -1,5 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { getLeaderboard } from "@/lib/leaderboardDb";
+
+type Row = {
+  user_id: string;
+  display_name: string;
+  points: number;
+  picks_made: number;
+  correct: number;
+  upsets: number;
+  accuracy: number;
+};
+
 function medalForRank(rank: number) {
   if (rank === 1) return "🥇";
   if (rank === 2) return "🥈";
@@ -7,146 +20,106 @@ function medalForRank(rank: number) {
   return "";
 }
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import week1 from "@/data/games_2026_week1.json";
-import week2 from "@/data/games_2026_week2.json";
-import { fakeUsers, FakeUser } from "@/data/fakeUsers";
-import { loadPicks, PickMap } from "@/lib/picks";
-
-type Game = {
-  id: string;
-  week: number;
-  kickoffISO: string;
-  awayTeam: string;
-  homeTeam: string;
-  status?: "scheduled" | "final";
-  winner?: string;
-};
-
-const allGames: Game[] = [...(week1 as Game[]), ...(week2 as Game[])];
-
-function computeStats(picks: Record<string, string>, games: Game[]) {
-  const finalGames = games.filter((g) => g.status === "final" && g.winner);
-
-  const pickedFinalGames = finalGames.filter((g) => Boolean(picks[g.id]));
-  const correct = pickedFinalGames.filter((g) => picks[g.id] === g.winner).length;
-  const total = pickedFinalGames.length;
-
-  const pct = total > 0 ? correct / total : 0;
-
-  return { correct, total, pct, finalGamesCount: finalGames.length };
-}
-
 export default function LeaderboardPage() {
-  const [myPicks, setMyPicks] = useState<PickMap>({});
-  const [weekFilter, setWeekFilter] = useState<"season" | number>("season");
+  const [rows, setRows] = useState<Row[]>([]);
 
   useEffect(() => {
-    setMyPicks(loadPicks());
+    async function load() {
+      const data = await getLeaderboard();
+      setRows(data ?? []);
+    }
+    load();
   }, []);
 
-  const filteredGames = useMemo(() => {
-    return weekFilter === "season"
-      ? allGames
-      : allGames.filter((g) => g.week === weekFilter);
-  }, [weekFilter]);
+  // Determine Most Upsets
+  const maxUpsets =
+    rows.length > 0 ? Math.max(...rows.map((r) => r.upsets ?? 0)) : 0;
 
-  const rows = useMemo(() => {
-    const users: FakeUser[] = fakeUsers.map((u) =>
-      u.id === "u_scott" ? { ...u, picks: myPicks } : u
-    );
-
-    const computed = users.map((u) => {
-      const s = computeStats(u.picks, filteredGames);
-      return { id: u.id, name: u.name, ...s };
-    });
-
-    // Original sorting (simple):
-    // 1) Higher pct
-    // 2) Higher total (more picks counted)
-    // 3) Higher correct
-    return computed.sort((a, b) => {
-      if (b.pct !== a.pct) return b.pct - a.pct;
-      if (b.total !== a.total) return b.total - a.total;
-      return b.correct - a.correct;
-    });
-  }, [myPicks, filteredGames]);
-
-  const finalGamesCount = filteredGames.filter((g) => g.status === "final" && g.winner).length;
+  const upsetLeaders =
+    maxUpsets > 0
+      ? rows.filter((r) => r.upsets === maxUpsets)
+      : [];
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
+    <main className="mx-auto max-w-5xl p-6">
+      <h1 className="text-2xl font-semibold">Leaderboard</h1>
 
-      <h1 className="mt-4 text-2xl font-semibold">Leaderboard</h1>
       <p className="mt-2 text-sm text-gray-400">
-        Ranked by accuracy on final games picked. Final games available: {finalGamesCount}.
+        1 point per pick • +1 correct • +1 upset • playoff rounds multiply
       </p>
 
-      <div className="mt-4 flex items-center gap-3">
-        <div className="text-sm text-gray-300">View:</div>
-        <select
-          value={weekFilter}
-          onChange={(e) =>
-            setWeekFilter(e.target.value === "season" ? "season" : Number(e.target.value))
-          }
-          className="rounded-lg border border-gray-700 bg-gray-900 px-3 py-2 text-sm text-gray-100"
-        >
-          <option value="season">Season</option>
-          <option value="1">Week 1</option>
-          <option value="2">Week 2</option>
-        </select>
-      </div>
-
       <div className="mt-6 overflow-hidden rounded-xl border border-gray-700 bg-gray-900">
-        <div className="grid grid-cols-12 bg-gray-800 px-4 py-3 text-xs font-semibold text-gray-200">
+        <div className="grid grid-cols-14 bg-gray-800 px-4 py-3 text-xs font-semibold text-gray-200">
           <div className="col-span-1">Rank</div>
-          <div className="col-span-5">User</div>
+          <div className="col-span-4">User</div>
+          <div className="col-span-2 text-right">Points</div>
           <div className="col-span-2 text-right">Correct</div>
-          <div className="col-span-2 text-right">Total</div>
+          <div className="col-span-2 text-right">Upsets</div>
+          <div className="col-span-1 text-right">Picks</div>
           <div className="col-span-2 text-right">Accuracy</div>
         </div>
 
-          {rows.map((r, idx) => {
-  const pctText = r.total > 0 ? `${Math.round(r.pct * 1000) / 10}%` : "—";
-  const isMe = r.id === "u_scott";
-  const isTop3 = idx < 3;
+        {rows.map((r, idx) => {
+          const isUpsetLeader =
+            maxUpsets > 0 && r.upsets === maxUpsets;
 
-  return (
-    <div
-      key={r.id}
-      className={`grid grid-cols-12 px-4 py-3 text-sm text-gray-100 ${
-        idx !== rows.length - 1 ? "border-b border-gray-800" : ""
-      } ${
-        isMe
-          ? "bg-yellow-900/30"
-          : isTop3
-          ? "bg-gray-800/40"
-          : "bg-gray-900"
-      }`}
-    >
-      <div className="col-span-1 font-medium">
-        <span className="mr-1">{medalForRank(idx + 1)}</span>
-        {idx + 1}
+          return (
+            <div
+              key={r.user_id}
+              className={`grid grid-cols-14 px-4 py-3 text-sm text-gray-100 ${
+                idx !== rows.length - 1
+                  ? "border-b border-gray-800"
+                  : ""
+              } ${idx < 3 ? "bg-gray-800/40" : "bg-gray-900"}`}
+            >
+              <div className="col-span-1 font-medium">
+                <span className="mr-1">
+                  {medalForRank(idx + 1)}
+                </span>
+                {idx + 1}
+              </div>
+
+              <div className="col-span-4 font-medium flex items-center gap-2">
+                {r.display_name}
+                {isUpsetLeader && (
+                  <span className="text-xs bg-emerald-700/30 text-emerald-300 px-2 py-0.5 rounded-full">
+                    💥 Most Upsets
+                  </span>
+                )}
+              </div>
+
+              <div className="col-span-2 text-right font-semibold text-blue-400">
+                {r.points}
+              </div>
+
+              <div className="col-span-2 text-right">
+                {r.correct}
+              </div>
+
+              <div className="col-span-2 text-right text-emerald-400 font-medium">
+                {r.upsets}
+              </div>
+
+              <div className="col-span-1 text-right">
+                {r.picks_made}
+              </div>
+
+              <div className="col-span-2 text-right font-medium">
+                {r.picks_made > 0
+                  ? `${r.accuracy}%`
+                  : "—"}
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="col-span-5">
-        <div className="font-medium">
-          {r.name} {isMe ? "(You)" : ""}
+      {maxUpsets > 0 && upsetLeaders.length > 1 && (
+        <div className="mt-4 text-sm text-gray-400">
+          💥 Tie for most upsets:{" "}
+          {upsetLeaders.map((u) => u.display_name).join(", ")}
         </div>
-      </div>
-
-      <div className="col-span-2 text-right">{r.correct}</div>
-      <div className="col-span-2 text-right">{r.total}</div>
-      <div className="col-span-2 text-right font-medium">{pctText}</div>
-    </div>
-  );
-})}
-      </div>
-
-      <div className="mt-4 text-xs text-gray-400">
-        Note: This is a local prototype with a few fake users. When we add Supabase, this becomes real.
-      </div>
+      )}
     </main>
   );
 }

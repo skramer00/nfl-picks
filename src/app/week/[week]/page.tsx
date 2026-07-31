@@ -1,132 +1,230 @@
 "use client";
 
-const TEAM_COLORS: Record<string, string> = {
-  LAC: "bg-blue-600 text-white border-blue-600",
-  KC: "bg-red-600 text-white border-red-600",
-  BUF: "bg-blue-700 text-white border-blue-700",
-  DEN: "bg-orange-600 text-white border-orange-600",
-  SF: "bg-red-700 text-white border-red-700",
-  SEA: "bg-emerald-600 text-white border-emerald-600",
-  NYJ: "bg-green-700 text-white border-green-700",
-  MIA: "bg-teal-600 text-white border-teal-600",
-  DAL: "bg-slate-700 text-white border-slate-700",
-  PHI: "bg-green-800 text-white border-green-800",
-};
-
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import week1 from "@/data/games_2026_week1.json";
-import week2 from "@/data/games_2026_week2.json";
-import { loadPicks, setPick, PickMap } from "@/lib/picks";
+import { useEffect, useState } from "react";
 
-type Game = {
-  id: string;
-  week: number;
-  kickoffISO: string;
-  awayTeam: string;
-  homeTeam: string;
-};
+import { getGamesByWeek, type ScheduleGame } from "@/lib/gamesDb";
+import { getUserPicks, upsertPick } from "@/lib/picksDb";
+import { supabase } from "@/lib/supabaseClient";
 
-function isLocked(kickoffISO: string) {
-  return Date.now() >= new Date(kickoffISO).getTime();
-}
+const SEASON = 2026;
+const WEEKS = Array.from({ length: 18 }, (_, index) => index + 1);
+
+const pacificKickoff = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Los_Angeles",
+  weekday: "short",
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
+});
 
 export default function WeekPage() {
-  const params = useParams();
-  const weekParam = params.week;
-  const weekNumber = Number(Array.isArray(weekParam) ? weekParam[0] : weekParam);
-
-const games = useMemo(() => {
-  if (weekNumber === 1) return week1 as Game[];
-  if (weekNumber === 2) return week2 as Game[];
-  return [] as Game[];
-}, [weekNumber]);
-
-  const [picks, setPicks] = useState<PickMap>({});
+  const params = useParams<{ week: string }>();
+  const week = Number(params.week);
+  const validWeek = Number.isInteger(week) && week >= 1 && week <= 18;
+  const [games, setGames] = useState<ScheduleGame[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [picks, setPicks] = useState<Record<string, string>>({});
+  const [signedIn, setSignedIn] = useState(false);
+  const [savingGameId, setSavingGameId] = useState<string | null>(null);
+  const [pickMessage, setPickMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setPicks(loadPicks());
+    let cancelled = false;
+
+    async function loadSchedule() {
+      if (!validWeek) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const rows = await getGamesByWeek(SEASON, week);
+        if (!cancelled) setGames(rows);
+      } catch (loadError) {
+        if (!cancelled) {
+          setGames([]);
+          setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "The schedule could not be loaded."
+          );
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadSchedule();
+    return () => {
+      cancelled = true;
+    };
+  }, [validWeek, week]);
+
+  useEffect(() => {
+    async function loadPickState() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setSignedIn(Boolean(user));
+      if (user) {
+        try {
+          setPicks(await getUserPicks());
+        } catch (pickError) {
+          setPickMessage(pickError instanceof Error ? pickError.message : "Unable to load your picks.");
+        }
+      }
+    }
+    loadPickState();
   }, []);
 
+  async function chooseTeam(game: ScheduleGame, teamId: string) {
+    if (!signedIn) {
+      setPickMessage("Log in to save picks.");
+      return;
+    }
+
+    setSavingGameId(game.id);
+    setPickMessage(null);
+    try {
+      await upsertPick(game.id, teamId);
+      setPicks((current) => ({ ...current, [game.id]: teamId }));
+      setPickMessage("Pick saved.");
+    } catch (pickError) {
+      setPickMessage(pickError instanceof Error ? pickError.message : "Unable to save that pick.");
+    } finally {
+      setSavingGameId(null);
+    }
+  }
+
+  if (!validWeek) {
+    return (
+      <main className="mx-auto max-w-5xl p-6">
+        <h1 className="text-3xl font-semibold">Week not found</h1>
+        <p className="mt-3 text-gray-400">Choose a regular-season week from 1–18.</p>
+        <Link className="mt-5 inline-block text-blue-400 underline" href="/week/1">
+          Go to Week 1
+        </Link>
+      </main>
+    );
+  }
+
   return (
-    <main className="mx-auto max-w-3xl p-6">
-  
-      <h1 className="text-2xl font-semibold">Week {Number.isFinite(weekNumber) ? weekNumber : "?"} Picks</h1>
-      <p className="mt-2 text-sm text-gray-600">
-        Click a team to pick the winner. Picks lock at kickoff (placeholder logic for now).
-      </p>
-
-      <div className="mt-4 flex gap-2">
-  <a
-    href={`/week/${Math.max(1, weekNumber - 1)}`}
-    className="rounded-lg border px-3 py-2 text-sm hover:border-black"
-  >
-    ← Prev
-  </a>
-  <a
-    href={`/week/${weekNumber + 1}`}
-    className="rounded-lg border px-3 py-2 text-sm hover:border-black"
-  >
-    Next →
-  </a>
-</div>
-
-      <div className="mt-5 space-y-3">
-        {games.length === 0 && (
-          <div className="rounded-lg border p-4 text-sm text-gray-600">
-            No games loaded for week {Number.isFinite(weekNumber) ? weekNumber : "?"} yet.
-          </div>
+    <main className="mx-auto max-w-5xl p-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-widest text-blue-400">
+            {SEASON} regular season
+          </p>
+          <h1 className="mt-1 text-3xl font-semibold">Week {week} schedule</h1>
+          <p className="mt-2 text-sm text-gray-400">All kickoff times are shown in Pacific Time.</p>
+        </div>
+        {!loading && !error && (
+          <p className="text-sm text-gray-400">
+            {games.length} {games.length === 1 ? "game" : "games"}
+          </p>
         )}
-
-        {games.map((g) => {
-          const locked = isLocked(g.kickoffISO);
-          const picked = picks[g.id];
-
-          return (
-            <div key={g.id} className="rounded-xl border p-2.5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="text-sm text-gray-500">
-                  Kickoff: {new Date(g.kickoffISO).toLocaleString()}
-                </div>
-                <div className={`text-xs font-medium ${locked ? "text-red-600" : "text-green-700"}`}>
-                  {locked ? "Locked" : "Open"}
-                </div>
-              </div>
-
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button
-                  disabled={locked}
-                  onClick={() => setPicks(setPick(g.id, g.awayTeam))}
-                  className={`rounded-lg border px-3 py-1.5 text-left transition-colors duration-150 ${
-  picked === g.awayTeam
-    ? TEAM_COLORS[g.awayTeam] ?? "border-white bg-gray-800 text-white"
-    : "border-gray-700 bg-gray-900 hover:bg-gray-800"
-} ${locked ? "opacity-50 cursor-not-allowed hover:bg-gray-900" : ""}`}
-                >
-                  <div className="text-xs text-gray-500">Away</div>
-                  <div className="text-base font-semibold">{g.awayTeam}</div>
-                  {picked === g.awayTeam && <div className="mt-1 text-[11px] opacity-80">Your pick</div>}
-                </button>
-
-                <button
-                  disabled={locked}
-                  onClick={() => setPicks(setPick(g.id, g.homeTeam))}
-                  className={`rounded-lg border px-3 py-1.5 text-left transition-colors duration-150 ${
-  picked === g.homeTeam
-    ? TEAM_COLORS[g.homeTeam] ?? "border-white bg-gray-800 text-white"
-    : "border-gray-700 bg-gray-900 hover:bg-gray-800"
-} ${locked ? "opacity-50 cursor-not-allowed hover:bg-gray-900" : ""}`}
-                >
-                  <div className="text-xs text-gray-500">Home</div>
-                  <div className="text-base font-semibold">{g.homeTeam}</div>
-                  {picked === g.homeTeam && <div className="mt-1 text-[11px] opacity-80">Your pick</div>}
-                </button>
-              </div>
-            </div>
-          );
-        })}
       </div>
+
+      <nav aria-label="Choose a week" className="mt-6 flex flex-wrap gap-2">
+        {WEEKS.map((weekNumber) => (
+          <Link
+            key={weekNumber}
+            href={`/week/${weekNumber}`}
+            aria-current={weekNumber === week ? "page" : undefined}
+            className={`min-w-10 rounded-lg border px-3 py-2 text-center text-sm transition ${
+              weekNumber === week
+                ? "border-blue-500 bg-blue-600 text-white"
+                : "border-gray-700 text-gray-300 hover:border-gray-500 hover:bg-gray-900"
+            }`}
+          >
+            {weekNumber}
+          </Link>
+        ))}
+      </nav>
+
+      {pickMessage && (
+        <div className="mt-5 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-200" role="status">
+          {pickMessage} {!signedIn && <Link className="ml-1 text-blue-400 underline" href="/login">Log in</Link>}
+        </div>
+      )}
+
+      {loading && (
+        <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6 text-gray-300" role="status">
+          Loading Week {week} games…
+        </div>
+      )}
+
+      {!loading && error && (
+        <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6" role="alert">
+          <h2 className="font-semibold text-red-200">Unable to load the schedule</h2>
+          <p className="mt-2 text-sm text-red-300">{error}</p>
+          <button
+            className="mt-4 rounded-lg border border-red-700 px-3 py-2 text-sm hover:bg-red-900/40"
+            onClick={() => window.location.reload()}
+            type="button"
+          >
+            Try again
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && games.length === 0 && (
+        <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6 text-gray-300">
+          No games were found for Week {week}.
+        </div>
+      )}
+
+      {!loading && !error && games.length > 0 && (
+        <div className="mt-8 grid gap-4 md:grid-cols-2">
+          {games.map((game) => (
+            <article key={game.id} className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <time className="text-sm font-medium text-blue-300" dateTime={game.kickoff_at}>
+                  {pacificKickoff.format(new Date(game.kickoff_at))}
+                </time>
+                <span className="rounded-full bg-gray-800 px-2.5 py-1 text-xs capitalize text-gray-300">
+                  {game.status}
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <button
+                  type="button"
+                  disabled={savingGameId === game.id || Date.now() >= new Date(game.kickoff_at).getTime()}
+                  onClick={() => chooseTeam(game, game.away_team.id)}
+                  className={`flex w-full items-center justify-between gap-4 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${picks[game.id] === game.away_team.id ? "border-blue-500 bg-blue-950/50" : "border-gray-800 hover:border-gray-600"}`}
+                >
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Away</p>
+                    <p className="mt-1 text-lg font-semibold">{game.away_team.name}</p>
+                  </div>
+                  <span className="text-xl font-bold text-gray-400">{game.away_team.abbreviation}</span>
+                </button>
+                <button
+                  type="button"
+                  disabled={savingGameId === game.id || Date.now() >= new Date(game.kickoff_at).getTime()}
+                  onClick={() => chooseTeam(game, game.home_team.id)}
+                  className={`flex w-full items-center justify-between gap-4 rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${picks[game.id] === game.home_team.id ? "border-blue-500 bg-blue-950/50" : "border-gray-800 hover:border-gray-600"}`}
+                >
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-gray-500">Home</p>
+                    <p className="mt-1 text-lg font-semibold">{game.home_team.name}</p>
+                  </div>
+                  <span className="text-xl font-bold text-gray-400">{game.home_team.abbreviation}</span>
+                </button>
+              </div>
+
+              <p className="mt-5 text-sm text-gray-500">{game.venue ?? "Venue TBD"}</p>
+            </article>
+          ))}
+        </div>
+      )}
     </main>
   );
 }
