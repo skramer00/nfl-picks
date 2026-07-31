@@ -7,10 +7,11 @@ export const maxDuration = 60;
 const SEASON = 2026;
 
 export async function GET(request: Request) {
-  if (
-    !process.env.CRON_SECRET ||
-    request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`
-  ) {
+  const cronSecret = process.env.CRON_SECRET;
+  const bearerAuthorized = request.headers.get("authorization") === `Bearer ${cronSecret}`;
+  const previewAuthorized = request.headers.get("x-cron-secret") === cronSecret;
+
+  if (!cronSecret || (!bearerAuthorized && !previewAuthorized)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

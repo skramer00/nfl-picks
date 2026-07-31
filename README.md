@@ -49,4 +49,4 @@ Production runs `GET /api/cron/sync-results` daily at 12:00 UTC through Vercel C
 
 Server-only environment variables are `SUPABASE_SECRET_KEY` and `CRON_SECRET`. Never prefix either with `NEXT_PUBLIC_` or commit their values.
 
-For a protected manual run, request `/api/cron/sync-results?week=1` with the same bearer token. Without a week, the job syncs games from 72 hours ago through 24 hours ahead.
+For a protected manual run, request `/api/cron/sync-results?week=1` with the same token in either the bearer authorization header or `x-cron-secret` (useful behind Preview Protection). Without a week, the job syncs games from 72 hours ago through 24 hours ahead.
