@@ -10,11 +10,23 @@ const TEAM_ELO: Record<string, number> = {
 };
 
 const HOME_FIELD_ELO = 55;
+const WEEK_ONE_CONFIDENCE = 2 / 3;
+const WEEK_ONE_MAX = 0.74;
 
-export function matchupFavorability(awayAbbreviation: string, homeAbbreviation: string) {
+function applyWeekOneUncertainty(homeProbability: number) {
+  const regressed = 0.5 + (homeProbability - 0.5) * WEEK_ONE_CONFIDENCE;
+  return Math.min(WEEK_ONE_MAX, Math.max(1 - WEEK_ONE_MAX, regressed));
+}
+
+export function matchupFavorability(
+  awayAbbreviation: string,
+  homeAbbreviation: string,
+  week?: number
+) {
   const awayRating = TEAM_ELO[awayAbbreviation] ?? 1505;
   const homeRating = (TEAM_ELO[homeAbbreviation] ?? 1505) + HOME_FIELD_ELO;
-  const home = 1 / (1 + 10 ** ((awayRating - homeRating) / 400));
+  const rawHome = 1 / (1 + 10 ** ((awayRating - homeRating) / 400));
+  const home = week === 1 ? applyWeekOneUncertainty(rawHome) : rawHome;
 
   return { away: 1 - home, home };
 }

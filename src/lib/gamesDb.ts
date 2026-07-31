@@ -59,7 +59,11 @@ export async function getGamesByWeek(season: number, week: number) {
   if (error) throw error;
   const games = (data ?? []) as unknown as Omit<ScheduleGame, "away_win_prob" | "home_win_prob">[];
   return games.map((game) => {
-    const favorability = matchupFavorability(game.away_team.abbreviation, game.home_team.abbreviation);
+    const favorability = matchupFavorability(
+      game.away_team.abbreviation,
+      game.home_team.abbreviation,
+      game.week
+    );
     return { ...game, away_win_prob: favorability.away, home_win_prob: favorability.home };
   });
 }
@@ -86,7 +90,11 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
   >;
 
   return games.map((game) => {
-    const favorability = matchupFavorability(game.away_team.abbreviation, game.home_team.abbreviation);
+    const favorability = matchupFavorability(
+      game.away_team.abbreviation,
+      game.home_team.abbreviation,
+      game.week
+    );
     return {
       ...game,
       kickoff_iso: game.kickoff_at,
