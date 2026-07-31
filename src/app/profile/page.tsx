@@ -7,7 +7,16 @@ import { supabase } from "@/lib/supabaseClient";
 type Profile = { display_name: string | null };
 
 function messageFrom(error: unknown) {
-  return error instanceof Error ? error.message : "Something went wrong.";
+  if (error instanceof Error) return error.message;
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+  return "Something went wrong.";
 }
 
 export default function ProfilePage() {
@@ -63,7 +72,8 @@ export default function ProfilePage() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .upsert({ user_id: userId, display_name: name }, { onConflict: "user_id" });
+        .update({ display_name: name })
+        .eq("user_id", userId);
       if (error) throw error;
       setStatus("Profile updated successfully.");
     } catch (error) {
