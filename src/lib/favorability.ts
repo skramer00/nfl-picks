@@ -15,7 +15,7 @@ const WEEK_ONE_MAX = 0.74;
 const REST_FACTOR_START_WEEK = 3;
 const REST_BOOST_PER_DAY = 0.0075;
 const MAX_REST_BOOST = 0.03;
-const DIVISION_MATCHUP_MAX = 0.75;
+const DIVISION_MATCHUP_MAX = 0.7;
 
 export function teamStrength(abbreviation: string) {
   return TEAM_ELO[abbreviation] ?? 1505;
