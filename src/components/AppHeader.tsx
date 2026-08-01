@@ -94,7 +94,6 @@ export default function AppHeader() {
           <Link href="/" className="text-base font-semibold tracking-tight" onClick={() => setMenuOpen(false)}>
             <span aria-hidden="true" className="mr-1.5">🥨</span>
             Pretzel Quest
-            <span className="ml-2 hidden text-xs font-normal text-gray-400 sm:inline">NFL Picks · 2026</span>
           </Link>
           <div className="ml-3 flex items-center gap-2 lg:hidden">
             {!user ? (
@@ -123,10 +122,10 @@ export default function AppHeader() {
           className={`${menuOpen ? "flex" : "hidden"} mt-3 flex-col gap-3 border-t border-gray-800 pt-3 lg:mt-0 lg:flex lg:flex-row lg:items-center lg:justify-end lg:border-0 lg:pt-0`}
         >
           <nav className="flex flex-col gap-1 lg:flex-row lg:items-center" aria-label="Primary">
-            <NavLink href="/week" label="Make Picks" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/my-picks" label="My Season" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/week" label="Picks" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/my-picks" label="Season" onSelect={() => setMenuOpen(false)} />
             <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/power-rankings" label="Rankings" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/power-rankings" label="Model" onSelect={() => setMenuOpen(false)} />
             <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />
             {isAdmin ? <NavLink href="/admin" label="Admin" onSelect={() => setMenuOpen(false)} /> : null}
           </nav>
