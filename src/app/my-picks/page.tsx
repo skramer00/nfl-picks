@@ -95,7 +95,6 @@ export default function MyPicksPage() {
     }
     loadPicks();
   }, []);
-
   const groupedByWeek = useMemo(() => {
     const grouped: Record<number, Game[]> = {};
     for (const g of games) {
