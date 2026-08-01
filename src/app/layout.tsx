@@ -3,8 +3,8 @@ import "./globals.css";
 import AppHeader from "@/components/AppHeader";
 
 export const metadata: Metadata = {
-  title: "NFL Picks",
-  description: "Pick games. Track accuracy. Climb the leaderboard.",
+  title: "Pretzel Quest | NFL Picks",
+  description: "Pretzel Quest: pick every NFL game, track accuracy, and climb the leaderboard.",
 };
 
 export default function RootLayout({

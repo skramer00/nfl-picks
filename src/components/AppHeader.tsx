@@ -89,21 +89,33 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-800 bg-black/80 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-3">
-        <div className="flex items-center justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-3 lg:flex lg:items-center lg:justify-between lg:gap-4">
+        <div className="flex items-center justify-between lg:shrink-0">
           <Link href="/" className="text-base font-semibold tracking-tight" onClick={() => setMenuOpen(false)}>
-            NFL Picks
-            <span className="ml-2 text-xs font-normal text-gray-400">2026</span>
+            <span aria-hidden="true" className="mr-1.5">🥨</span>
+            Pretzel Quest
+            <span className="ml-2 hidden text-xs font-normal text-gray-400 sm:inline">NFL Picks · 2026</span>
           </Link>
-          <button
-            type="button"
-            className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800 lg:hidden"
-            aria-expanded={menuOpen}
-            aria-controls="site-menu"
-            onClick={() => setMenuOpen((open) => !open)}
-          >
-            {menuOpen ? "Close" : "Menu"}
-          </button>
+          <div className="ml-3 flex items-center gap-2 lg:hidden">
+            {!user ? (
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+              >
+                Login
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
+              aria-expanded={menuOpen}
+              aria-controls="site-menu"
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? "Close" : "Menu"}
+            </button>
+          </div>
         </div>
 
         <div
@@ -141,7 +153,7 @@ export default function AppHeader() {
             <Link
               href="/login"
               onClick={() => setMenuOpen(false)}
-              className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+              className="hidden rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800 lg:inline-flex"
             >
               Login
             </Link>

@@ -5,9 +5,10 @@ export default function Home() {
     <main className="mx-auto max-w-3xl p-6">
       {/* Hero */}
       <div className="text-center">
-        <h1 className="text-4xl font-bold tracking-tight">
-          NFL Picks 2026
-        </h1>
+        <div className="text-sm font-semibold uppercase tracking-[0.22em] text-amber-400">
+          🥨 Pretzel Quest
+        </div>
+        <h1 className="mt-2 text-4xl font-bold tracking-tight">NFL Picks 2026</h1>
         <p className="mt-3 text-lg text-gray-400">
           Pick every game. Beat the model. Win the league.
         </p>
