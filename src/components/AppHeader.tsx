@@ -72,10 +72,15 @@ export default function AppHeader() {
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      (_event, session) => {
         const u = session?.user ?? null;
         setUser(u);
-        await loadProfile(u);
+
+        // Supabase holds an auth lock while this callback runs. Defer any
+        // follow-up API call so sign-in can finish before loading the profile.
+        setTimeout(() => {
+          void loadProfile(u);
+        }, 0);
       }
     );
 

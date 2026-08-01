@@ -5,8 +5,25 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { supabase } from "@/lib/supabaseClient";
 
+const AUTH_TIMEOUT_MS = 15_000;
+
 function messageFrom(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong.";
+}
+
+async function withAuthTimeout<T>(request: PromiseLike<T>): Promise<T> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error("The request timed out. Check your connection and try again."));
+    }, AUTH_TIMEOUT_MS);
+  });
+
+  try {
+    return await Promise.race([Promise.resolve(request), timeout]);
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
 }
 
 function AuthForm() {
@@ -26,7 +43,9 @@ function AuthForm() {
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await withAuthTimeout(
+        supabase.auth.signInWithPassword({ email, password })
+      );
       if (error) throw error;
       router.push("/week/1");
       router.refresh();
@@ -43,7 +62,9 @@ function AuthForm() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await withAuthTimeout(
+        supabase.auth.signUp({ email, password })
+      );
       if (error) throw error;
 
       if (data.session) {
