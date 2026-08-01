@@ -90,6 +90,7 @@ export default function AppHeader() {
             <NavLink href="/week" label="Make Picks" />
             <NavLink href="/my-picks" label="My Season" />
             <NavLink href="/postseason" label="Postseason" />
+            <NavLink href="/power-rankings" label="Rankings" />
             <NavLink href="/leaderboard" label="Leaderboard" />
             {isAdmin ? <NavLink href="/admin" label="Admin" /> : null}
           </nav>
