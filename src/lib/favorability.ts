@@ -12,6 +12,9 @@ const TEAM_ELO: Record<string, number> = {
 const HOME_FIELD_ELO = 55;
 const WEEK_ONE_CONFIDENCE = 2 / 3;
 const WEEK_ONE_MAX = 0.74;
+const REST_FACTOR_START_WEEK = 3;
+const REST_BOOST_PER_DAY = 0.0075;
+const MAX_REST_BOOST = 0.03;
 
 export function teamStrength(abbreviation: string) {
   return TEAM_ELO[abbreviation] ?? 1505;
@@ -25,14 +28,22 @@ function applyWeekOneUncertainty(homeProbability: number) {
 export function matchupFavorability(
   awayAbbreviation: string,
   homeAbbreviation: string,
-  week?: number
+  week?: number,
+  homeRestAdvantageDays = 0
 ) {
   const awayRating = TEAM_ELO[awayAbbreviation] ?? 1505;
   const homeRating = (TEAM_ELO[homeAbbreviation] ?? 1505) + HOME_FIELD_ELO;
   const rawHome = 1 / (1 + 10 ** ((awayRating - homeRating) / 400));
-  const home = week === 1 ? applyWeekOneUncertainty(rawHome) : rawHome;
+  const baseHome = week === 1 ? applyWeekOneUncertainty(rawHome) : rawHome;
+  const wholeRestDays = Math.round(Math.abs(homeRestAdvantageDays));
+  const restAdjustment =
+    week !== undefined && week >= REST_FACTOR_START_WEEK
+      ? Math.sign(homeRestAdvantageDays) *
+        Math.min(wholeRestDays * REST_BOOST_PER_DAY, MAX_REST_BOOST)
+      : 0;
+  const home = Math.min(0.95, Math.max(0.05, baseHome + restAdjustment));
 
-  return { away: 1 - home, home };
+  return { away: 1 - home, home, restAdjustment };
 }
 
 export function formatFavorability(value: number) {

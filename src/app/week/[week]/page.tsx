@@ -236,6 +236,13 @@ export default function WeekPage() {
                 </p>
               ) : null}
 
+              {game.rest_advantage_team_id && game.rest_advantage_days && game.rest_adjustment > 0 ? (
+                <p className="mt-4 rounded-lg border border-sky-900/80 bg-sky-950/30 px-3 py-2 text-xs text-sky-200">
+                  Rest edge: {game.rest_advantage_team_id === game.home_team.id ? game.home_team.abbreviation : game.away_team.abbreviation}
+                  {" +"}{Math.round(game.rest_adjustment * 1000) / 10} percentage points ({Math.round(game.rest_advantage_days * 10) / 10} more days since its previous game)
+                </p>
+              ) : null}
+
               <p className="mt-5 text-sm text-gray-500">{game.venue ?? "Venue TBD"}</p>
             </article>
           ))}
