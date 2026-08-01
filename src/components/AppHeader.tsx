@@ -15,7 +15,7 @@ function NavLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
+      className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
     >
       {label}
     </Link>
@@ -79,16 +79,17 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-800 bg-black/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
         <Link href="/" className="text-base font-semibold tracking-tight">
           NFL Picks
           <span className="ml-2 text-xs font-normal text-gray-400">2026</span>
         </Link>
 
-        <div className="flex items-center gap-4">
-          <nav className="flex items-center gap-1">
+        <div className="flex max-w-full items-center gap-2 overflow-x-auto sm:gap-4">
+          <nav className="flex items-center gap-1" aria-label="Primary">
             <NavLink href="/week" label="Make Picks" />
             <NavLink href="/my-picks" label="My Season" />
+            <NavLink href="/playoffs" label="Playoffs" />
             <NavLink href="/leaderboard" label="Leaderboard" />
             {isAdmin ? <NavLink href="/admin" label="Admin" /> : null}
           </nav>

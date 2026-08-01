@@ -1,4 +1,17 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NFL Picks 2026
+
+A Next.js picks app with the complete 2026 regular-season schedule, season-long
+pick tracking, accuracy standings, and an NFL-rule-aware playoff projection.
+
+The playoff page can compare a user's selected winners with a transparent
+prior-season baseline model. Division champions, conference seeding, and wild
+cards use the official NFL tiebreaking sequence. When winner-only picks cannot
+calculate a scoring or touchdown-based step, the UI labels the display order as
+provisional rather than presenting it as an official result.
+
+Schedule data is imported from ESPN's public scoreboard feed and can be
+refreshed with `node scripts/import-season-data.mjs`. Tiebreaking behavior is
+based on the [NFL&apos;s published procedure](https://www.nfl.com/standings/tie-breaking-procedures).
 
 ## Getting Started
 
