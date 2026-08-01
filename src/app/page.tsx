@@ -23,6 +23,13 @@ export default function Home() {
         </Link>
 
         <Link
+          href="/playoffs"
+          className="rounded-xl border border-gray-700 px-6 py-3 text-center hover:bg-gray-900"
+        >
+          View Playoff Projection
+        </Link>
+
+        <Link
           href="/leaderboard"
           className="rounded-xl border border-gray-700 px-6 py-3 text-center hover:bg-gray-900"
         >
