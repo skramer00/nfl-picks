@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useEffect, useState, type FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { supabase } from "@/lib/supabaseClient";
 
 const AUTH_TIMEOUT_MS = 15_000;
+type AuthMode = "login" | "signup" | "forgot" | "reset";
 
 function messageFrom(error: unknown) {
   return error instanceof Error ? error.message : "Something went wrong.";
@@ -29,13 +30,23 @@ async function withAuthTimeout<T>(request: PromiseLike<T>): Promise<T> {
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<"login" | "signup">(
-    searchParams.get("mode") === "signup" ? "signup" : "login"
+  const requestedMode = searchParams.get("mode");
+  const [mode, setMode] = useState<AuthMode>(
+    requestedMode === "signup" || requestedMode === "reset"
+      ? requestedMode
+      : "login"
   );
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [status, setStatus] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setMode("reset");
+    });
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   async function handleLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,6 +89,117 @@ function AuthForm() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  async function handleForgotPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("");
+    setIsLoading(true);
+
+    try {
+      const { error } = await withAuthTimeout(
+        supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/login?mode=reset`,
+        })
+      );
+      if (error) throw error;
+      setStatus("If an account exists for that email, a password-reset link is on its way.");
+    } catch (error) {
+      setStatus(`Reset request failed: ${messageFrom(error)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function handlePasswordReset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setStatus("");
+    setIsLoading(true);
+
+    try {
+      const { error } = await withAuthTimeout(
+        supabase.auth.updateUser({ password })
+      );
+      if (error) throw error;
+      setStatus("Password updated. Taking you to your picks…");
+      router.push("/week/1");
+      router.refresh();
+    } catch (error) {
+      setStatus(`Password update failed: ${messageFrom(error)}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  if (mode === "forgot" || mode === "reset") {
+    const resetting = mode === "reset";
+    return (
+      <main className="mx-auto max-w-md p-6">
+        <h1 className="text-3xl font-semibold">
+          {resetting ? "Choose a new password" : "Reset your password"}
+        </h1>
+        <p className="mt-2 text-sm text-gray-400">
+          {resetting
+            ? "Enter a new password for your Pretzel Quest account."
+            : "We’ll email you a secure link to choose a new password."}
+        </p>
+        {status ? (
+          <div className="mt-5 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-200" role="status">
+            {status}
+          </div>
+        ) : null}
+        <form
+          className="mt-6 space-y-4"
+          onSubmit={resetting ? handlePasswordReset : handleForgotPassword}
+        >
+          {resetting ? (
+            <label className="block text-sm text-gray-300">
+              New password
+              <input
+                required
+                minLength={8}
+                type="password"
+                className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                autoComplete="new-password"
+              />
+            </label>
+          ) : (
+            <label className="block text-sm text-gray-300">
+              Email
+              <input
+                required
+                type="email"
+                className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+              />
+            </label>
+          )}
+          <button
+            disabled={isLoading}
+            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+            type="submit"
+          >
+            {isLoading ? "Working…" : resetting ? "Update password" : "Send reset link"}
+          </button>
+        </form>
+        {!resetting ? (
+          <button
+            type="button"
+            onClick={() => {
+              setMode("login");
+              setStatus("");
+            }}
+            className="mt-5 text-sm text-gray-400 hover:text-white"
+          >
+            ← Back to login
+          </button>
+        ) : null}
+      </main>
+    );
   }
 
   return (
@@ -153,6 +275,18 @@ function AuthForm() {
         >
           {isLoading ? "Working…" : mode === "signup" ? "Create account" : "Log in"}
         </button>
+        {mode === "login" ? (
+          <button
+            type="button"
+            onClick={() => {
+              setMode("forgot");
+              setStatus("");
+            }}
+            className="w-full text-sm text-gray-400 hover:text-white"
+          >
+            Forgot password?
+          </button>
+        ) : null}
       </form>
     </main>
   );

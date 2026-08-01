@@ -1,9 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
+import { getUserPicks } from "@/lib/picksDb";
+import { modelPerformance, pickDisagreements } from "@/lib/modelAnalytics";
 import { buildPowerRankings, type PowerRanking } from "@/lib/powerRankings";
+import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
 
 const SEASON = 2026;
@@ -62,17 +66,26 @@ function LeaderCard({ team }: { team: PowerRanking }) {
 
 export default function PowerRankingsPage() {
   const [games, setGames] = useState<GameRow[]>([]);
+  const [picks, setPicks] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<ConferenceFilter>("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
-    getGamesBySeason(SEASON)
-      .then((rows) => {
-        if (!cancelled) setGames(rows);
-      })
-      .catch((loadError) => {
+    async function load() {
+      try {
+        const [rows, userResult] = await Promise.all([
+          getGamesBySeason(SEASON),
+          supabase.auth.getUser(),
+        ]);
+        if (cancelled) return;
+        setGames(rows);
+        if (userResult.data.user) {
+          const saved = await getUserPicks(userResult.data.user.id);
+          if (!cancelled) setPicks(saved);
+        }
+      } catch (loadError) {
         if (!cancelled) {
           setError(
             loadError instanceof Error
@@ -80,10 +93,11 @@ export default function PowerRankingsPage() {
               : "Unable to build the power rankings."
           );
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    }
+    void load();
     return () => {
       cancelled = true;
     };
@@ -104,6 +118,11 @@ export default function PowerRankingsPage() {
   const latestWeek = completedGames.length
     ? Math.max(...completedGames.map((game) => game.week))
     : null;
+  const performance = useMemo(() => modelPerformance(games), [games]);
+  const disagreements = useMemo(
+    () => pickDisagreements(games, picks).slice(0, 5),
+    [games, picks]
+  );
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -111,11 +130,52 @@ export default function PowerRankingsPage() {
         <p className="text-sm font-medium uppercase tracking-widest text-blue-400">
           {SEASON} model
         </p>
-        <h1 className="mt-1 text-3xl font-semibold">NFL Power Rankings</h1>
+        <h1 className="mt-1 text-3xl font-semibold">Model Center</h1>
         <p className="mt-3 text-gray-400">
-          A model-only view of all 32 teams. Rankings start with preseason team strength, then move with completed results, opponent quality, and margin of victory.
+          Power rankings, projections, and a transparent scorecard for how the model performs throughout the season.
         </p>
       </div>
+
+      <section className="mt-8 grid gap-4 sm:grid-cols-3" aria-label="Model scorecard">
+        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
+          <p className="text-xs uppercase tracking-wider text-gray-500">Model accuracy</p>
+          <p className="mt-2 text-3xl font-bold">{performance.accuracy === null ? "—" : `${performance.accuracy}%`}</p>
+          <p className="mt-1 text-sm text-gray-400">{performance.finals ? `${performance.correct} of ${performance.finals} final games` : "Starts after the first final game"}</p>
+        </div>
+        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
+          <p className="text-xs uppercase tracking-wider text-gray-500">Favorites</p>
+          <p className="mt-2 text-3xl font-bold">{performance.finals ? performance.favoriteWins : "—"}</p>
+          <p className="mt-1 text-sm text-gray-400">Model favorites that won</p>
+        </div>
+        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
+          <p className="text-xs uppercase tracking-wider text-gray-500">Underdog wins</p>
+          <p className="mt-2 text-3xl font-bold">{performance.finals ? performance.underdogWins : "—"}</p>
+          <p className="mt-1 text-sm text-gray-400">Games where the model favorite lost</p>
+        </div>
+      </section>
+
+      {disagreements.length ? (
+        <section className="mt-8 rounded-2xl border border-amber-900/60 bg-amber-950/15 p-5 sm:p-6">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">Your contrarian board</p>
+              <h2 className="mt-1 text-xl font-semibold">Biggest disagreements with the model</h2>
+            </div>
+            <span className="text-xs text-gray-500">Your saved picks only</span>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {disagreements.map(({ game, favorite, pickedTeamId }) => {
+              const picked = pickedTeamId === game.home_team_id ? game.home_team : game.away_team;
+              return (
+                <Link key={game.id} href={`/week/${game.week}`} className="rounded-xl border border-gray-800 bg-black/30 p-4 hover:border-amber-700">
+                  <p className="text-xs text-gray-500">Week {game.week} · {game.away_team.abbreviation} at {game.home_team.abbreviation}</p>
+                  <p className="mt-2 text-sm"><span className="font-semibold text-amber-300">You: {picked.name}</span><span className="text-gray-500"> · </span>Model: {favorite.team.name} ({Math.round(favorite.probability * 100)}%)</p>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <div className="inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1">
@@ -195,7 +255,7 @@ export default function PowerRankingsPage() {
                       {team.abbreviation}
                     </span>
                     <div className="min-w-0">
-                      <div className="truncate font-semibold">{team.name}</div>
+                      <Link href={`/power-rankings/${team.abbreviation.toLowerCase()}`} className="truncate font-semibold hover:text-blue-300 hover:underline">{team.name}</Link>
                       <div className="text-xs text-gray-500 sm:hidden">
                         {record(team)} · {team.rating}
                       </div>
@@ -215,6 +275,15 @@ export default function PowerRankingsPage() {
           <p className="mt-6 text-xs leading-5 text-gray-500">
             Movement compares each team with its position before the latest completed week. Model ratings are directional power scores—not predicted win totals—and user picks do not affect them.
           </p>
+
+          <details className="mt-8 rounded-2xl border border-gray-800 bg-gray-950 p-5">
+            <summary className="cursor-pointer font-semibold">How the model works</summary>
+            <div className="mt-4 space-y-3 text-sm leading-6 text-gray-400">
+              <p>Teams begin with a preseason strength rating. Each final result moves both teams based on opponent quality and margin of victory.</p>
+              <p>Game favorability combines team strength, home field, division-game limits, and rest differences. Manual adjustments are labeled on the Picks page.</p>
+              <p>User picks never change model ratings. The scorecard above measures the favorite shown before each game against the final result.</p>
+            </div>
+          </details>
         </>
       ) : null}
     </main>
