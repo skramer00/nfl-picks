@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { getGamesBySeason, GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
+import { supabase } from "@/lib/supabaseClient";
 
 type PickMap = Record<string, string>;
 
@@ -47,13 +48,27 @@ export default function MyPicksPage() {
   const [picks, setPicks] = useState<PickMap>({});
   const [viewMode, setViewMode] = useState<"week" | "team">("week");
   const [status, setStatus] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
 
-  // Load games
   useEffect(() => {
-    async function loadGames() {
+    let cancelled = false;
+    async function load() {
       try {
         setStatus("");
-        const rows = await getGamesBySeason(SEASON);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (!user) {
+          setSignedIn(false);
+          return;
+        }
+
+        setSignedIn(true);
+        const [rows, map] = await Promise.all([
+          getGamesBySeason(SEASON),
+          getUserPicks(user.id),
+        ]);
+        if (cancelled) return;
 
         setGames(
           (rows as GameRow[]).map((r) => ({
@@ -72,28 +87,20 @@ export default function MyPicksPage() {
             homeWinProb: r.home_win_prob ?? null,
           }))
         );
+        setPicks(map);
       } catch (error) {
         console.error("My Picks loadGames error:", error);
         setStatus(error instanceof Error ? `Load failed: ${error.message}` : "Load failed.");
         setGames([]);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 
-    loadGames();
-  }, []);
-
-  // Load picks
-  useEffect(() => {
-    async function loadPicks() {
-      try {
-        const map = await getUserPicks();
-        setPicks(map);
-      } catch (error) {
-        console.error("My Picks loadPicks error:", error);
-        // Not fatal; user might be logged out
-      }
-    }
-    loadPicks();
+    load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
   const groupedByWeek = useMemo(() => {
     const grouped: Record<number, Game[]> = {};
@@ -149,6 +156,25 @@ export default function MyPicksPage() {
     }
     return teams;
   }, [games]);
+
+  if (loading) {
+    return <main className="mx-auto max-w-4xl p-6">Loading your picks…</main>;
+  }
+
+  if (signedIn === false) {
+    return (
+      <main className="mx-auto max-w-4xl p-6">
+        <h1 className="text-2xl font-semibold">My Picks</h1>
+        <div className="mt-4 rounded-xl border border-blue-900 bg-blue-950/30 p-5">
+          <h2 className="font-semibold text-blue-100">Log in to view your season</h2>
+          <p className="mt-2 text-sm text-gray-300">Your saved picks, accuracy, and weekly results will appear here.</p>
+          <Link href="/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">
+            Log in
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-4xl p-6">

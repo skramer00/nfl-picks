@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabaseClient";
@@ -25,16 +26,17 @@ export default function ProfilePage() {
   const [displayName, setDisplayName] = useState("");
   const [status, setStatus] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [signedOut, setSignedOut] = useState(false);
 
   useEffect(() => {
     async function load() {
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
         if (!user) {
-          setStatus("Please log in to edit your profile.");
+          setSignedOut(true);
           return;
         }
+        if (userError) throw userError;
 
         setUserId(user.id);
         const { data, error } = await supabase
@@ -84,6 +86,21 @@ export default function ProfilePage() {
   }
 
   if (loading) return <main className="mx-auto max-w-md p-6">Loading profile…</main>;
+
+  if (signedOut) {
+    return (
+      <main className="mx-auto max-w-md p-6">
+        <h1 className="text-3xl font-semibold">Profile</h1>
+        <div className="mt-4 rounded-xl border border-blue-900 bg-blue-950/30 p-5">
+          <h2 className="font-semibold text-blue-100">Log in to manage your profile</h2>
+          <p className="mt-2 text-sm text-gray-300">Sign in to update the name shown throughout NFL Picks.</p>
+          <Link href="/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">
+            Log in
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="mx-auto max-w-md p-6">

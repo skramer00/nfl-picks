@@ -227,7 +227,7 @@ export default function PlayoffsPage() {
   );
 
   return (
-    <main className="mx-auto max-w-6xl py-2">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <div className="flex flex-col gap-5 border-b border-gray-800 pb-6 md:flex-row md:items-end md:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400">

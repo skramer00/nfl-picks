@@ -11,11 +11,20 @@ type ProfileRow = {
   is_admin: boolean | null;
 };
 
-function NavLink({ href, label }: { href: string; label: string }) {
+function NavLink({
+  href,
+  label,
+  onSelect,
+}: {
+  href: string;
+  label: string;
+  onSelect?: () => void;
+}) {
   return (
     <Link
       href={href}
-      className="whitespace-nowrap rounded-lg px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
+      onClick={onSelect}
+      className="block whitespace-nowrap rounded-lg px-3 py-2.5 text-sm text-gray-200 hover:bg-gray-800"
     >
       {label}
     </Link>
@@ -26,6 +35,7 @@ export default function AppHeader() {
   const [user, setUser] = useState<User | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function loadProfile(u: User | null) {
     if (!u) {
@@ -79,25 +89,39 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-800 bg-black/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
-        <Link href="/" className="text-base font-semibold tracking-tight">
-          NFL Picks
-          <span className="ml-2 text-xs font-normal text-gray-400">2026</span>
-        </Link>
+      <div className="mx-auto max-w-6xl px-4 py-3">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="text-base font-semibold tracking-tight" onClick={() => setMenuOpen(false)}>
+            NFL Picks
+            <span className="ml-2 text-xs font-normal text-gray-400">2026</span>
+          </Link>
+          <button
+            type="button"
+            className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800 lg:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="site-menu"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            {menuOpen ? "Close" : "Menu"}
+          </button>
+        </div>
 
-        <div className="flex max-w-full items-center gap-2 overflow-x-auto sm:gap-4">
-          <nav className="flex items-center gap-1" aria-label="Primary">
-            <NavLink href="/week" label="Make Picks" />
-            <NavLink href="/my-picks" label="My Season" />
-            <NavLink href="/postseason" label="Postseason" />
-            <NavLink href="/power-rankings" label="Rankings" />
-            <NavLink href="/leaderboard" label="Leaderboard" />
-            {isAdmin ? <NavLink href="/admin" label="Admin" /> : null}
+        <div
+          id="site-menu"
+          className={`${menuOpen ? "flex" : "hidden"} mt-3 flex-col gap-3 border-t border-gray-800 pt-3 lg:mt-0 lg:flex lg:flex-row lg:items-center lg:justify-end lg:border-0 lg:pt-0`}
+        >
+          <nav className="flex flex-col gap-1 lg:flex-row lg:items-center" aria-label="Primary">
+            <NavLink href="/week" label="Make Picks" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/my-picks" label="My Season" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/power-rankings" label="Rankings" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />
+            {isAdmin ? <NavLink href="/admin" label="Admin" onSelect={() => setMenuOpen(false)} /> : null}
           </nav>
 
           {user ? (
-            <div className="flex items-center gap-2">
-              <span className="hidden text-sm text-gray-400 sm:inline">
+            <div className="flex flex-wrap items-center gap-2 border-t border-gray-800 pt-3 lg:border-0 lg:pt-0">
+              <span className="mr-auto text-sm text-gray-400 lg:mr-0">
                 {userLabel}
               </span>
 
@@ -111,11 +135,12 @@ export default function AppHeader() {
               >
                 Logout
               </button>
-              <NavLink href="/profile" label="Profile" />
+              <NavLink href="/profile" label="Profile" onSelect={() => setMenuOpen(false)} />
             </div>
           ) : (
             <Link
               href="/login"
+              onClick={() => setMenuOpen(false)}
               className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
             >
               Login
