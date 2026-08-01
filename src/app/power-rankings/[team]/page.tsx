@@ -73,7 +73,7 @@ export default function TeamModelPage() {
         <div className="mt-7 grid gap-4 sm:grid-cols-4">
           <Metric label="Power rank" value={`#${team.rank}`} detail={team.movement ? `${team.movement > 0 ? "Up" : "Down"} ${Math.abs(team.movement)}` : "No movement"} />
           <Metric label="Model rating" value={String(team.rating)} detail={`${team.ratingChange >= 0 ? "+" : ""}${team.ratingChange} this season`} />
-          <Metric label="Projected record" value={`${projected.wins}-${projected.losses}${projected.ties ? `-${projected.ties}` : ""}`} detail="Finals + future favorites" />
+          <Metric label="Projected record" value={`${projected.wins}-${projected.losses}${projected.ties ? `-${projected.ties}` : ""}`} detail="Finals + expected wins" />
           <Metric label="Avg. favorability" value={averageFavorability === null ? "—" : `${averageFavorability}%`} detail={`${restEdges} projected rest edges`} />
         </div>
       </header>
@@ -89,7 +89,7 @@ export default function TeamModelPage() {
           return (
             <div key={game.id} className="grid grid-cols-[3.5rem_minmax(0,1fr)_4rem] items-center gap-3 border-b border-gray-900 px-5 py-4 last:border-0 sm:grid-cols-[4rem_minmax(0,1fr)_7rem_7rem]">
               <span className="text-sm text-gray-500">W{game.week}</span>
-              <div><p className="font-medium">{home ? "vs." : "at"} {opponent.name}</p><p className="mt-1 text-xs text-gray-500">{game.rest_advantage_team_id === team.id && game.rest_advantage_days ? `${game.rest_advantage_days} more rest days` : "Standard rest"}</p></div>
+              <div><p className="font-medium">{home ? "vs." : "at"} {opponent.name}</p><p className="mt-1 text-xs text-gray-500">{game.rest_advantage_team_id === team.id && game.rest_advantage_days ? `${game.rest_advantage_days} more rest ${game.rest_advantage_days === 1 ? "day" : "days"}` : "Standard rest"}</p></div>
               <span className="hidden text-sm text-gray-400 sm:block">{finalLabel}</span>
               <span className="text-right font-semibold">{Math.round(probability * 100)}%</span>
             </div>

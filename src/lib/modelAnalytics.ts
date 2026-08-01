@@ -46,8 +46,7 @@ export function pickDisagreements(
 }
 
 export function projectedTeamRecord(games: GameRow[], teamId: string) {
-  let wins = 0;
-  let losses = 0;
+  let expectedWins = 0;
   let ties = 0;
 
   for (const game of games) {
@@ -61,10 +60,17 @@ export function projectedTeamRecord(games: GameRow[], teamId: string) {
       ties += 1;
       continue;
     }
-    const winner = game.status === "final" ? game.winner_team_id : modelFavorite(game).teamId;
-    if (winner === teamId) wins += 1;
-    else losses += 1;
+    if (game.status === "final") {
+      expectedWins += game.winner_team_id === teamId ? 1 : 0;
+      continue;
+    }
+    expectedWins += game.home_team_id === teamId
+      ? game.home_win_prob ?? 0.5
+      : game.away_win_prob ?? 0.5;
   }
 
+  const decisiveGames = games.length - ties;
+  const wins = Math.min(decisiveGames, Math.max(0, Math.round(expectedWins)));
+  const losses = decisiveGames - wins;
   return { wins, losses, ties };
 }
