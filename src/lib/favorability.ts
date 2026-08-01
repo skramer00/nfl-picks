@@ -15,6 +15,7 @@ const WEEK_ONE_MAX = 0.74;
 const REST_FACTOR_START_WEEK = 3;
 const REST_BOOST_PER_DAY = 0.0075;
 const MAX_REST_BOOST = 0.03;
+const DIVISION_MATCHUP_MAX = 0.75;
 
 export function teamStrength(abbreviation: string) {
   return TEAM_ELO[abbreviation] ?? 1505;
@@ -29,7 +30,8 @@ export function matchupFavorability(
   awayAbbreviation: string,
   homeAbbreviation: string,
   week?: number,
-  homeRestAdvantageDays = 0
+  homeRestAdvantageDays = 0,
+  isDivisionMatchup = false
 ) {
   const awayRating = TEAM_ELO[awayAbbreviation] ?? 1505;
   const homeRating = (TEAM_ELO[homeAbbreviation] ?? 1505) + HOME_FIELD_ELO;
@@ -41,7 +43,8 @@ export function matchupFavorability(
       ? Math.sign(homeRestAdvantageDays) *
         Math.min(wholeRestDays * REST_BOOST_PER_DAY, MAX_REST_BOOST)
       : 0;
-  const home = Math.min(0.95, Math.max(0.05, baseHome + restAdjustment));
+  const maximum = isDivisionMatchup ? DIVISION_MATCHUP_MAX : 0.95;
+  const home = Math.min(maximum, Math.max(1 - maximum, baseHome + restAdjustment));
 
   return { away: 1 - home, home, restAdjustment };
 }

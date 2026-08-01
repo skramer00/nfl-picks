@@ -88,9 +88,11 @@ function favorabilityForGame(
     game.away_team.abbreviation,
     game.home_team.abbreviation,
     game.week,
-    rest?.homeAdvantageDays ?? 0
+    rest?.homeAdvantageDays ?? 0,
+    game.away_team.conference === game.home_team.conference &&
+      game.away_team.division === game.home_team.division
   );
-  const restAdvantageDays = Math.abs(rest?.homeAdvantageDays ?? 0);
+  const restAdvantageDays = Math.round(Math.abs(rest?.homeAdvantageDays ?? 0));
   return {
     ...calculated,
     reason: null,
