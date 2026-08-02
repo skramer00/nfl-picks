@@ -24,6 +24,11 @@ const pacificKickoff = new Intl.DateTimeFormat("en-US", {
   timeZoneName: "short",
 });
 
+function matchupRole(teamProbability: number, opponentProbability: number) {
+  if (teamProbability === opponentProbability) return "even";
+  return teamProbability > opponentProbability ? "favored" : "underdog";
+}
+
 export default function WeekPage() {
   const params = useParams<{ week: string }>();
   const week = Number(params.week);
@@ -224,7 +229,7 @@ export default function WeekPage() {
                   </div>
                   <div className="text-right">
                     <span className={`block text-xl font-bold ${picks[game.id] === game.away_team.id ? "text-white" : "text-gray-300"}`}>{formatFavorability(game.away_win_prob)}</span>
-                    <span className={`text-xs ${picks[game.id] === game.away_team.id ? "text-white/70" : "text-gray-500"}`}>favored</span>
+                    <span className={`text-xs ${picks[game.id] === game.away_team.id ? "text-white/70" : "text-gray-500"}`}>{matchupRole(game.away_win_prob, game.home_win_prob)}</span>
                   </div>
                 </button>
                 <button
@@ -240,7 +245,7 @@ export default function WeekPage() {
                   </div>
                   <div className="text-right">
                     <span className={`block text-xl font-bold ${picks[game.id] === game.home_team.id ? "text-white" : "text-gray-300"}`}>{formatFavorability(game.home_win_prob)}</span>
-                    <span className={`text-xs ${picks[game.id] === game.home_team.id ? "text-white/70" : "text-gray-500"}`}>favored</span>
+                    <span className={`text-xs ${picks[game.id] === game.home_team.id ? "text-white/70" : "text-gray-500"}`}>{matchupRole(game.home_win_prob, game.away_win_prob)}</span>
                   </div>
                 </button>
               </div>
