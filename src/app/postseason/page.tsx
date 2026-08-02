@@ -190,10 +190,6 @@ export default function PostseasonPage() {
         ))}
       </div>
       </div>
-      <p className="mt-3 max-w-2xl text-xs leading-5 text-gray-500">
-        Playoff chances always come from model simulations. “My picks” changes the projected field based on your completed card.
-      </p>
-
       {loading ? <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6">Building the playoff picture…</div> : null}
       {error ? <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6 text-red-200">{error}</div> : null}
 
