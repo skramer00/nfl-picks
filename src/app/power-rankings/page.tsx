@@ -13,12 +13,18 @@ import {
   userPickPerformance,
 } from "@/lib/modelAnalytics";
 import { buildPowerRankings, type PowerRanking } from "@/lib/powerRankings";
+import {
+  MODEL_GENERATED_AT,
+  MODEL_METHODOLOGY,
+  MODEL_RATINGS,
+  MODEL_VERSION,
+} from "@/lib/modelRatings";
 import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
 
 const SEASON = 2026;
 type ConferenceFilter = "All" | "AFC" | "NFC";
-type ModelSection = "rankings" | "outlook" | "performance" | "picks";
+type ModelSection = "rankings" | "audit" | "outlook" | "performance" | "picks";
 
 function record(team: PowerRanking) {
   return team.ties
@@ -166,9 +172,10 @@ export default function PowerRankingsPage() {
         </p>
       </div>
 
-      <nav aria-label="Model sections" className="mt-6 grid grid-cols-2 gap-1 rounded-xl border border-gray-800 bg-gray-950 p-1 sm:inline-flex">
+      <nav aria-label="Model sections" className="mt-6 flex max-w-full gap-1 overflow-x-auto rounded-xl border border-gray-800 bg-gray-950 p-1 sm:inline-flex">
         {([
           ["rankings", "Power Rankings"],
+          ["audit", "Audit"],
           ["outlook", "Season Outlook"],
           ["performance", "Performance"],
           ["picks", "My Picks"],
@@ -184,6 +191,74 @@ export default function PowerRankingsPage() {
           </button>
         ))}
       </nav>
+
+      {section === "audit" ? (
+        <section className="mt-8" aria-labelledby="model-audit-heading">
+          <div className="max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+              Pretzel Quest Model {MODEL_VERSION}
+            </p>
+            <h2 id="model-audit-heading" className="mt-1 text-2xl font-semibold">
+              Every preseason rating, explained
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-gray-400">
+              Ratings use 2025 game results and the current projected starting quarterback. They do not use betting markets, expert rankings, or team-specific manual corrections.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <AnalyticsCard label="Game performance" value="70% retained" detail="Opponent-adjusted offense and defense, regressed toward average for the offseason" />
+            <AnalyticsCard label="Rating scale" value={`${MODEL_METHODOLOGY.eloPerPoint} points`} detail="Elo points awarded per retained point of opponent-adjusted scoring strength" />
+            <AnalyticsCard label="Quarterback" value={`±${MODEL_METHODOLOGY.maximumQuarterbackAdjustment} max`} detail="2025 Adjusted QBR, scaled down when the passer has fewer than 400 attempts" />
+            <AnalyticsCard label="Continuity" value={`±${MODEL_METHODOLOGY.returningStarterAdjustment}`} detail="Returning established starter versus an established starter joining a new team" />
+          </div>
+
+          <details className="mt-6 rounded-2xl border border-gray-800 bg-gray-950 p-5" open>
+            <summary className="cursor-pointer font-semibold">How a rating is calculated</summary>
+            <div className="mt-4 space-y-2 text-sm leading-6 text-gray-400">
+              <p><span className="text-gray-200">1.</span> Every 2025 score is split into offensive and defensive performance relative to the league average.</p>
+              <p><span className="text-gray-200">2.</span> Opponent strength is solved iteratively, so scoring against a strong defense counts more than scoring against a weak one.</p>
+              <p><span className="text-gray-200">3.</span> The combined result retains 70% of its value for 2026; the other 30% regresses toward the neutral 1500 rating.</p>
+              <p><span className="text-gray-200">4.</span> A bounded, sample-weighted Adjusted QBR component and a small quarterback-continuity component are added.</p>
+              <p><span className="text-gray-200">5.</span> Home field, rest, Week 1 uncertainty, and divisional uncertainty are applied later to individual matchups—not to these team ratings.</p>
+            </div>
+          </details>
+
+          <div className="mt-6 overflow-hidden rounded-2xl border border-gray-800 bg-gray-950">
+            <div className="border-b border-gray-800 p-5 sm:px-6">
+              <h3 className="text-lg font-semibold">Preseason rating ledger</h3>
+              <p className="mt-1 text-sm text-gray-500">Select a row to see every input and adjustment.</p>
+            </div>
+            {MODEL_RATINGS.map((team, index) => (
+              <details key={team.abbreviation} className="group border-b border-gray-900 last:border-0">
+                <summary className="grid cursor-pointer list-none grid-cols-[2.25rem_3.25rem_minmax(0,1fr)_4rem] items-center gap-2 px-4 py-4 hover:bg-gray-900/60 sm:grid-cols-[2.5rem_3.5rem_minmax(0,1fr)_6rem_5rem] sm:px-6">
+                  <span className="font-bold text-gray-500">{index + 1}</span>
+                  <span className="font-black">{team.abbreviation}</span>
+                  <span className="truncate text-sm text-gray-400">
+                    {team.record} · {team.quarterback}
+                  </span>
+                  <span className="hidden text-right text-sm text-gray-500 sm:block">Net {team.opponentAdjustedNetPoints > 0 ? "+" : ""}{team.opponentAdjustedNetPoints}</span>
+                  <span className="text-right font-semibold">{team.rating}</span>
+                </summary>
+                <div className="grid gap-3 border-t border-gray-900 bg-black/20 px-4 py-4 text-sm sm:grid-cols-2 lg:grid-cols-4 sm:px-6">
+                  <div><span className="text-gray-500">Opponent-adjusted offense</span><div className="mt-1 font-semibold">{team.offensePointsAboveAverage > 0 ? "+" : ""}{team.offensePointsAboveAverage} points/game</div></div>
+                  <div><span className="text-gray-500">Opponent-adjusted defense</span><div className="mt-1 font-semibold">{team.defensePointsAboveAverage > 0 ? "+" : ""}{team.defensePointsAboveAverage} points/game</div></div>
+                  <div><span className="text-gray-500">Regressed performance</span><div className="mt-1 font-semibold">{team.performanceElo >= 0 ? "+" : ""}{team.performanceElo} rating points</div></div>
+                  <div><span className="text-gray-500">Quarterback</span><div className="mt-1 font-semibold">{team.quarterback2025AdjustedQbr === null ? "No verified 2025 sample" : `${team.quarterback2025AdjustedQbr} QBR · ${team.quarterbackAdjustment >= 0 ? "+" : ""}${team.quarterbackAdjustment}`}</div></div>
+                  <div><span className="text-gray-500">QB sample</span><div className="mt-1 font-semibold">{team.quarterback2025Attempts === null ? "No attempts" : `${team.quarterback2025Attempts} attempts · ${Math.round(team.quarterbackSampleWeight * 100)}% weight`}</div></div>
+                  <div><span className="text-gray-500">QB continuity</span><div className="mt-1 font-semibold">{team.quarterbackContinuity.replaceAll("-", " ")} · {team.continuityAdjustment >= 0 ? "+" : ""}{team.continuityAdjustment}</div></div>
+                  <div><span className="text-gray-500">2025 scoring</span><div className="mt-1 font-semibold">{team.pointsFor} for · {team.pointsAgainst} against</div></div>
+                  <div><span className="text-gray-500">Final formula</span><div className="mt-1 font-semibold">1500 {team.performanceElo >= 0 ? "+" : "−"} {Math.abs(team.performanceElo)} {team.quarterbackAdjustment >= 0 ? "+" : "−"} {Math.abs(team.quarterbackAdjustment)} {team.continuityAdjustment >= 0 ? "+" : "−"} {Math.abs(team.continuityAdjustment)} = {team.rating}</div></div>
+                </div>
+              </details>
+            ))}
+          </div>
+
+          <p className="mt-5 text-xs leading-5 text-gray-500">
+            Generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Regenerating the published script from the same inputs produces this ledger; future model versions preserve their own snapshot.
+          </p>
+        </section>
+      ) : null}
 
       <section className={`${section === "performance" ? "grid" : "hidden"} mt-8 gap-4 sm:grid-cols-3`} aria-label="Model scorecard">
         <AnalyticsCard label="Model accuracy" value={performance.accuracy === null ? "—" : `${performance.accuracy}%`} detail={performance.finals ? `${performance.correct} of ${performance.finals} final games` : performance.unscoredFinals ? `${performance.unscoredFinals} final games excluded without a pregame snapshot` : "Starts after the first final game"} />
