@@ -103,6 +103,7 @@ export default function PostseasonPage() {
   const [games, setGames] = useState<GameRow[]>([]);
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [mode, setMode] = useState<ProjectionMode>("model");
+  const [conference, setConference] = useState<"AFC" | "NFC">("AFC");
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -178,6 +179,20 @@ export default function PostseasonPage() {
         Playoff chances always come from model simulations. “My picks” changes the projected field based on your completed card.
       </p>
 
+      <div className="mt-4 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Choose a conference">
+        {(["AFC", "NFC"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={conference === option}
+            onClick={() => setConference(option)}
+            className={`rounded-lg px-6 py-2 text-sm ${conference === option ? "bg-gray-700 text-white" : "text-gray-300 hover:bg-gray-900"}`}
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+
       {loading ? <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6">Building the playoff picture…</div> : null}
       {error ? <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6 text-red-200">{error}</div> : null}
 
@@ -214,8 +229,8 @@ export default function PostseasonPage() {
               <div className="mt-1 font-semibold">{finalGames} games</div>
             </div>
           </div>
-          <div className="mt-10 grid gap-10 lg:grid-cols-2">
-            {projection.map((conference) => <ConferenceBracket key={conference.conference} projection={conference} chances={chances} />)}
+          <div className="mt-10">
+            {projection.filter((item) => item.conference === conference).map((item) => <ConferenceBracket key={item.conference} projection={item} chances={chances} />)}
           </div>
           <section className="mt-12 border-t border-gray-800 pt-8">
             <div className="max-w-2xl">
@@ -223,12 +238,12 @@ export default function PostseasonPage() {
               <h2 className="mt-1 text-2xl font-semibold">In the Hunt</h2>
               <p className="mt-2 text-sm text-gray-400">Teams currently outside the projected field remain here until they are mathematically eliminated.</p>
             </div>
-            <div className="mt-6 grid gap-8 lg:grid-cols-2">
-              {hunt.map((conference) => (
-                <div key={conference.conference}>
-                  <h3 className="text-lg font-semibold">{conference.conference}</h3>
+            <div className="mt-6">
+              {hunt.filter((item) => item.conference === conference).map((item) => (
+                <div key={item.conference}>
+                  <h3 className="text-lg font-semibold">{item.conference}</h3>
                   <div className="mt-3 space-y-2">
-                    {conference.teams.length ? conference.teams.map((team) => {
+                    {item.teams.length ? item.teams.map((team) => {
                       const theme = getTeamTheme(team.abbreviation);
                       return (
                         <div key={team.id} className="flex items-center gap-3 rounded-xl border border-gray-800 bg-gray-950 p-3">
