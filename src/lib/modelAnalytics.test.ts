@@ -2,7 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import type { GameRow, Team } from "./gamesDb";
-import { modelPerformance, pickDisagreements, projectedTeamRecord } from "./modelAnalytics";
+import {
+  confidenceCalibration,
+  modelPerformance,
+  pickDisagreements,
+  projectedTeamRecord,
+  userPickPerformance,
+} from "./modelAnalytics";
 
 const away: Team = { id: "away", abbreviation: "AWY", name: "Away", conference: "AFC", division: "East" };
 const home: Team = { id: "home", abbreviation: "HME", name: "Home", conference: "NFC", division: "West" };
@@ -40,4 +46,33 @@ test("projected record combines final winners and future favorites", () => {
     game({ id: "game-2", week: 2 }),
   ], home.id);
   assert.deepEqual(record, { wins: 1, losses: 1, ties: 0 });
+});
+
+test("confidence calibration groups final games by favorite probability", () => {
+  const buckets = confidenceCalibration([
+    game({ status: "final", winner_team_id: home.id, home_win_prob: 0.53, away_win_prob: 0.47 }),
+    game({ id: "game-2", status: "final", winner_team_id: away.id, home_win_prob: 0.62, away_win_prob: 0.38 }),
+  ]);
+  assert.deepEqual(
+    buckets.map(({ label, games, accuracy }) => ({ label, games, accuracy })),
+    [
+      { label: "Toss-up", games: 1, accuracy: 100 },
+      { label: "Slight edge", games: 0, accuracy: null },
+      { label: "Clear edge", games: 1, accuracy: 0 },
+      { label: "Strong edge", games: 0, accuracy: null },
+    ]
+  );
+});
+
+test("user pick performance separates picks with and against the model", () => {
+  const results = userPickPerformance(
+    [
+      game({ status: "final", winner_team_id: home.id }),
+      game({ id: "game-2", status: "final", winner_team_id: away.id }),
+    ],
+    { "game-1": home.id, "game-2": away.id }
+  );
+  assert.equal(results.accuracy, 100);
+  assert.deepEqual(results.withModel, { picks: 1, correct: 1, accuracy: 100 });
+  assert.deepEqual(results.againstModel, { picks: 1, correct: 1, accuracy: 100 });
 });

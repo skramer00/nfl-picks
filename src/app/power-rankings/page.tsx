@@ -5,7 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 
 import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
-import { modelPerformance, pickDisagreements } from "@/lib/modelAnalytics";
+import {
+  confidenceCalibration,
+  modelPerformance,
+  pickDisagreements,
+  userPickPerformance,
+} from "@/lib/modelAnalytics";
 import { buildPowerRankings, type PowerRanking } from "@/lib/powerRankings";
 import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
@@ -64,10 +69,21 @@ function LeaderCard({ team }: { team: PowerRanking }) {
   );
 }
 
+function AnalyticsCard({ label, value, detail }: { label: string; value: string; detail: string }) {
+  return (
+    <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
+      <p className="text-xs uppercase tracking-wider text-gray-500">{label}</p>
+      <p className="mt-2 text-3xl font-bold">{value}</p>
+      <p className="mt-1 text-sm text-gray-400">{detail}</p>
+    </div>
+  );
+}
+
 export default function PowerRankingsPage() {
   const [games, setGames] = useState<GameRow[]>([]);
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<ConferenceFilter>("All");
+  const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -82,6 +98,7 @@ export default function PowerRankingsPage() {
         if (cancelled) return;
         setGames(rows);
         if (userResult.data.user) {
+          setSignedIn(true);
           const saved = await getUserPicks(userResult.data.user.id);
           if (!cancelled) setPicks(saved);
         }
@@ -119,6 +136,11 @@ export default function PowerRankingsPage() {
     ? Math.max(...completedGames.map((game) => game.week))
     : null;
   const performance = useMemo(() => modelPerformance(games), [games]);
+  const calibration = useMemo(() => confidenceCalibration(games), [games]);
+  const pickPerformance = useMemo(
+    () => userPickPerformance(games, picks),
+    [games, picks]
+  );
   const disagreements = useMemo(
     () => pickDisagreements(games, picks).slice(0, 5),
     [games, picks]
@@ -137,24 +159,79 @@ export default function PowerRankingsPage() {
       </div>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-3" aria-label="Model scorecard">
-        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
-          <p className="text-xs uppercase tracking-wider text-gray-500">Model accuracy</p>
-          <p className="mt-2 text-3xl font-bold">{performance.accuracy === null ? "—" : `${performance.accuracy}%`}</p>
-          <p className="mt-1 text-sm text-gray-400">{performance.finals ? `${performance.correct} of ${performance.finals} final games` : "Starts after the first final game"}</p>
+        <AnalyticsCard label="Model accuracy" value={performance.accuracy === null ? "—" : `${performance.accuracy}%`} detail={performance.finals ? `${performance.correct} of ${performance.finals} final games` : "Starts after the first final game"} />
+        <AnalyticsCard label="Favorites" value={performance.finals ? String(performance.favoriteWins) : "—"} detail="Model favorites that won" />
+        <AnalyticsCard label="Underdog wins" value={performance.finals ? String(performance.underdogWins) : "—"} detail="Games where the model favorite lost" />
+      </section>
+
+      <section className="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Detailed model analytics">
+        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Weekly scorecard</p>
+          <h2 className="mt-1 text-xl font-semibold">Accuracy by week</h2>
+          {performance.weekly.length ? (
+            <div className="mt-5 space-y-4">
+              {performance.weekly.map((week) => {
+                const accuracy = Math.round((week.correct / week.total) * 100);
+                return (
+                  <div key={week.week}>
+                    <div className="flex items-center justify-between gap-4 text-sm">
+                      <span className="font-medium">Week {week.week}</span>
+                      <span className="text-gray-400">{week.correct}/{week.total} · {accuracy}%</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-800">
+                      <div className="h-full rounded-full bg-blue-500" style={{ width: `${accuracy}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-5 text-sm leading-6 text-gray-400">Weekly results will appear as games become final.</p>
+          )}
         </div>
-        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
-          <p className="text-xs uppercase tracking-wider text-gray-500">Favorites</p>
-          <p className="mt-2 text-3xl font-bold">{performance.finals ? performance.favoriteWins : "—"}</p>
-          <p className="mt-1 text-sm text-gray-400">Model favorites that won</p>
-        </div>
-        <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
-          <p className="text-xs uppercase tracking-wider text-gray-500">Underdog wins</p>
-          <p className="mt-2 text-3xl font-bold">{performance.finals ? performance.underdogWins : "—"}</p>
-          <p className="mt-1 text-sm text-gray-400">Games where the model favorite lost</p>
+
+        <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-950">
+          <div className="p-5 sm:p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Confidence check</p>
+            <h2 className="mt-1 text-xl font-semibold">Is the model calibrated?</h2>
+            <p className="mt-2 text-sm leading-6 text-gray-400">Compare how confident the model was with how often its favorite actually won.</p>
+          </div>
+          <div className="grid grid-cols-[minmax(0,1fr)_4rem_4.5rem_4.5rem] gap-2 border-y border-gray-800 px-4 py-3 text-xs uppercase tracking-wider text-gray-500 sm:px-6">
+            <span>Edge</span><span className="text-right">Games</span><span className="text-right">Expected</span><span className="text-right">Actual</span>
+          </div>
+          {calibration.map((bucket) => (
+            <div key={bucket.label} className="grid grid-cols-[minmax(0,1fr)_4rem_4.5rem_4.5rem] gap-2 border-b border-gray-900 px-4 py-3 text-sm last:border-0 sm:px-6">
+              <span className="font-medium">{bucket.label}</span>
+              <span className="text-right text-gray-400">{bucket.games || "—"}</span>
+              <span className="text-right text-gray-400">{bucket.averageConfidence === null ? "—" : `${bucket.averageConfidence}%`}</span>
+              <span className="text-right font-semibold">{bucket.accuracy === null ? "—" : `${bucket.accuracy}%`}</span>
+            </div>
+          ))}
         </div>
       </section>
 
-      {disagreements.length ? (
+      {signedIn ? (
+        <section className="mt-8">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Your pick analytics</p>
+            <h2 className="mt-1 text-xl font-semibold">How your decisions are performing</h2>
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-3">
+            <AnalyticsCard label="Overall accuracy" value={pickPerformance.accuracy === null ? "—" : `${pickPerformance.accuracy}%`} detail={pickPerformance.picks ? `${pickPerformance.correct} of ${pickPerformance.picks} final picks` : "Starts after one of your picks is final"} />
+            <AnalyticsCard label="Following the model" value={pickPerformance.withModel.accuracy === null ? "—" : `${pickPerformance.withModel.accuracy}%`} detail={`${pickPerformance.withModel.correct} of ${pickPerformance.withModel.picks} final picks`} />
+            <AnalyticsCard label="Going contrarian" value={pickPerformance.againstModel.accuracy === null ? "—" : `${pickPerformance.againstModel.accuracy}%`} detail={`${pickPerformance.againstModel.correct} of ${pickPerformance.againstModel.picks} final picks`} />
+          </div>
+        </section>
+      ) : (
+        <section className="mt-8 rounded-2xl border border-gray-800 bg-gray-950 p-5 sm:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Your pick analytics</p>
+          <h2 className="mt-1 text-xl font-semibold">See where you outperform the model</h2>
+          <p className="mt-2 text-sm text-gray-400">Log in to compare your accuracy when following the favorite versus making a contrarian pick.</p>
+          <Link href="/login" className="mt-4 inline-block text-sm font-semibold text-blue-300 hover:underline">Log in to compare →</Link>
+        </section>
+      )}
+
+      {signedIn ? (
         <section className="mt-8 rounded-2xl border border-amber-900/60 bg-amber-950/15 p-5 sm:p-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -163,7 +240,7 @@ export default function PowerRankingsPage() {
             </div>
             <span className="text-xs text-gray-500">Your saved picks only</span>
           </div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {disagreements.length ? <div className="mt-4 grid gap-3 md:grid-cols-2">
             {disagreements.map(({ game, favorite, pickedTeamId }) => {
               const picked = pickedTeamId === game.home_team_id ? game.home_team : game.away_team;
               return (
@@ -173,7 +250,7 @@ export default function PowerRankingsPage() {
                 </Link>
               );
             })}
-          </div>
+          </div> : <p className="mt-4 text-sm text-gray-400">No upcoming disagreements yet. Your contrarian picks will appear here automatically.</p>}
         </section>
       ) : null}
 

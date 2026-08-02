@@ -34,6 +34,86 @@ export function modelPerformance(games: GameRow[]) {
   };
 }
 
+export type ConfidenceBucket = {
+  label: string;
+  minimum: number;
+  maximum: number;
+  games: number;
+  correct: number;
+  accuracy: number | null;
+  averageConfidence: number | null;
+};
+
+const confidenceRanges = [
+  { label: "Toss-up", minimum: 0.5, maximum: 0.5499 },
+  { label: "Slight edge", minimum: 0.55, maximum: 0.5999 },
+  { label: "Clear edge", minimum: 0.6, maximum: 0.6499 },
+  { label: "Strong edge", minimum: 0.65, maximum: 1 },
+];
+
+export function confidenceCalibration(games: GameRow[]): ConfidenceBucket[] {
+  const finals = games.filter(
+    (game) => game.status === "final" && Boolean(game.winner_team_id)
+  );
+
+  return confidenceRanges.map((range) => {
+    const rows = finals.filter((game) => {
+      const confidence = modelFavorite(game).probability;
+      return confidence >= range.minimum && confidence <= range.maximum;
+    });
+    const correct = rows.filter(
+      (game) => modelFavorite(game).teamId === game.winner_team_id
+    ).length;
+    const averageConfidence = rows.length
+      ? Math.round(
+          (rows.reduce((sum, game) => sum + modelFavorite(game).probability, 0) /
+            rows.length) *
+            100
+        )
+      : null;
+
+    return {
+      ...range,
+      games: rows.length,
+      correct,
+      accuracy: rows.length ? Math.round((correct / rows.length) * 100) : null,
+      averageConfidence,
+    };
+  });
+}
+
+export function userPickPerformance(
+  games: GameRow[],
+  picks: Record<string, string>
+) {
+  const finals = games.filter(
+    (game) =>
+      game.status === "final" &&
+      Boolean(game.winner_team_id) &&
+      Boolean(picks[game.id])
+  );
+  const withModel = finals.filter(
+    (game) => picks[game.id] === modelFavorite(game).teamId
+  );
+  const againstModel = finals.filter(
+    (game) => picks[game.id] !== modelFavorite(game).teamId
+  );
+  const result = (rows: GameRow[]) => {
+    const wins = rows.filter((game) => picks[game.id] === game.winner_team_id).length;
+    return {
+      picks: rows.length,
+      correct: wins,
+      accuracy: rows.length ? Math.round((wins / rows.length) * 100) : null,
+    };
+  };
+
+  return {
+    ...result(finals),
+    withModel: result(withModel),
+    againstModel: result(againstModel),
+  };
+}
+
 export function pickDisagreements(
   games: GameRow[],
   picks: Record<string, string>
