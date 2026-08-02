@@ -34,6 +34,8 @@ export default function WeekPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [savingGameId, setSavingGameId] = useState<string | null>(null);
   const [pickMessage, setPickMessage] = useState<string | null>(null);
+  const completedPicks = games.filter((game) => Boolean(picks[game.id])).length;
+  const weekComplete = signedIn && games.length > 0 && completedPicks === games.length;
 
   useEffect(() => {
     let cancelled = false;
@@ -149,6 +151,18 @@ export default function WeekPage() {
           </Link>
         ))}
       </nav>
+
+      {signedIn && !loading && !error && games.length > 0 ? (
+        <div className={`mt-5 rounded-xl border p-4 ${weekComplete ? "border-emerald-800 bg-emerald-950/30" : "border-gray-800 bg-gray-950"}`}>
+          <div className="flex items-center justify-between gap-4 text-sm">
+            <span className={weekComplete ? "font-semibold text-emerald-200" : "text-gray-300"}>
+              {weekComplete ? `Week ${week} complete 🎉` : `${completedPicks} of ${games.length} picks complete`}
+            </span>
+            <span className="text-gray-500">{Math.round((completedPicks / games.length) * 100)}%</span>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-gray-800"><div className={`h-full rounded-full transition-all ${weekComplete ? "bg-emerald-400" : "bg-blue-500"}`} style={{ width: `${(completedPicks / games.length) * 100}%` }} /></div>
+        </div>
+      ) : null}
 
       {pickMessage && (
         <div className="mt-5 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-200" role="status">

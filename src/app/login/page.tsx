@@ -27,6 +27,17 @@ async function withAuthTimeout<T>(request: PromiseLike<T>): Promise<T> {
   }
 }
 
+async function destinationAfterAuth() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return "/week/1";
+  const { data } = await supabase
+    .from("profiles")
+    .select("onboarding_completed_at")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  return data?.onboarding_completed_at ? "/week/1" : "/onboarding";
+}
+
 function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -58,7 +69,7 @@ function AuthForm() {
         supabase.auth.signInWithPassword({ email, password })
       );
       if (error) throw error;
-      router.push("/week/1");
+      router.push(await destinationAfterAuth());
       router.refresh();
     } catch (error) {
       setStatus(`Login failed: ${messageFrom(error)}`);
@@ -79,7 +90,7 @@ function AuthForm() {
       if (error) throw error;
 
       if (data.session) {
-        router.push("/profile");
+        router.push("/onboarding");
         router.refresh();
       } else {
         setStatus("Account created. Check your email to confirm your address, then log in.");
