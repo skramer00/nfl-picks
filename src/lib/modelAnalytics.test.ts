@@ -5,8 +5,10 @@ import type { GameRow, Team } from "./gamesDb";
 import {
   confidenceCalibration,
   modelPerformance,
+  matchupExplanation,
   pickDisagreements,
   projectedTeamRecord,
+  seasonModelInsights,
   userPickPerformance,
 } from "./modelAnalytics";
 
@@ -85,4 +87,31 @@ test("user pick performance separates picks with and against the model", () => {
   assert.equal(results.accuracy, 100);
   assert.deepEqual(results.withModel, { picks: 1, correct: 1, accuracy: 100 });
   assert.deepEqual(results.againstModel, { picks: 1, correct: 1, accuracy: 100 });
+});
+
+test("matchup explanation names the model inputs in plain language", () => {
+  const standardReasons = matchupExplanation(game({
+    rest_advantage_team_id: home.id,
+    rest_advantage_days: 3,
+  }));
+  assert.equal(standardReasons.some((reason) => reason.includes("home-field")), true);
+  assert.equal(standardReasons.some((reason) => reason.includes("3 more days")), true);
+
+  const adjustedReasons = matchupExplanation(game({
+    favorability_override_reason: "Quarterback availability",
+  }));
+  assert.equal(adjustedReasons[0], "Manual adjustment: Quarterback availability");
+  assert.equal(adjustedReasons.some((reason) => reason.includes("instead of")), true);
+});
+
+test("season insights rank matchups, schedules, divisions, and confidence", () => {
+  const rows = [
+    game(),
+    game({ id: "game-2", week: 2, home_win_prob: 0.52, away_win_prob: 0.48 }),
+  ];
+  const insights = seasonModelInsights(rows);
+  assert.equal(insights.biggestFavorites[0].game.id, "game-1");
+  assert.equal(insights.closestGames[0].game.id, "game-2");
+  assert.equal(insights.favorableSchedules[0].team.id, home.id);
+  assert.equal(insights.confidence.reduce((sum, bucket) => sum + bucket.games, 0), 2);
 });

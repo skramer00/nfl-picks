@@ -9,6 +9,7 @@ import {
   confidenceCalibration,
   modelPerformance,
   pickDisagreements,
+  seasonModelInsights,
   userPickPerformance,
 } from "@/lib/modelAnalytics";
 import { buildPowerRankings, type PowerRanking } from "@/lib/powerRankings";
@@ -149,6 +150,7 @@ export default function PowerRankingsPage() {
     () => pickDisagreements(games, picks).slice(0, 5),
     [games, picks]
   );
+  const insights = useMemo(() => seasonModelInsights(games), [games]);
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -172,6 +174,99 @@ export default function PowerRankingsPage() {
         <span className="font-semibold text-gray-200">Pregame archive: </span>
         {lockedPredictions} of {games.length || 272} predictions locked. Snapshots are captured as kickoff approaches, and only verified pregame snapshots count toward model accuracy.
       </div>
+
+      {!loading && !error && games.length ? (
+        <section className="mt-8" aria-labelledby="season-outlook-heading">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">Season outlook</p>
+            <h2 id="season-outlook-heading" className="mt-1 text-xl font-semibold">What the model sees now</h2>
+            <p className="mt-2 text-sm text-gray-400">A schedule-wide view using the same favorability percentages shown on Picks.</p>
+          </div>
+
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <AnalyticsCard
+              label="Top projected team"
+              value={rankings[0]?.name ?? "—"}
+              detail={rankings[0] ? `${rankings[0].rating} model rating` : "Waiting for team data"}
+            />
+            <AnalyticsCard
+              label="Lowest projected team"
+              value={rankings.at(-1)?.name ?? "—"}
+              detail={rankings.at(-1) ? `${rankings.at(-1)!.rating} model rating` : "Waiting for team data"}
+            />
+            <AnalyticsCard
+              label="Strongest division"
+              value={insights.strongestDivision ? `${insights.strongestDivision.conference} ${insights.strongestDivision.division}` : "—"}
+              detail={insights.strongestDivision ? `${insights.strongestDivision.averageRating} average rating` : "Waiting for team data"}
+            />
+            <AnalyticsCard
+              label="Weakest division"
+              value={insights.weakestDivision ? `${insights.weakestDivision.conference} ${insights.weakestDivision.division}` : "—"}
+              detail={insights.weakestDivision ? `${insights.weakestDivision.averageRating} average rating` : "Waiting for team data"}
+            />
+            <AnalyticsCard
+              label="Biggest favorite"
+              value={insights.biggestFavorites[0] ? `${Math.round(insights.biggestFavorites[0].favorite.probability * 100)}%` : "—"}
+              detail={insights.biggestFavorites[0] ? `${insights.biggestFavorites[0].favorite.team.name} · Week ${insights.biggestFavorites[0].game.week}` : "No remaining games"}
+            />
+            <AnalyticsCard
+              label="Closest matchup"
+              value={insights.closestGames[0] ? `${Math.round(insights.closestGames[0].favorite.probability * 100)}–${Math.round((1 - insights.closestGames[0].favorite.probability) * 100)}` : "—"}
+              detail={insights.closestGames[0] ? `${insights.closestGames[0].game.away_team.abbreviation} at ${insights.closestGames[0].game.home_team.abbreviation} · Week ${insights.closestGames[0].game.week}` : "No remaining games"}
+            />
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-950">
+              <div className="p-5 sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">Schedule outlook</p>
+                <h3 className="mt-1 text-lg font-semibold">Most favorable remaining paths</h3>
+                <p className="mt-2 text-sm text-gray-400">Expected share of remaining wins—not strength of schedule alone.</p>
+              </div>
+              {insights.favorableSchedules.map((outlook, index) => (
+                <Link key={outlook.team.id} href={`/power-rankings/${outlook.team.abbreviation.toLowerCase()}`} className="grid grid-cols-[2rem_minmax(0,1fr)_4rem] items-center gap-3 border-t border-gray-900 px-5 py-3 text-sm hover:bg-gray-900/60 sm:px-6">
+                  <span className="font-bold text-gray-500">{index + 1}</span>
+                  <span className="truncate font-medium">{outlook.team.name}</span>
+                  <span className="text-right font-semibold text-emerald-300">{Math.round(outlook.favorableRate * 100)}%</span>
+                </Link>
+              ))}
+            </div>
+
+            <div className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-950">
+              <div className="p-5 sm:p-6">
+                <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Confidence distribution</p>
+                <h3 className="mt-1 text-lg font-semibold">How decisive are the remaining games?</h3>
+                <p className="mt-2 text-sm text-gray-400">Every scheduled matchup grouped by the favorite’s edge.</p>
+              </div>
+              <div className="space-y-4 border-t border-gray-900 p-5 sm:p-6">
+                {insights.confidence.map((bucket) => {
+                  const maximum = Math.max(...insights.confidence.map((row) => row.games), 1);
+                  return (
+                    <div key={bucket.label}>
+                      <div className="flex justify-between gap-4 text-sm"><span>{bucket.label}</span><span className="text-gray-400">{bucket.games} games</span></div>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-gray-800"><div className="h-full rounded-full bg-blue-500" style={{ width: `${(bucket.games / maximum) * 100}%` }} /></div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            {[{ title: "Biggest favorites", rows: insights.biggestFavorites }, { title: "Closest matchups", rows: insights.closestGames }].map((group) => (
+              <div key={group.title} className="overflow-hidden rounded-2xl border border-gray-800 bg-gray-950">
+                <h3 className="p-5 text-lg font-semibold sm:px-6">{group.title}</h3>
+                {group.rows.map(({ game, favorite }) => (
+                  <Link key={game.id} href={`/week/${game.week}`} className="grid grid-cols-[minmax(0,1fr)_4rem] gap-3 border-t border-gray-900 px-5 py-3 text-sm hover:bg-gray-900/60 sm:px-6">
+                    <span className="truncate"><span className="text-gray-500">W{game.week}</span> · {game.away_team.abbreviation} at {game.home_team.abbreviation}</span>
+                    <span className="text-right font-semibold">{favorite.team.abbreviation} {Math.round(favorite.probability * 100)}%</span>
+                  </Link>
+                ))}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Detailed model analytics">
         <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5 sm:p-6">

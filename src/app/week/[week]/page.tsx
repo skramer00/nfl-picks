@@ -8,6 +8,7 @@ import { getGamesByWeek, type ScheduleGame } from "@/lib/gamesDb";
 import { getUserPicks, upsertPick } from "@/lib/picksDb";
 import { supabase } from "@/lib/supabaseClient";
 import { formatFavorability } from "@/lib/favorability";
+import { matchupExplanation } from "@/lib/modelAnalytics";
 import { selectedTeamStyle } from "@/lib/teamColors";
 
 const SEASON = 2026;
@@ -256,6 +257,20 @@ export default function WeekPage() {
                   {" · "}{game.rest_advantage_days} more {game.rest_advantage_days === 1 ? "day" : "days"} of rest
                 </p>
               ) : null}
+
+              <details className="mt-4 rounded-lg border border-gray-800 bg-black/30 px-3 py-2 text-xs">
+                <summary className="cursor-pointer font-semibold text-gray-300">
+                  Why these percentages?
+                </summary>
+                <ul className="mt-3 space-y-2 text-gray-400">
+                  {matchupExplanation(game).map((reason) => (
+                    <li key={reason} className="flex gap-2">
+                      <span aria-hidden="true" className="text-blue-400">•</span>
+                      <span>{reason}</span>
+                    </li>
+                  ))}
+                </ul>
+              </details>
 
               <p className="mt-5 text-sm text-gray-500">{game.venue ?? "Venue TBD"}</p>
             </article>

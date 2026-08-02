@@ -1,4 +1,5 @@
 import type { GameRow } from "./gamesDb";
+import { DIVISION_MATCHUP_MAX, HOME_FIELD_ELO, teamStrength } from "./favorability";
 
 export function modelFavorite(game: GameRow) {
   const away = game.away_win_prob ?? 0.5;
@@ -159,4 +160,134 @@ export function projectedTeamRecord(games: GameRow[], teamId: string) {
   const wins = Math.min(decisiveGames, Math.max(0, Math.round(expectedWins)));
   const losses = decisiveGames - wins;
   return { wins, losses, ties };
+}
+
+function probabilityForTeam(game: GameRow, teamId: string) {
+  return teamId === game.home_team_id
+    ? game.home_win_prob ?? 0.5
+    : game.away_win_prob ?? 0.5;
+}
+
+type ExplainableMatchup = Pick<
+  GameRow,
+  | "home_team"
+  | "away_team"
+  | "home_team_id"
+  | "away_team_id"
+  | "rest_advantage_team_id"
+  | "rest_advantage_days"
+  | "favorability_override_reason"
+>;
+
+export function matchupExplanation(game: ExplainableMatchup) {
+  if (game.favorability_override_reason) {
+    return [
+      `Manual adjustment: ${game.favorability_override_reason}`,
+      "This matchup uses the labeled adjustment instead of the standard model factors.",
+    ];
+  }
+
+  const homeStrength = teamStrength(game.home_team.abbreviation);
+  const awayStrength = teamStrength(game.away_team.abbreviation);
+  const strengthTeam = homeStrength >= awayStrength ? game.home_team : game.away_team;
+  const difference = Math.abs(homeStrength - awayStrength);
+  const isDivisionGame =
+    game.home_team.conference === game.away_team.conference &&
+    game.home_team.division === game.away_team.division;
+  const reasons: string[] = [];
+
+  if (difference < 25) {
+    reasons.push("The teams enter with nearly even model strength.");
+  } else {
+    reasons.push(`${strengthTeam.name} has the stronger model rating.`);
+  }
+  reasons.push(`${game.home_team.name} receives the home-field edge.`);
+
+  if (game.rest_advantage_team_id && game.rest_advantage_days) {
+    const restTeam = game.rest_advantage_team_id === game.home_team_id
+      ? game.home_team
+      : game.away_team;
+    reasons.push(`${restTeam.name} has ${game.rest_advantage_days} more ${game.rest_advantage_days === 1 ? "day" : "days"} of rest.`);
+  }
+  if (isDivisionGame) {
+    reasons.push(`Division-game uncertainty keeps either side from exceeding ${Math.round(DIVISION_MATCHUP_MAX * 100)}%.`);
+  }
+  return reasons;
+}
+
+export function seasonModelInsights(games: GameRow[]) {
+  const futureGames = games.filter((game) => game.status !== "final");
+  const teams = new Map<string, GameRow["home_team"]>();
+  for (const game of games) {
+    teams.set(game.home_team_id, game.home_team);
+    teams.set(game.away_team_id, game.away_team);
+  }
+
+  const matchupRows = futureGames
+    .map((game) => ({ game, favorite: modelFavorite(game) }))
+    .sort((first, second) => second.favorite.probability - first.favorite.probability);
+
+  const scheduleOutlooks = [...teams.values()].map((team) => {
+    const remaining = futureGames.filter(
+      (game) => game.home_team_id === team.id || game.away_team_id === team.id
+    );
+    const expectedWins = remaining.reduce(
+      (sum, game) => sum + probabilityForTeam(game, team.id),
+      0
+    );
+    return {
+      team,
+      games: remaining.length,
+      expectedWins,
+      favorableRate: remaining.length ? expectedWins / remaining.length : 0,
+    };
+  }).sort(
+    (first, second) =>
+      second.favorableRate - first.favorableRate ||
+      first.team.name.localeCompare(second.team.name)
+  );
+
+  const divisions = new Map<string, { conference: string; division: string; ratings: number[] }>();
+  for (const team of teams.values()) {
+    const key = `${team.conference} ${team.division}`;
+    const row = divisions.get(key) ?? {
+      conference: team.conference,
+      division: team.division,
+      ratings: [],
+    };
+    row.ratings.push(teamStrength(team.abbreviation));
+    divisions.set(key, row);
+  }
+  const divisionStrength = [...divisions.values()].map((division) => ({
+    ...division,
+    averageRating: Math.round(
+      division.ratings.reduce((sum, rating) => sum + rating, 0) /
+        division.ratings.length
+    ),
+  })).sort((first, second) => second.averageRating - first.averageRating);
+
+  const confidence = [
+    { label: "Toss-ups", minimum: 0.5, maximum: 0.55 },
+    { label: "Slight edges", minimum: 0.55, maximum: 0.6 },
+    { label: "Clear edges", minimum: 0.6, maximum: 0.65 },
+    { label: "Strong edges", minimum: 0.65, maximum: 1.01 },
+  ].map((bucket) => ({
+    label: bucket.label,
+    games: matchupRows.filter(({ favorite }) =>
+      favorite.probability >= bucket.minimum && favorite.probability < bucket.maximum
+    ).length,
+  }));
+
+  return {
+    biggestFavorites: matchupRows.slice(0, 5),
+    closestGames: [...matchupRows]
+      .sort((first, second) => first.favorite.probability - second.favorite.probability)
+      .slice(0, 5),
+    favorableSchedules: scheduleOutlooks.slice(0, 5),
+    difficultSchedules: scheduleOutlooks.slice(-5).reverse(),
+    strongestDivision: divisionStrength[0] ?? null,
+    weakestDivision: divisionStrength.at(-1) ?? null,
+    confidence,
+    homeFieldElo: HOME_FIELD_ELO,
+  };
 }
