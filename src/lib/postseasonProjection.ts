@@ -18,6 +18,11 @@ export type ConferenceProjection = {
 
 type Standing = Team & { wins: number; losses: number; ties: number };
 
+export type PlayoffOutlookTeam = Standing & {
+  chance: number;
+  eliminated: boolean;
+};
+
 function compareTeams(a: Standing, b: Standing) {
   const aPct = (a.wins + a.ties * 0.5) / Math.max(1, a.wins + a.losses + a.ties);
   const bPct = (b.wins + b.ties * 0.5) / Math.max(1, b.wins + b.losses + b.ties);
@@ -100,5 +105,113 @@ export function buildPostseasonProjection(
       divisionWinner: index < divisionWinners.length,
     }));
     return { conference, teams };
+  });
+}
+
+function seededRandom(seed: number) {
+  let value = seed >>> 0;
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0;
+    return value / 4294967296;
+  };
+}
+
+export function playoffChances(games: GameRow[], simulations = 2000) {
+  const teams = new Map<string, Team>();
+  for (const game of games) {
+    teams.set(game.home_team_id, game.home_team);
+    teams.set(game.away_team_id, game.away_team);
+  }
+  const appearances = new Map([...teams.keys()].map((id) => [id, 0]));
+  const random = seededRandom(2026);
+
+  for (let simulation = 0; simulation < simulations; simulation += 1) {
+    const simulatedPicks: Record<string, string> = {};
+    for (const game of games) {
+      if (game.status === "final") continue;
+      const homeChance = game.home_win_prob ?? 0.5;
+      simulatedPicks[game.id] = random() < homeChance
+        ? game.home_team_id
+        : game.away_team_id;
+    }
+    for (const conference of buildPostseasonProjection(games, simulatedPicks, "user")) {
+      for (const team of conference.teams) {
+        appearances.set(team.id, (appearances.get(team.id) ?? 0) + 1);
+      }
+    }
+  }
+
+  return new Map(
+    [...appearances].map(([id, count]) => [id, Math.round((count / simulations) * 100)])
+  );
+}
+
+export function buildPlayoffHunt(
+  games: GameRow[],
+  projection: ConferenceProjection[],
+  chances: Map<string, number>
+) {
+  const actual = new Map<string, Standing>();
+  const remaining = new Map<string, number>();
+  const projected = new Map<string, Standing>();
+
+  for (const game of games) {
+    for (const team of [game.away_team, game.home_team]) {
+      if (!actual.has(team.id)) {
+        actual.set(team.id, { ...team, wins: 0, losses: 0, ties: 0 });
+        projected.set(team.id, { ...team, wins: 0, losses: 0, ties: 0 });
+        remaining.set(team.id, 0);
+      }
+    }
+    if (game.status !== "final") {
+      remaining.set(game.away_team_id, (remaining.get(game.away_team_id) ?? 0) + 1);
+      remaining.set(game.home_team_id, (remaining.get(game.home_team_id) ?? 0) + 1);
+      const homeChance = game.home_win_prob ?? 0.5;
+      projected.get(game.home_team_id)!.wins += homeChance;
+      projected.get(game.home_team_id)!.losses += 1 - homeChance;
+      projected.get(game.away_team_id)!.wins += 1 - homeChance;
+      projected.get(game.away_team_id)!.losses += homeChance;
+      continue;
+    }
+    const actualAway = actual.get(game.away_team_id)!;
+    const actualHome = actual.get(game.home_team_id)!;
+    const projectedAway = projected.get(game.away_team_id)!;
+    const projectedHome = projected.get(game.home_team_id)!;
+    if (game.winner_team_id === game.away_team_id) {
+      actualAway.wins += 1; projectedAway.wins += 1;
+      actualHome.losses += 1; projectedHome.losses += 1;
+    } else if (game.winner_team_id === game.home_team_id) {
+      actualHome.wins += 1; projectedHome.wins += 1;
+      actualAway.losses += 1; projectedAway.losses += 1;
+    } else {
+      actualAway.ties += 1; actualHome.ties += 1;
+      projectedAway.ties += 1; projectedHome.ties += 1;
+    }
+  }
+
+  return projection.map((conferenceProjection) => {
+    const selected = new Set(conferenceProjection.teams.map((team) => team.id));
+    const conferenceActual = [...actual.values()].filter(
+      (team) => team.conference === conferenceProjection.conference
+    );
+    const teams = [...projected.values()]
+      .filter((team) => team.conference === conferenceProjection.conference && !selected.has(team.id))
+      .sort(compareTeams)
+      .map((team): PlayoffOutlookTeam => {
+        const current = actual.get(team.id)!;
+        const maximumWins = current.wins + (remaining.get(team.id) ?? 0);
+        const teamsAlreadyAboveMaximum = conferenceActual.filter(
+          (opponent) => opponent.id !== team.id && opponent.wins > maximumWins
+        ).length;
+        return {
+          ...team,
+          chance: chances.get(team.id) ?? 0,
+          eliminated: teamsAlreadyAboveMaximum >= 7,
+        };
+      });
+    return {
+      conference: conferenceProjection.conference,
+      teams: teams.filter((team) => !team.eliminated),
+    };
   });
 }

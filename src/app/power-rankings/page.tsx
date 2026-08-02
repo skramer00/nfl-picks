@@ -18,6 +18,7 @@ import { getTeamTheme } from "@/lib/teamColors";
 
 const SEASON = 2026;
 type ConferenceFilter = "All" | "AFC" | "NFC";
+type ModelSection = "rankings" | "outlook" | "performance" | "picks";
 
 function record(team: PowerRanking) {
   return team.ties
@@ -84,6 +85,7 @@ export default function PowerRankingsPage() {
   const [games, setGames] = useState<GameRow[]>([]);
   const [picks, setPicks] = useState<Record<string, string>>({});
   const [filter, setFilter] = useState<ConferenceFilter>("All");
+  const [section, setSection] = useState<ModelSection>("rankings");
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -164,18 +166,37 @@ export default function PowerRankingsPage() {
         </p>
       </div>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-3" aria-label="Model scorecard">
+      <nav aria-label="Model sections" className="mt-6 grid grid-cols-2 gap-1 rounded-xl border border-gray-800 bg-gray-950 p-1 sm:inline-flex">
+        {([
+          ["rankings", "Power Rankings"],
+          ["outlook", "Season Outlook"],
+          ["performance", "Performance"],
+          ["picks", "My Picks"],
+        ] as const).map(([value, label]) => (
+          <button
+            key={value}
+            type="button"
+            aria-pressed={section === value}
+            onClick={() => setSection(value)}
+            className={`rounded-lg px-3 py-2 text-sm ${section === value ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-900"}`}
+          >
+            {label}
+          </button>
+        ))}
+      </nav>
+
+      <section className={`${section === "performance" ? "grid" : "hidden"} mt-8 gap-4 sm:grid-cols-3`} aria-label="Model scorecard">
         <AnalyticsCard label="Model accuracy" value={performance.accuracy === null ? "—" : `${performance.accuracy}%`} detail={performance.finals ? `${performance.correct} of ${performance.finals} final games` : performance.unscoredFinals ? `${performance.unscoredFinals} final games excluded without a pregame snapshot` : "Starts after the first final game"} />
         <AnalyticsCard label="Favorites" value={performance.finals ? String(performance.favoriteWins) : "—"} detail="Model favorites that won" />
         <AnalyticsCard label="Underdog wins" value={performance.finals ? String(performance.underdogWins) : "—"} detail="Games where the model favorite lost" />
       </section>
 
-      <div className="mt-4 rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-400">
+      <div className={`${section === "performance" ? "block" : "hidden"} mt-4 rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-400`}>
         <span className="font-semibold text-gray-200">Pregame archive: </span>
         {lockedPredictions} of {games.length || 272} predictions locked. Snapshots are captured as kickoff approaches, and only verified pregame snapshots count toward model accuracy.
       </div>
 
-      {!loading && !error && games.length ? (
+      {section === "outlook" && !loading && !error && games.length ? (
         <section className="mt-8" aria-labelledby="season-outlook-heading">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-violet-400">Season outlook</p>
@@ -268,7 +289,7 @@ export default function PowerRankingsPage() {
         </section>
       ) : null}
 
-      <section className="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Detailed model analytics">
+      <section className={`${section === "performance" ? "grid" : "hidden"} mt-8 gap-6 lg:grid-cols-2`} aria-label="Detailed model analytics">
         <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Weekly scorecard</p>
           <h2 className="mt-1 text-xl font-semibold">Accuracy by week</h2>
@@ -314,6 +335,7 @@ export default function PowerRankingsPage() {
         </div>
       </section>
 
+      <div className={section === "picks" ? "block" : "hidden"}>
       {signedIn ? (
         <section className="mt-8">
           <div>
@@ -357,7 +379,9 @@ export default function PowerRankingsPage() {
           </div> : <p className="mt-4 text-sm text-gray-400">No upcoming disagreements yet. Your contrarian picks will appear here automatically.</p>}
         </section>
       ) : null}
+      </div>
 
+      <div className={section === "rankings" ? "block" : "hidden"}>
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <div className="inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1">
           {(["All", "AFC", "NFC"] as const).map((option) => (
@@ -467,6 +491,7 @@ export default function PowerRankingsPage() {
           </details>
         </>
       ) : null}
+      </div>
     </main>
   );
 }

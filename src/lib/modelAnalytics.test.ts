@@ -11,6 +11,7 @@ import {
   seasonModelInsights,
   userPickPerformance,
 } from "./modelAnalytics";
+import { buildPlayoffHunt, buildPostseasonProjection, playoffChances } from "./postseasonProjection";
 
 const away: Team = { id: "away", abbreviation: "AWY", name: "Away", conference: "AFC", division: "East" };
 const home: Team = { id: "home", abbreviation: "HME", name: "Home", conference: "NFC", division: "West" };
@@ -123,4 +124,14 @@ test("season insights rank matchups, schedules, divisions, and confidence", () =
   assert.equal(insights.closestGames[0].game.id, "game-2");
   assert.equal(insights.favorableSchedules[0].team.id, home.id);
   assert.equal(insights.confidence.reduce((sum, bucket) => sum + bucket.games, 0), 2);
+});
+
+test("playoff odds are deterministic and projected teams leave the hunt", () => {
+  const rows = [game()];
+  const chances = playoffChances(rows, 50);
+  assert.equal(chances.get(away.id), 100);
+  assert.equal(chances.get(home.id), 100);
+  const projection = buildPostseasonProjection(rows, {}, "model");
+  const hunt = buildPlayoffHunt(rows, projection, chances);
+  assert.equal(hunt.flatMap((conference) => conference.teams).length, 0);
 });

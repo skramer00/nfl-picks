@@ -7,6 +7,8 @@ import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
 import {
   buildPostseasonProjection,
+  buildPlayoffHunt,
+  playoffChances,
   picksProgress,
   type ConferenceProjection,
   type ProjectionMode,
@@ -24,7 +26,12 @@ function record(team: ProjectedTeam) {
     : `${format(team.wins)}-${format(team.losses)}`;
 }
 
-function SeedCard({ team }: { team: ProjectedTeam }) {
+function chanceLabel(chance: number) {
+  if (chance === 0) return "<1%";
+  return `${chance}%`;
+}
+
+function SeedCard({ team, chance }: { team: ProjectedTeam; chance: number }) {
   const theme = getTeamTheme(team.abbreviation);
   return (
     <div
@@ -43,6 +50,10 @@ function SeedCard({ team }: { team: ProjectedTeam }) {
           {team.abbreviation} · {record(team)} {team.divisionWinner ? `· ${team.division} winner` : "· Wild card"}
         </div>
       </div>
+      <div className="shrink-0 text-right">
+        <div className="font-semibold text-blue-200">{chanceLabel(chance)}</div>
+        <div className="text-[10px] uppercase tracking-wide text-gray-600">Playoffs</div>
+      </div>
     </div>
   );
 }
@@ -59,7 +70,7 @@ function Matchup({ high, low }: { high: ProjectedTeam; low: ProjectedTeam }) {
   );
 }
 
-function ConferenceBracket({ projection }: { projection: ConferenceProjection }) {
+function ConferenceBracket({ projection, chances }: { projection: ConferenceProjection; chances: Map<string, number> }) {
   const teams = projection.teams;
   return (
     <section>
@@ -68,7 +79,7 @@ function ConferenceBracket({ projection }: { projection: ConferenceProjection })
         <span className="text-xs uppercase tracking-widest text-gray-500">Projected seeds</span>
       </div>
       <div className="mt-4 space-y-2">
-        {teams.map((team) => <SeedCard key={team.id} team={team} />)}
+        {teams.map((team) => <SeedCard key={team.id} team={team} chance={chances.get(team.id) ?? 0} />)}
       </div>
       {teams.length === 7 ? (
         <div className="mt-6">
@@ -129,6 +140,11 @@ export default function PostseasonPage() {
     () => games.filter((game) => game.status === "final").length,
     [games]
   );
+  const chances = useMemo(() => playoffChances(games), [games]);
+  const hunt = useMemo(
+    () => buildPlayoffHunt(games, projection, chances),
+    [chances, games, projection]
+  );
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -158,6 +174,9 @@ export default function PostseasonPage() {
           My picks
         </button>
       </div>
+      <p className="mt-3 max-w-2xl text-xs leading-5 text-gray-500">
+        Playoff chances always come from model simulations. “My picks” changes the projected field based on your completed card.
+      </p>
 
       {loading ? <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6">Building the playoff picture…</div> : null}
       {error ? <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6 text-red-200">{error}</div> : null}
@@ -185,7 +204,7 @@ export default function PostseasonPage() {
 
       {!loading && !error && projection.length ? (
         <>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+          <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-gray-800 bg-gray-950 p-4">
               <div className="text-xs text-gray-500">Projection source</div>
               <div className="mt-1 font-semibold">{mode === "model" ? "Model favorability" : "Your picks"}</div>
@@ -194,14 +213,42 @@ export default function PostseasonPage() {
               <div className="text-xs text-gray-500">Actual results included</div>
               <div className="mt-1 font-semibold">{finalGames} games</div>
             </div>
-            <div className="rounded-xl border border-gray-800 bg-gray-950 p-4">
-              <div className="text-xs text-gray-500">Projected field</div>
-              <div className="mt-1 font-semibold">14 playoff teams</div>
-            </div>
           </div>
           <div className="mt-10 grid gap-10 lg:grid-cols-2">
-            {projection.map((conference) => <ConferenceBracket key={conference.conference} projection={conference} />)}
+            {projection.map((conference) => <ConferenceBracket key={conference.conference} projection={conference} chances={chances} />)}
           </div>
+          <section className="mt-12 border-t border-gray-800 pt-8">
+            <div className="max-w-2xl">
+              <p className="text-xs font-semibold uppercase tracking-wider text-amber-400">Bubble watch</p>
+              <h2 className="mt-1 text-2xl font-semibold">In the Hunt</h2>
+              <p className="mt-2 text-sm text-gray-400">Teams currently outside the projected field remain here until they are mathematically eliminated.</p>
+            </div>
+            <div className="mt-6 grid gap-8 lg:grid-cols-2">
+              {hunt.map((conference) => (
+                <div key={conference.conference}>
+                  <h3 className="text-lg font-semibold">{conference.conference}</h3>
+                  <div className="mt-3 space-y-2">
+                    {conference.teams.length ? conference.teams.map((team) => {
+                      const theme = getTeamTheme(team.abbreviation);
+                      return (
+                        <div key={team.id} className="flex items-center gap-3 rounded-xl border border-gray-800 bg-gray-950 p-3">
+                          <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-lg text-xs font-black text-white" style={{ backgroundColor: theme.primary }}>{team.abbreviation}</span>
+                          <div className="min-w-0 flex-1">
+                            <div className="truncate font-medium">{team.name}</div>
+                            <div className="text-xs text-gray-500">Projected {record({ ...team, seed: 0, divisionWinner: false })}</div>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <div className="font-semibold text-amber-200">{chanceLabel(team.chance)}</div>
+                            <div className="text-[10px] uppercase tracking-wide text-gray-600">Playoffs</div>
+                          </div>
+                        </div>
+                      );
+                    }) : <p className="rounded-xl border border-gray-800 bg-gray-950 p-4 text-sm text-gray-400">No teams remain in the hunt.</p>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
           <p className="mt-10 text-xs leading-5 text-gray-500">
             Projection only. Division winners are seeded first, followed by three wild cards per conference. Ties are resolved with the preseason model rating, not the NFL’s full official tiebreaker procedure.
           </p>
