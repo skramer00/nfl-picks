@@ -9,9 +9,10 @@ export function modelFavorite(game: GameRow) {
 }
 
 export function modelPerformance(games: GameRow[]) {
-  const finals = games.filter(
+  const allFinals = games.filter(
     (game) => game.status === "final" && Boolean(game.winner_team_id)
   );
+  const finals = allFinals.filter((game) => game.prediction_snapshot_is_pregame);
   const correct = finals.filter(
     (game) => modelFavorite(game).teamId === game.winner_team_id
   ).length;
@@ -30,6 +31,7 @@ export function modelPerformance(games: GameRow[]) {
     accuracy: finals.length ? Math.round((correct / finals.length) * 100) : null,
     favoriteWins: correct,
     underdogWins: finals.length - correct,
+    unscoredFinals: allFinals.length - finals.length,
     weekly: [...weekly.entries()].map(([week, result]) => ({ week, ...result })),
   };
 }
@@ -53,7 +55,10 @@ const confidenceRanges = [
 
 export function confidenceCalibration(games: GameRow[]): ConfidenceBucket[] {
   const finals = games.filter(
-    (game) => game.status === "final" && Boolean(game.winner_team_id)
+    (game) =>
+      game.status === "final" &&
+      Boolean(game.winner_team_id) &&
+      game.prediction_snapshot_is_pregame
   );
 
   return confidenceRanges.map((range) => {
@@ -90,6 +95,7 @@ export function userPickPerformance(
     (game) =>
       game.status === "final" &&
       Boolean(game.winner_team_id) &&
+      game.prediction_snapshot_is_pregame &&
       Boolean(picks[game.id])
   );
   const withModel = finals.filter(

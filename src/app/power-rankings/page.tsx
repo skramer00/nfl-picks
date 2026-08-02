@@ -136,6 +136,10 @@ export default function PowerRankingsPage() {
     ? Math.max(...completedGames.map((game) => game.week))
     : null;
   const performance = useMemo(() => modelPerformance(games), [games]);
+  const lockedPredictions = useMemo(
+    () => games.filter((game) => game.prediction_snapshot_is_pregame).length,
+    [games]
+  );
   const calibration = useMemo(() => confidenceCalibration(games), [games]);
   const pickPerformance = useMemo(
     () => userPickPerformance(games, picks),
@@ -159,10 +163,15 @@ export default function PowerRankingsPage() {
       </div>
 
       <section className="mt-8 grid gap-4 sm:grid-cols-3" aria-label="Model scorecard">
-        <AnalyticsCard label="Model accuracy" value={performance.accuracy === null ? "—" : `${performance.accuracy}%`} detail={performance.finals ? `${performance.correct} of ${performance.finals} final games` : "Starts after the first final game"} />
+        <AnalyticsCard label="Model accuracy" value={performance.accuracy === null ? "—" : `${performance.accuracy}%`} detail={performance.finals ? `${performance.correct} of ${performance.finals} final games` : performance.unscoredFinals ? `${performance.unscoredFinals} final games excluded without a pregame snapshot` : "Starts after the first final game"} />
         <AnalyticsCard label="Favorites" value={performance.finals ? String(performance.favoriteWins) : "—"} detail="Model favorites that won" />
         <AnalyticsCard label="Underdog wins" value={performance.finals ? String(performance.underdogWins) : "—"} detail="Games where the model favorite lost" />
       </section>
+
+      <div className="mt-4 rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-400">
+        <span className="font-semibold text-gray-200">Pregame archive: </span>
+        {lockedPredictions} of {games.length || 272} predictions locked. Snapshots are captured as kickoff approaches, and only verified pregame snapshots count toward model accuracy.
+      </div>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-2" aria-label="Detailed model analytics">
         <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5 sm:p-6">

@@ -9,13 +9,15 @@ const TEAM_ELO: Record<string, number> = {
   TEN: 1339, WAS: 1334,
 };
 
-const HOME_FIELD_ELO = 55;
+export const MATCHUP_MODEL_VERSION = "2026.1";
+export const HOME_FIELD_ELO = 55;
 const WEEK_ONE_CONFIDENCE = 2 / 3;
 const WEEK_ONE_MAX = 0.74;
 const REST_FACTOR_START_WEEK = 3;
 const REST_BOOST_PER_DAY = 0.0075;
 const MAX_REST_BOOST = 0.03;
-const DIVISION_MATCHUP_MAX = 0.7;
+export const DIVISION_MATCHUP_MAX = 0.7;
+export const STANDARD_MATCHUP_MAX = 0.95;
 
 export function teamStrength(abbreviation: string) {
   return TEAM_ELO[abbreviation] ?? 1505;
@@ -43,7 +45,7 @@ export function matchupFavorability(
       ? Math.sign(homeRestAdvantageDays) *
         Math.min(wholeRestDays * REST_BOOST_PER_DAY, MAX_REST_BOOST)
       : 0;
-  const maximum = isDivisionMatchup ? DIVISION_MATCHUP_MAX : 0.95;
+  const maximum = isDivisionMatchup ? DIVISION_MATCHUP_MAX : STANDARD_MATCHUP_MAX;
   const home = Math.min(maximum, Math.max(1 - maximum, baseHome + restAdjustment));
 
   return { away: 1 - home, home, restAdjustment };

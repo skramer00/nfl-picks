@@ -49,6 +49,93 @@ export type Database = {
           },
         ]
       }
+      model_prediction_snapshots: {
+        Row: {
+          away_team_rating: number
+          away_win_probability: number
+          capture_is_pregame: boolean
+          capture_source: string
+          captured_at: string
+          division_cap: number
+          game_id: string
+          home_field_elo: number
+          home_team_rating: number
+          home_win_probability: number
+          is_division_matchup: boolean
+          kickoff_at: string
+          manual_override: boolean
+          manual_override_reason: string | null
+          model_version: string
+          rest_adjustment: number
+          rest_advantage_days: number | null
+          rest_advantage_team_id: string | null
+          season: number
+          week: number
+          week_one_regression: boolean
+        }
+        Insert: {
+          away_team_rating: number
+          away_win_probability: number
+          capture_is_pregame: boolean
+          capture_source: string
+          captured_at?: string
+          division_cap: number
+          game_id: string
+          home_field_elo: number
+          home_team_rating: number
+          home_win_probability: number
+          is_division_matchup: boolean
+          kickoff_at: string
+          manual_override?: boolean
+          manual_override_reason?: string | null
+          model_version: string
+          rest_adjustment?: number
+          rest_advantage_days?: number | null
+          rest_advantage_team_id?: string | null
+          season: number
+          week: number
+          week_one_regression: boolean
+        }
+        Update: {
+          away_team_rating?: number
+          away_win_probability?: number
+          capture_is_pregame?: boolean
+          capture_source?: string
+          captured_at?: string
+          division_cap?: number
+          game_id?: string
+          home_field_elo?: number
+          home_team_rating?: number
+          home_win_probability?: number
+          is_division_matchup?: boolean
+          kickoff_at?: string
+          manual_override?: boolean
+          manual_override_reason?: string | null
+          model_version?: string
+          rest_adjustment?: number
+          rest_advantage_days?: number | null
+          rest_advantage_team_id?: string | null
+          season?: number
+          week?: number
+          week_one_regression?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "model_prediction_snapshots_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "model_prediction_snapshots_rest_advantage_team_id_fkey"
+            columns: ["rest_advantage_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       foods: {
         Row: {
           created_at: string | null

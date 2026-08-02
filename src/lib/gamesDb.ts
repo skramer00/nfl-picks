@@ -26,6 +26,9 @@ export type ScheduleGame = {
   rest_advantage_team_id: string | null;
   rest_advantage_days: number | null;
   rest_adjustment: number;
+  prediction_captured_at: string | null;
+  prediction_model_version: string | null;
+  prediction_snapshot_is_pregame: boolean;
 };
 
 // Compatibility shape used by the existing admin and My Picks screens.
@@ -48,6 +51,9 @@ export type GameRow = {
   rest_adjustment: number;
   playoff_round: string | null;
   updated_at: string;
+  prediction_captured_at: string | null;
+  prediction_model_version: string | null;
+  prediction_snapshot_is_pregame: boolean;
   away_team: Team;
   home_team: Team;
 };
@@ -57,6 +63,44 @@ type FavorabilityOverride = {
   home_win_probability: number;
   reason: string;
 };
+
+type PredictionSnapshot = {
+  game_id: string;
+  captured_at: string;
+  capture_is_pregame: boolean;
+  model_version: string;
+  away_win_probability: number;
+  home_win_probability: number;
+  manual_override_reason: string | null;
+  rest_advantage_team_id: string | null;
+  rest_advantage_days: number | null;
+  rest_adjustment: number;
+};
+
+function predictionForGame(
+  calculated: ReturnType<typeof favorabilityForGame>,
+  snapshot?: PredictionSnapshot
+) {
+  if (!snapshot) {
+    return {
+      ...calculated,
+      prediction_captured_at: null,
+      prediction_model_version: null,
+      prediction_snapshot_is_pregame: false,
+    };
+  }
+  return {
+    away: Number(snapshot.away_win_probability),
+    home: Number(snapshot.home_win_probability),
+    reason: snapshot.manual_override_reason,
+    restAdvantageTeamId: snapshot.rest_advantage_team_id,
+    restAdvantageDays: snapshot.rest_advantage_days,
+    restAdjustment: Number(snapshot.rest_adjustment),
+    prediction_captured_at: snapshot.captured_at,
+    prediction_model_version: snapshot.model_version,
+    prediction_snapshot_is_pregame: snapshot.capture_is_pregame,
+  };
+}
 
 async function getFavorabilityOverrides(gameIds: string[]) {
   if (gameIds.length === 0) return new Map<string, FavorabilityOverride>();
@@ -108,7 +152,7 @@ function favorabilityForGame(
 }
 
 export async function getGamesByWeek(season: number, week: number) {
-  const [weekResult, scheduleResult] = await Promise.all([
+  const [weekResult, scheduleResult, snapshotResult] = await Promise.all([
     supabase.from("games").select(`
       id,
       week,
@@ -130,15 +174,27 @@ export async function getGamesByWeek(season: number, week: number) {
       .eq("season", season)
       .eq("season_type", "REG")
       .order("kickoff_at", { ascending: true }),
+    supabase
+      .from("model_prediction_snapshots")
+      .select("game_id, captured_at, capture_is_pregame, model_version, away_win_probability, home_win_probability, manual_override_reason, rest_advantage_team_id, rest_advantage_days, rest_adjustment")
+      .eq("season", season)
+      .eq("week", week),
   ]);
 
   if (weekResult.error) throw weekResult.error;
   if (scheduleResult.error) throw scheduleResult.error;
-  const games = (weekResult.data ?? []) as unknown as Omit<ScheduleGame, "away_win_prob" | "home_win_prob" | "favorability_override_reason" | "rest_advantage_team_id" | "rest_advantage_days" | "rest_adjustment">[];
+  if (snapshotResult.error) throw snapshotResult.error;
+  const games = (weekResult.data ?? []) as unknown as Omit<ScheduleGame, "away_win_prob" | "home_win_prob" | "favorability_override_reason" | "rest_advantage_team_id" | "rest_advantage_days" | "rest_adjustment" | "prediction_captured_at" | "prediction_model_version" | "prediction_snapshot_is_pregame">[];
   const restByGame = buildRestAdvantageMap((scheduleResult.data ?? []) as RestScheduleGame[]);
   const overrides = await getFavorabilityOverrides(games.map((game) => game.id));
+  const snapshots = new Map(
+    ((snapshotResult.data ?? []) as PredictionSnapshot[]).map((snapshot) => [snapshot.game_id, snapshot])
+  );
   return games.map((game) => {
-    const favorability = favorabilityForGame(game, overrides, restByGame.get(game.id));
+    const favorability = predictionForGame(
+      favorabilityForGame(game, overrides, restByGame.get(game.id)),
+      snapshots.get(game.id)
+    );
     return {
       ...game,
       away_win_prob: favorability.away,
@@ -147,6 +203,9 @@ export async function getGamesByWeek(season: number, week: number) {
       rest_advantage_team_id: favorability.restAdvantageTeamId,
       rest_advantage_days: favorability.restAdvantageDays,
       rest_adjustment: favorability.restAdjustment,
+      prediction_captured_at: favorability.prediction_captured_at,
+      prediction_model_version: favorability.prediction_model_version,
+      prediction_snapshot_is_pregame: favorability.prediction_snapshot_is_pregame,
     };
   });
 }
@@ -167,16 +226,29 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
   if (error) throw error;
 
   const games = (data ?? []) as unknown as Array<
-    Omit<GameRow, "kickoff_iso" | "home_win_prob" | "away_win_prob" | "favorability_override_reason" | "rest_advantage_team_id" | "rest_advantage_days" | "rest_adjustment" | "playoff_round"> & {
+    Omit<GameRow, "kickoff_iso" | "home_win_prob" | "away_win_prob" | "favorability_override_reason" | "rest_advantage_team_id" | "rest_advantage_days" | "rest_adjustment" | "playoff_round" | "prediction_captured_at" | "prediction_model_version" | "prediction_snapshot_is_pregame"> & {
       kickoff_at: string;
     }
   >;
 
-  const overrides = await getFavorabilityOverrides(games.map((game) => game.id));
+  const [overrides, snapshotResult] = await Promise.all([
+    getFavorabilityOverrides(games.map((game) => game.id)),
+    supabase
+      .from("model_prediction_snapshots")
+      .select("game_id, captured_at, capture_is_pregame, model_version, away_win_probability, home_win_probability, manual_override_reason, rest_advantage_team_id, rest_advantage_days, rest_adjustment")
+      .eq("season", season),
+  ]);
+  if (snapshotResult.error) throw snapshotResult.error;
+  const snapshots = new Map(
+    ((snapshotResult.data ?? []) as PredictionSnapshot[]).map((snapshot) => [snapshot.game_id, snapshot])
+  );
   const restByGame = buildRestAdvantageMap(games);
 
   return games.map((game) => {
-    const favorability = favorabilityForGame(game, overrides, restByGame.get(game.id));
+    const favorability = predictionForGame(
+      favorabilityForGame(game, overrides, restByGame.get(game.id)),
+      snapshots.get(game.id)
+    );
     return {
       ...game,
       kickoff_iso: game.kickoff_at,
@@ -187,6 +259,9 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
       rest_advantage_days: favorability.restAdvantageDays,
       rest_adjustment: favorability.restAdjustment,
       playoff_round: null,
+      prediction_captured_at: favorability.prediction_captured_at,
+      prediction_model_version: favorability.prediction_model_version,
+      prediction_snapshot_is_pregame: favorability.prediction_snapshot_is_pregame,
     };
   });
 }

@@ -20,6 +20,8 @@ function game(overrides: Partial<GameRow> = {}): GameRow {
     status: "scheduled", winner_team_id: null, home_win_prob: 0.7, away_win_prob: 0.3,
     favorability_override_reason: null, rest_advantage_team_id: null, rest_advantage_days: null,
     rest_adjustment: 0, playoff_round: null, updated_at: "2026-08-01T00:00:00Z",
+    prediction_captured_at: "2026-08-31T00:00:00Z", prediction_model_version: "test",
+    prediction_snapshot_is_pregame: true,
     away_team: away, home_team: home, ...overrides,
   };
 }
@@ -32,6 +34,14 @@ test("model performance scores favorites against final results", () => {
   assert.equal(results.accuracy, 50);
   assert.equal(results.favoriteWins, 1);
   assert.equal(results.underdogWins, 1);
+});
+
+test("model performance excludes finals without a pregame snapshot", () => {
+  const results = modelPerformance([
+    game({ status: "final", winner_team_id: home.id, prediction_snapshot_is_pregame: false }),
+  ]);
+  assert.equal(results.finals, 0);
+  assert.equal(results.unscoredFinals, 1);
 });
 
 test("disagreements include only future picks against the favorite", () => {

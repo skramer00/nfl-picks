@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "../database.types";
+import { capturePredictionSnapshots } from "../predictionSnapshots";
 import { syncResults } from "./sync";
 
 export async function runTrackedSync({
@@ -25,6 +26,12 @@ export async function runTrackedSync({
   if (insertError) throw insertError;
 
   try {
+    const snapshots = await capturePredictionSnapshots({
+      supabase,
+      season,
+      weeks,
+      source,
+    });
     const summary = await syncResults({ supabase, season, weeks });
     const { error: updateError } = await supabase
       .from("sync_runs")
@@ -39,7 +46,7 @@ export async function runTrackedSync({
       })
       .eq("id", run.id);
     if (updateError) throw updateError;
-    return summary;
+    return { ...summary, snapshots };
   } catch (error) {
     await supabase
       .from("sync_runs")
