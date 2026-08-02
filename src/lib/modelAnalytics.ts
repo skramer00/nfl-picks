@@ -1,5 +1,5 @@
 import type { GameRow } from "./gamesDb";
-import { DIVISION_MATCHUP_MAX, HOME_FIELD_ELO, teamStrength } from "./favorability";
+import { HOME_FIELD_ELO, teamStrength } from "./favorability";
 
 export function modelFavorite(game: GameRow) {
   const away = game.away_win_prob ?? 0.5;
@@ -210,7 +210,7 @@ export function matchupExplanation(game: ExplainableMatchup) {
     reasons.push(`${restTeam.name} has ${game.rest_advantage_days} more ${game.rest_advantage_days === 1 ? "day" : "days"} of rest.`);
   }
   if (isDivisionGame) {
-    reasons.push(`Division-game uncertainty keeps either side from exceeding ${Math.round(DIVISION_MATCHUP_MAX * 100)}%.`);
+    reasons.push("The division matchup keeps this game more competitive.");
   }
   return reasons;
 }

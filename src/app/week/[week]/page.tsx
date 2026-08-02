@@ -224,7 +224,7 @@ export default function WeekPage() {
                   </div>
                   <div className="text-right">
                     <span className={`block text-xl font-bold ${picks[game.id] === game.away_team.id ? "text-white" : "text-gray-300"}`}>{formatFavorability(game.away_win_prob)}</span>
-                    <span className={`text-xs ${picks[game.id] === game.away_team.id ? "text-white/70" : "text-gray-500"}`}>favorability · {game.away_team.abbreviation}</span>
+                    <span className={`text-xs ${picks[game.id] === game.away_team.id ? "text-white/70" : "text-gray-500"}`}>favored</span>
                   </div>
                 </button>
                 <button
@@ -240,7 +240,7 @@ export default function WeekPage() {
                   </div>
                   <div className="text-right">
                     <span className={`block text-xl font-bold ${picks[game.id] === game.home_team.id ? "text-white" : "text-gray-300"}`}>{formatFavorability(game.home_win_prob)}</span>
-                    <span className={`text-xs ${picks[game.id] === game.home_team.id ? "text-white/70" : "text-gray-500"}`}>favorability · {game.home_team.abbreviation}</span>
+                    <span className={`text-xs ${picks[game.id] === game.home_team.id ? "text-white/70" : "text-gray-500"}`}>favored</span>
                   </div>
                 </button>
               </div>

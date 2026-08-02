@@ -104,6 +104,15 @@ test("matchup explanation names the model inputs in plain language", () => {
   assert.equal(adjustedReasons.some((reason) => reason.includes("instead of")), true);
 });
 
+test("division matchup explanation avoids exposing model cap math", () => {
+  const reasons = matchupExplanation(game({
+    away_team: { ...away, conference: "NFC", division: "West" },
+    home_team: { ...home, conference: "NFC", division: "West" },
+  }));
+  assert.equal(reasons.includes("The division matchup keeps this game more competitive."), true);
+  assert.equal(reasons.some((reason) => reason.includes("70%")), false);
+});
+
 test("season insights rank matchups, schedules, divisions, and confidence", () => {
   const rows = [
     game(),
