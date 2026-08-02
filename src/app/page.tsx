@@ -1,6 +1,27 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+import { supabase } from "@/lib/supabaseClient";
 
 export default function Home() {
+  const [signedIn, setSignedIn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    void supabase.auth.getUser().then(({ data }) => {
+      if (active) setSignedIn(Boolean(data.user));
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) setSignedIn(Boolean(session?.user));
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
       <section className="overflow-hidden rounded-3xl border border-gray-800 bg-[radial-gradient(circle_at_top_left,_rgba(245,158,11,0.18),_transparent_42%),linear-gradient(145deg,#111827,#030712)] px-6 py-12 sm:px-12 sm:py-16">
@@ -16,6 +37,8 @@ export default function Home() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            {signedIn === false ? (
+              <>
             <Link
               href="/login?mode=signup"
               className="rounded-xl bg-amber-400 px-6 py-3.5 text-center font-semibold text-gray-950 transition hover:bg-amber-300"
@@ -28,6 +51,8 @@ export default function Home() {
             >
               Log in
             </Link>
+              </>
+            ) : null}
             <Link
               href="/week"
               className="px-4 py-3.5 text-center font-medium text-gray-300 transition hover:text-white"
