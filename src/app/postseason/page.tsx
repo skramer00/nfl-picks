@@ -157,14 +157,15 @@ export default function PostseasonPage() {
         </p>
       </div>
 
-      <div className="mt-6 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1">
+      <div className="mt-6 flex flex-wrap gap-2">
+      <div className="inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1">
         <button
           type="button"
           aria-pressed={mode === "model"}
           onClick={() => setMode("model")}
           className={`rounded-lg px-4 py-2 text-sm ${mode === "model" ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-gray-900"}`}
         >
-          Model projection
+          Model
         </button>
         <button
           type="button"
@@ -175,11 +176,7 @@ export default function PostseasonPage() {
           My picks
         </button>
       </div>
-      <p className="mt-3 max-w-2xl text-xs leading-5 text-gray-500">
-        Playoff chances always come from model simulations. “My picks” changes the projected field based on your completed card.
-      </p>
-
-      <div className="mt-4 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Choose a conference">
+      <div className="inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Choose a conference">
         {(["AFC", "NFC"] as const).map((option) => (
           <button
             key={option}
@@ -192,6 +189,10 @@ export default function PostseasonPage() {
           </button>
         ))}
       </div>
+      </div>
+      <p className="mt-3 max-w-2xl text-xs leading-5 text-gray-500">
+        Playoff chances always come from model simulations. “My picks” changes the projected field based on your completed card.
+      </p>
 
       {loading ? <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6">Building the playoff picture…</div> : null}
       {error ? <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6 text-red-200">{error}</div> : null}
