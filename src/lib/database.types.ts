@@ -436,6 +436,24 @@ export type Database = {
         }
         Relationships: []
       }
+      user_power_rankings: {
+        Row: {
+          team_order: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          team_order: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          team_order?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       leaderboard_points: {

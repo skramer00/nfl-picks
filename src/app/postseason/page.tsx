@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { ShareImageButton } from "@/components/ShareImageButton";
 import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
 import {
@@ -146,13 +147,18 @@ export default function PostseasonPage() {
     () => buildPlayoffHunt(games, projection, chances),
     [chances, games, projection]
   );
+  const playoffShareUrl = useMemo(() => {
+    const afc = projection.find((item) => item.conference === "AFC")?.teams.map((team) => team.abbreviation).join(",") ?? "";
+    const nfc = projection.find((item) => item.conference === "NFC")?.teams.map((team) => team.abbreviation).join(",") ?? "";
+    return `/api/share/playoffs?mode=${mode}&afc=${encodeURIComponent(afc)}&nfc=${encodeURIComponent(nfc)}`;
+  }, [mode, projection]);
 
   return (
     <main className="mx-auto max-w-6xl p-6">
       <div className="max-w-3xl">
         <p className="text-sm font-medium uppercase tracking-widest text-blue-400">2026 playoff picture</p>
         <h1 className="mt-1 text-3xl font-semibold">Postseason projection</h1>
-        <p className="mt-3 text-gray-400">
+        <p className="mt-2 text-sm leading-6 text-gray-400 sm:mt-3 sm:text-base">
           Completed games use their actual results. Future games use either the model favorite or your saved picks, so the picture evolves every week.
         </p>
       </div>
@@ -189,6 +195,7 @@ export default function PostseasonPage() {
           </button>
         ))}
       </div>
+      {projection.length ? <ShareImageButton imageUrl={playoffShareUrl} fileName={`pretzel-quest-${mode}-playoffs.png`} label="Share playoff picture" /> : null}
       </div>
       {loading ? <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6">Building the playoff picture…</div> : null}
       {error ? <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6 text-red-200">{error}</div> : null}

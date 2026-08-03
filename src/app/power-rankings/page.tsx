@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
+import { UserRankingEditor } from "@/components/UserRankingEditor";
 import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
 import {
@@ -24,10 +25,11 @@ import {
 } from "@/lib/modelRatings";
 import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
+import { getUserRanking, saveUserRanking } from "@/lib/userRankingsDb";
 
 const SEASON = 2026;
 type ConferenceFilter = "All" | "AFC" | "NFC";
-type ModelSection = "rankings" | "audit" | "outlook" | "performance" | "picks";
+type ModelSection = "rankings" | "user-rankings" | "audit" | "outlook" | "performance" | "picks";
 
 function record(team: PowerRanking) {
   return team.ties
@@ -96,6 +98,8 @@ export default function PowerRankingsPage() {
   const [filter, setFilter] = useState<ConferenceFilter>("All");
   const [section, setSection] = useState<ModelSection>("rankings");
   const [signedIn, setSignedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userRankingOrder, setUserRankingOrder] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -111,8 +115,9 @@ export default function PowerRankingsPage() {
         setGames(rows);
         if (userResult.data.user) {
           setSignedIn(true);
-          const saved = await getUserPicks(userResult.data.user.id);
-          if (!cancelled) setPicks(saved);
+          setUserId(userResult.data.user.id);
+          const [saved, savedRanking] = await Promise.all([getUserPicks(userResult.data.user.id), getUserRanking(userResult.data.user.id)]);
+          if (!cancelled) { setPicks(saved); setUserRankingOrder(savedRanking); }
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -175,11 +180,23 @@ export default function PowerRankingsPage() {
         </p>
       </div>
 
-      <nav aria-label="Model sections" className="mt-6 flex max-w-full gap-1 overflow-x-auto rounded-xl border border-gray-800 bg-gray-950 p-1 sm:inline-flex">
+      <div className="mt-6 sm:hidden">
+        <label htmlFor="model-section" className="sr-only">Choose a Model section</label>
+        <select id="model-section" value={section} onChange={(event) => setSection(event.target.value as ModelSection)} className="w-full rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white">
+          <option value="rankings">Model Rankings</option>
+          <option value="user-rankings">My Rankings</option>
+          <option value="outlook">Season Outlook</option>
+          <option value="audit">Audit</option>
+          <option value="performance">Performance</option>
+          <option value="picks">My Picks</option>
+        </select>
+      </div>
+      <nav aria-label="Model sections" className="mt-6 hidden max-w-full flex-wrap gap-1 rounded-xl border border-gray-800 bg-gray-950 p-1 sm:inline-flex">
         {([
-          ["rankings", "Power Rankings"],
-          ["audit", "Audit"],
+          ["rankings", "Model Rankings"],
+          ["user-rankings", "My Rankings"],
           ["outlook", "Season Outlook"],
+          ["audit", "Audit"],
           ["performance", "Performance"],
           ["picks", "My Picks"],
         ] as const).map(([value, label]) => (
@@ -194,6 +211,19 @@ export default function PowerRankingsPage() {
           </button>
         ))}
       </nav>
+
+      {section === "user-rankings" && !loading && !error && rankings.length ? (
+        <UserRankingEditor
+          teams={rankings}
+          initialOrder={userRankingOrder}
+          signedIn={signedIn}
+          onSave={async (order) => {
+            if (!userId) throw new Error("Log in to save your rankings.");
+            await saveUserRanking(userId, order);
+            setUserRankingOrder(order);
+          }}
+        />
+      ) : null}
 
       {section === "audit" ? (
         <section className="mt-8" aria-labelledby="model-audit-heading">
