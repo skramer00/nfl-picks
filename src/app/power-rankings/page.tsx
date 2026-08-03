@@ -18,6 +18,7 @@ import {
   MODEL_METHODOLOGY,
   MODEL_RATINGS,
   MODEL_VERSION,
+  quarterbackAvailabilityAudit,
 } from "@/lib/modelRatings";
 import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
@@ -206,21 +207,24 @@ export default function PowerRankingsPage() {
             </p>
           </div>
 
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <AnalyticsCard label="Game performance" value="70% retained" detail="Opponent-adjusted offense and defense, regressed toward average for the offseason" />
+          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <AnalyticsCard label="Scoring performance" value="70% retained" detail="Opponent-adjusted scoring margin, regressed toward average for the offseason" />
+            <AnalyticsCard label="Play efficiency" value="EPA + success" detail="Offensive and defensive efficiency on regular-season passes and runs" />
+            <AnalyticsCard label="Game results" value="Opponent adjusted" detail="Same-season wins and losses with schedule strength included" />
             <AnalyticsCard label="Rating scale" value={`${MODEL_METHODOLOGY.eloPerPoint} points`} detail="Elo points awarded per retained point of opponent-adjusted scoring strength" />
             <AnalyticsCard label="Quarterback" value={`±${MODEL_METHODOLOGY.maximumQuarterbackAdjustment} max`} detail="2025 Adjusted QBR, scaled down when the passer has fewer than 400 attempts" />
-            <AnalyticsCard label="Continuity" value={`±${MODEL_METHODOLOGY.returningStarterAdjustment}`} detail="Returning established starter versus an established starter joining a new team" />
+            <AnalyticsCard label="Availability" value="Weekly" detail="Starter and backup values are blended by availability for each matchup" />
           </div>
 
           <details className="mt-6 rounded-2xl border border-gray-800 bg-gray-950 p-5" open>
             <summary className="cursor-pointer font-semibold">How a rating is calculated</summary>
             <div className="mt-4 space-y-2 text-sm leading-6 text-gray-400">
               <p><span className="text-gray-200">1.</span> Every 2025 score is split into offensive and defensive performance relative to the league average.</p>
-              <p><span className="text-gray-200">2.</span> Opponent strength is solved iteratively, so scoring against a strong defense counts more than scoring against a weak one.</p>
-              <p><span className="text-gray-200">3.</span> The combined result retains 70% of its value for 2026; the other 30% regresses toward the neutral 1500 rating.</p>
-              <p><span className="text-gray-200">4.</span> A bounded, sample-weighted Adjusted QBR component and a small quarterback-continuity component are added.</p>
-              <p><span className="text-gray-200">5.</span> Home field, rest, Week 1 uncertainty, and divisional uncertainty are applied later to individual matchups—not to these team ratings.</p>
+              <p><span className="text-gray-200">2.</span> Opponent-adjusted scoring, play-level EPA and success rate, and opponent-adjusted wins each contribute independently.</p>
+              <p><span className="text-gray-200">3.</span> Scoring performance retains 70% of its value for 2026; the other 30% regresses toward the neutral 1500 rating.</p>
+              <p><span className="text-gray-200">4.</span> Bounded, sample-weighted starter QBR and a small quarterback-continuity component are added to the healthy-team rating.</p>
+              <p><span className="text-gray-200">5.</span> Weekly availability blends the starter and backup quarterback values before each matchup.</p>
+              <p><span className="text-gray-200">6.</span> Home field, rest, Week 1 uncertainty, and divisional uncertainty are applied later to individual matchups.</p>
             </div>
           </details>
 
@@ -244,11 +248,15 @@ export default function PowerRankingsPage() {
                   <div><span className="text-gray-500">Opponent-adjusted offense</span><div className="mt-1 font-semibold">{team.offensePointsAboveAverage > 0 ? "+" : ""}{team.offensePointsAboveAverage} points/game</div></div>
                   <div><span className="text-gray-500">Opponent-adjusted defense</span><div className="mt-1 font-semibold">{team.defensePointsAboveAverage > 0 ? "+" : ""}{team.defensePointsAboveAverage} points/game</div></div>
                   <div><span className="text-gray-500">Regressed performance</span><div className="mt-1 font-semibold">{team.performanceElo >= 0 ? "+" : ""}{team.performanceElo} rating points</div></div>
+                  <div><span className="text-gray-500">Play efficiency</span><div className="mt-1 font-semibold">{team.playEfficiencyElo >= 0 ? "+" : ""}{team.playEfficiencyElo} · EPA net {(team.offensiveEpaPerPlay - team.defensiveEpaAllowedPerPlay).toFixed(3)}</div></div>
+                  <div><span className="text-gray-500">Result quality</span><div className="mt-1 font-semibold">{team.outcomeElo >= 0 ? "+" : ""}{team.outcomeElo} · opponent-adjusted {team.opponentAdjustedResultRating}</div></div>
                   <div><span className="text-gray-500">Quarterback</span><div className="mt-1 font-semibold">{team.quarterback2025AdjustedQbr === null ? "No verified 2025 sample" : `${team.quarterback2025AdjustedQbr} QBR · ${team.quarterbackAdjustment >= 0 ? "+" : ""}${team.quarterbackAdjustment}`}</div></div>
+                  <div><span className="text-gray-500">Backup quarterback</span><div className="mt-1 font-semibold">{team.backupQuarterback} · {team.backup2025AdjustedQbr === null ? "no verified sample" : `${team.backup2025AdjustedQbr} QBR · ${team.backupQuarterbackAdjustment >= 0 ? "+" : ""}${team.backupQuarterbackAdjustment}`}</div></div>
                   <div><span className="text-gray-500">QB sample</span><div className="mt-1 font-semibold">{team.quarterback2025Attempts === null ? "No attempts" : `${team.quarterback2025Attempts} attempts · ${Math.round(team.quarterbackSampleWeight * 100)}% weight`}</div></div>
                   <div><span className="text-gray-500">QB continuity</span><div className="mt-1 font-semibold">{team.quarterbackContinuity.replaceAll("-", " ")} · {team.continuityAdjustment >= 0 ? "+" : ""}{team.continuityAdjustment}</div></div>
+                  {quarterbackAvailabilityAudit(team.abbreviation) ? <div className="sm:col-span-2"><span className="text-gray-500">Current availability</span><div className="mt-1 font-semibold text-amber-200">{quarterbackAvailabilityAudit(team.abbreviation)!.note}</div></div> : null}
                   <div><span className="text-gray-500">2025 scoring</span><div className="mt-1 font-semibold">{team.pointsFor} for · {team.pointsAgainst} against</div></div>
-                  <div><span className="text-gray-500">Final formula</span><div className="mt-1 font-semibold">1500 {team.performanceElo >= 0 ? "+" : "−"} {Math.abs(team.performanceElo)} {team.quarterbackAdjustment >= 0 ? "+" : "−"} {Math.abs(team.quarterbackAdjustment)} {team.continuityAdjustment >= 0 ? "+" : "−"} {Math.abs(team.continuityAdjustment)} = {team.rating}</div></div>
+                  <div className="sm:col-span-2"><span className="text-gray-500">Healthy-team formula</span><div className="mt-1 font-semibold">1500 {team.performanceElo >= 0 ? "+" : "−"} {Math.abs(team.performanceElo)} {team.playEfficiencyElo >= 0 ? "+" : "−"} {Math.abs(team.playEfficiencyElo)} {team.outcomeElo >= 0 ? "+" : "−"} {Math.abs(team.outcomeElo)} {team.quarterbackAdjustment >= 0 ? "+" : "−"} {Math.abs(team.quarterbackAdjustment)} {team.continuityAdjustment >= 0 ? "+" : "−"} {Math.abs(team.continuityAdjustment)} = {team.rating}</div></div>
                 </div>
               </details>
             ))}

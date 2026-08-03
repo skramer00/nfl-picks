@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 
 const SCOREBOARD =
   "https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard";
@@ -10,7 +10,9 @@ const PLAYER_STATS =
 const SOURCE_SEASON = 2025;
 const TARGET_SEASON = 2026;
 const OFFSEASON_RETENTION = 0.7;
-const ELO_PER_POINT = 20;
+const ELO_PER_POINT = 12;
+const PLAY_EFFICIENCY_ELO_PER_Z = 25;
+const OUTCOME_ELO_PER_COLLEY_POINT = 100;
 const QBR_ELO_PER_POINT = 1.5;
 const MAX_QB_ADJUSTMENT = 30;
 const FULL_QB_SAMPLE_ATTEMPTS = 400;
@@ -18,6 +20,58 @@ const CONTINUITY_ADJUSTMENT = 8;
 
 function clamp(value, minimum, maximum) {
   return Math.min(maximum, Math.max(minimum, value));
+}
+
+function mean(values) {
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function standardDeviation(values) {
+  const average = mean(values);
+  return Math.sqrt(mean(values.map((value) => (value - average) ** 2)));
+}
+
+function solveLinearSystem(matrix, vector) {
+  const rows = matrix.map((row, index) => [...row, vector[index]]);
+  for (let column = 0; column < rows.length; column += 1) {
+    let pivot = column;
+    for (let row = column + 1; row < rows.length; row += 1) {
+      if (Math.abs(rows[row][column]) > Math.abs(rows[pivot][column])) pivot = row;
+    }
+    [rows[column], rows[pivot]] = [rows[pivot], rows[column]];
+    const divisor = rows[column][column];
+    for (let entry = column; entry <= rows.length; entry += 1) rows[column][entry] /= divisor;
+    for (let row = 0; row < rows.length; row += 1) {
+      if (row === column) continue;
+      const factor = rows[row][column];
+      for (let entry = column; entry <= rows.length; entry += 1) {
+        rows[row][entry] -= factor * rows[column][entry];
+      }
+    }
+  }
+  return rows.map((row) => row.at(-1));
+}
+
+function opponentAdjustedResults(games, summaries) {
+  const teams = [...summaries.keys()].sort();
+  const index = new Map(teams.map((team, position) => [team, position]));
+  const matrix = teams.map(() => teams.map(() => 0));
+  const vector = teams.map((team) => {
+    const summary = summaries.get(team);
+    return 1 + (summary.wins - summary.losses) / 2;
+  });
+  teams.forEach((team, position) => {
+    const summary = summaries.get(team);
+    matrix[position][position] = 2 + summary.wins + summary.losses + summary.ties;
+  });
+  for (const game of games) {
+    const home = index.get(game.home);
+    const away = index.get(game.away);
+    matrix[home][away] -= 1;
+    matrix[away][home] -= 1;
+  }
+  const ratings = solveLinearSystem(matrix, vector);
+  return Object.fromEntries(teams.map((team, position) => [team, ratings[position]]));
 }
 
 async function json(url) {
@@ -161,16 +215,16 @@ function opponentAdjustedComponents(games, teams) {
   return { leaguePoints, offense, defense };
 }
 
-async function startingQuarterback(team) {
+async function depthChartQuarterbacks(team) {
   const depthChart = await json(`${TEAM_API}/${team.toLowerCase()}/depthcharts`);
   for (const formation of depthChart.depthchart ?? []) {
     for (const entry of Object.values(formation.positions ?? {})) {
       if (entry.position?.abbreviation === "QB" && entry.athletes?.[0]) {
-        return entry.athletes[0];
+        return entry.athletes.slice(0, 2);
       }
     }
   }
-  return null;
+  return [];
 }
 
 async function quarterbackSeason(quarterback) {
@@ -200,12 +254,32 @@ if (games.length !== 272) {
 }
 const summaries = seasonSummary(games);
 const components = opponentAdjustedComponents(games, summaries);
+const outcomeRatings = opponentAdjustedResults(games, summaries);
+const playEfficiencyDocument = JSON.parse(
+  await readFile("src/data/model_play_efficiency_2025.json", "utf8"),
+);
+const playEfficiency = Object.fromEntries(
+  playEfficiencyDocument.teams.map((team) => [team.abbreviation, team]),
+);
+const netEpaValues = Object.values(playEfficiency).map(
+  (team) => team.offensiveEpaPerPlay - team.defensiveEpaAllowedPerPlay,
+);
+const netSuccessValues = Object.values(playEfficiency).map(
+  (team) => team.offensiveSuccessRate - team.defensiveSuccessRateAllowed,
+);
+const netEpaMean = mean(netEpaValues);
+const netEpaDeviation = standardDeviation(netEpaValues);
+const netSuccessMean = mean(netSuccessValues);
+const netSuccessDeviation = standardDeviation(netSuccessValues);
 
 const quarterbackInputs = await Promise.all(
   [...summaries.keys()].sort().map(async (team) => {
-    const starter = await startingQuarterback(team);
-    const season = await quarterbackSeason(starter);
-    return [team, { starter, season }];
+    const [starter, backup] = await depthChartQuarterbacks(team);
+    const [season, backupSeason] = await Promise.all([
+      quarterbackSeason(starter),
+      quarterbackSeason(backup),
+    ]);
+    return [team, { starter, season, backup, backupSeason }];
   }),
 );
 const quarterbacks = Object.fromEntries(quarterbackInputs);
@@ -241,9 +315,39 @@ const teams = [...summaries.values()]
     const performanceElo = regressedPerformancePoints * ELO_PER_POINT;
     const roundedPerformanceElo = Math.round(performanceElo);
     const roundedQuarterbackAdjustment = Math.round(quarterbackAdjustment);
+    const efficiency = playEfficiency[summary.team];
+    const netEpa = efficiency.offensiveEpaPerPlay - efficiency.defensiveEpaAllowedPerPlay;
+    const netSuccess = efficiency.offensiveSuccessRate - efficiency.defensiveSuccessRateAllowed;
+    const efficiencyIndex =
+      ((netEpa - netEpaMean) / netEpaDeviation) * 0.7 +
+      ((netSuccess - netSuccessMean) / netSuccessDeviation) * 0.3;
+    const playEfficiencyElo = Math.round(
+      clamp(efficiencyIndex * PLAY_EFFICIENCY_ELO_PER_Z, -50, 50),
+    );
+    const outcomeElo = Math.round(
+      (outcomeRatings[summary.team] - 0.5) * OUTCOME_ELO_PER_COLLEY_POINT,
+    );
+    const backupAdjustedQbr = Number.isFinite(quarterback.backupSeason?.adjustedQbr)
+      ? quarterback.backupSeason.adjustedQbr
+      : null;
+    const backupSampleWeight = Math.min(
+      (quarterback.backupSeason?.attempts ?? 0) / FULL_QB_SAMPLE_ATTEMPTS,
+      1,
+    );
+    const backupQuarterbackAdjustment = Math.round(
+      backupAdjustedQbr === null
+        ? 0
+        : clamp(
+            (backupAdjustedQbr - 50) * QBR_ELO_PER_POINT,
+            -MAX_QB_ADJUSTMENT,
+            MAX_QB_ADJUSTMENT,
+          ) * backupSampleWeight,
+    );
     const rating =
       1500 +
       roundedPerformanceElo +
+      playEfficiencyElo +
+      outcomeElo +
       roundedQuarterbackAdjustment +
       continuityAdjustment;
     return {
@@ -257,11 +361,24 @@ const teams = [...summaries.values()]
       opponentAdjustedNetPoints: Number(performancePoints.toFixed(2)),
       regressedNetPoints: Number(regressedPerformancePoints.toFixed(2)),
       performanceElo: roundedPerformanceElo,
+      offensiveEpaPerPlay: efficiency.offensiveEpaPerPlay,
+      defensiveEpaAllowedPerPlay: efficiency.defensiveEpaAllowedPerPlay,
+      offensiveSuccessRate: efficiency.offensiveSuccessRate,
+      defensiveSuccessRateAllowed: efficiency.defensiveSuccessRateAllowed,
+      playEfficiencyIndex: Number(efficiencyIndex.toFixed(3)),
+      playEfficiencyElo,
+      opponentAdjustedResultRating: Number(outcomeRatings[summary.team].toFixed(4)),
+      outcomeElo,
       quarterback: quarterback.starter?.displayName ?? "Unverified starter",
       quarterback2025Attempts: quarterback.season?.attempts ?? null,
       quarterback2025AdjustedQbr: adjustedQbr,
       quarterbackSampleWeight: Number(quarterbackSampleWeight.toFixed(3)),
       quarterbackAdjustment: roundedQuarterbackAdjustment,
+      backupQuarterback: quarterback.backup?.displayName ?? "Unverified backup",
+      backup2025Attempts: quarterback.backupSeason?.attempts ?? null,
+      backup2025AdjustedQbr: backupAdjustedQbr,
+      backupSampleWeight: Number(backupSampleWeight.toFixed(3)),
+      backupQuarterbackAdjustment,
       quarterbackContinuity: establishedStarter
         ? sameTeam
           ? "returning"
@@ -274,15 +391,17 @@ const teams = [...summaries.values()]
   .sort((first, second) => second.rating - first.rating);
 
 const output = {
-  version: "2026.2",
+  version: "2026.3",
   generatedAt: new Date().toISOString(),
   sourceSeason: SOURCE_SEASON,
   targetSeason: TARGET_SEASON,
   methodology: {
     description:
-      "Pretzel Quest ratings generated from opponent-adjusted scoring, offseason regression, Adjusted QBR, and quarterback continuity.",
+      "Pretzel Quest ratings generated from opponent-adjusted scoring and results, play-level EPA and success rate, offseason regression, Adjusted QBR, and quarterback continuity.",
     offseasonRetention: OFFSEASON_RETENTION,
     eloPerPoint: ELO_PER_POINT,
+    playEfficiencyEloPerStandardDeviation: PLAY_EFFICIENCY_ELO_PER_Z,
+    opponentAdjustedResultEloPerColleyPoint: OUTCOME_ELO_PER_COLLEY_POINT,
     quarterbackEloPerQbrPoint: QBR_ELO_PER_POINT,
     maximumQuarterbackAdjustment: MAX_QB_ADJUSTMENT,
     fullQuarterbackSampleAttempts: FULL_QB_SAMPLE_ATTEMPTS,
@@ -294,6 +413,7 @@ const output = {
     `${SCOREBOARD} (2025 regular-season results)`,
     `${TEAM_API}/{team}/depthcharts (2026 projected starter)`,
     `${PLAYER_STATS}/{athlete}/stats (2025 Adjusted QBR)`,
+    playEfficiencyDocument.source,
   ],
   leagueAveragePointsPerTeamGame: Number(components.leaguePoints.toFixed(2)),
   teams,

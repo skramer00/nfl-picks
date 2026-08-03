@@ -4,12 +4,13 @@ import test from "node:test";
 import {
   MODEL_RATINGS,
   MODEL_VERSION,
+  matchupTeamStrength,
   modelRatingAudit,
   preseasonTeamStrength,
 } from "./modelRatings";
 
 test("Model v2 contains one auditable rating for every NFL team", () => {
-  assert.equal(MODEL_VERSION, "2026.2");
+  assert.equal(MODEL_VERSION, "2026.3");
   assert.equal(MODEL_RATINGS.length, 32);
   assert.equal(new Set(MODEL_RATINGS.map((team) => team.abbreviation)).size, 32);
 });
@@ -18,7 +19,7 @@ test("every rating equals its published components", () => {
   for (const team of MODEL_RATINGS) {
     assert.equal(
       team.rating,
-      1500 + team.performanceElo + team.quarterbackAdjustment + team.continuityAdjustment,
+      1500 + team.performanceElo + team.playEfficiencyElo + team.outcomeElo + team.quarterbackAdjustment + team.continuityAdjustment,
       team.abbreviation,
     );
   }
@@ -34,4 +35,18 @@ test("Chargers rating is generated rather than falling back to neutral", () => {
   assert.ok(chargers);
   assert.notEqual(chargers.rating, 1500);
   assert.equal(preseasonTeamStrength("LAC"), chargers.rating);
+});
+
+test("same-season result quality distinguishes Chargers and Chiefs without an override", () => {
+  const chargers = modelRatingAudit("LAC");
+  const chiefs = modelRatingAudit("KC");
+  assert.ok(chargers && chiefs);
+  assert.ok(chargers.outcomeElo > chiefs.outcomeElo);
+  assert.ok(chargers.rating > chiefs.rating);
+});
+
+test("weekly quarterback availability blends starter and backup value", () => {
+  assert.ok(matchupTeamStrength("KC", 1) < preseasonTeamStrength("KC"));
+  assert.equal(matchupTeamStrength("KC", 5), preseasonTeamStrength("KC"));
+  assert.equal(matchupTeamStrength("LAC", 1), preseasonTeamStrength("LAC"));
 });

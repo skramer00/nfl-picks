@@ -1,4 +1,4 @@
-import { MODEL_VERSION, preseasonTeamStrength } from "./modelRatings";
+import { MODEL_VERSION, matchupTeamStrength, preseasonTeamStrength } from "./modelRatings";
 
 export const MATCHUP_MODEL_VERSION = MODEL_VERSION;
 export const HOME_FIELD_ELO = 55;
@@ -26,8 +26,8 @@ export function matchupFavorability(
   homeRestAdvantageDays = 0,
   isDivisionMatchup = false
 ) {
-  const awayRating = teamStrength(awayAbbreviation);
-  const homeRating = teamStrength(homeAbbreviation) + HOME_FIELD_ELO;
+  const awayRating = matchupTeamStrength(awayAbbreviation, week);
+  const homeRating = matchupTeamStrength(homeAbbreviation, week) + HOME_FIELD_ELO;
   const rawHome = 1 / (1 + 10 ** ((awayRating - homeRating) / 400));
   const baseHome = week === 1 ? applyWeekOneUncertainty(rawHome) : rawHome;
   const wholeRestDays = Math.round(Math.abs(homeRestAdvantageDays));

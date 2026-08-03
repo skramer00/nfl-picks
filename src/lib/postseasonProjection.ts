@@ -1,5 +1,7 @@
 import { teamStrength } from "./favorability";
 import type { GameRow, Team } from "./gamesDb";
+import { projectPlayoffs } from "./playoffs";
+import type { Game } from "./season";
 
 export type ProjectionMode = "model" | "user";
 
@@ -116,6 +118,39 @@ function seededRandom(seed: number) {
   };
 }
 
+function normalizedTeam(abbreviation: string) {
+  return abbreviation === "WAS" ? "WSH" : abbreviation;
+}
+
+function playoffEngineGames(games: GameRow[]): Game[] {
+  return games.map((game) => {
+    const isFinal = game.status === "final";
+    const isTie =
+      isFinal &&
+      game.away_score !== null &&
+      game.home_score !== null &&
+      game.away_score === game.home_score;
+    const winner =
+      game.winner_team_id === game.away_team_id
+        ? normalizedTeam(game.away_team.abbreviation)
+        : game.winner_team_id === game.home_team_id
+          ? normalizedTeam(game.home_team.abbreviation)
+          : null;
+    return {
+      id: game.id,
+      week: game.week,
+      kickoffISO: game.kickoff_iso,
+      awayTeam: normalizedTeam(game.away_team.abbreviation),
+      homeTeam: normalizedTeam(game.home_team.abbreviation),
+      status: isFinal ? "final" : "scheduled",
+      winner,
+      isTie,
+      awayScore: game.away_score,
+      homeScore: game.home_score,
+    };
+  });
+}
+
 export function playoffChances(games: GameRow[], simulations = 2000) {
   const teams = new Map<string, Team>();
   for (const game of games) {
@@ -123,20 +158,38 @@ export function playoffChances(games: GameRow[], simulations = 2000) {
     teams.set(game.away_team_id, game.away_team);
   }
   const appearances = new Map([...teams.keys()].map((id) => [id, 0]));
+  const teamIdByAbbreviation = new Map(
+    [...teams].map(([id, team]) => [normalizedTeam(team.abbreviation), id]),
+  );
+  const engineGames = playoffEngineGames(games);
+  const useFullTiebreakers = teams.size === 32;
   const random = seededRandom(2026);
 
   for (let simulation = 0; simulation < simulations; simulation += 1) {
     const simulatedPicks: Record<string, string> = {};
+    const simulatedTeamIds: Record<string, string> = {};
     for (const game of games) {
       if (game.status === "final") continue;
       const homeChance = game.home_win_prob ?? 0.5;
-      simulatedPicks[game.id] = random() < homeChance
-        ? game.home_team_id
-        : game.away_team_id;
+      const homeWins = random() < homeChance;
+      simulatedPicks[game.id] = homeWins
+        ? normalizedTeam(game.home_team.abbreviation)
+        : normalizedTeam(game.away_team.abbreviation);
+      simulatedTeamIds[game.id] = homeWins ? game.home_team_id : game.away_team_id;
     }
-    for (const conference of buildPostseasonProjection(games, simulatedPicks, "user")) {
-      for (const team of conference.teams) {
-        appearances.set(team.id, (appearances.get(team.id) ?? 0) + 1);
+    if (useFullTiebreakers) {
+      const projection = projectPlayoffs(simulatedPicks, engineGames);
+      for (const conference of Object.values(projection.conferences)) {
+        for (const seed of conference.seeds) {
+          const teamId = teamIdByAbbreviation.get(seed.team);
+          if (teamId) appearances.set(teamId, (appearances.get(teamId) ?? 0) + 1);
+        }
+      }
+    } else {
+      for (const conference of buildPostseasonProjection(games, simulatedTeamIds, "user")) {
+        for (const team of conference.teams) {
+          appearances.set(team.id, (appearances.get(team.id) ?? 0) + 1);
+        }
       }
     }
   }

@@ -1,0 +1,297 @@
+{
+  "season": 2025,
+  "generatedAt": "2026-08-03T00:36:24.091975+00:00",
+  "source": "https://github.com/nflverse/nflverse-data/releases/download/pbp/play_by_play_2025.csv.gz",
+  "license": "CC-BY-4.0 / nflverse and nflfastR",
+  "filters": "Regular-season pass and run plays; excludes special teams, kneels, and spikes.",
+  "teams": [
+    {
+      "abbreviation": "ARI",
+      "offensivePlays": 1074,
+      "offensiveEpaPerPlay": -0.0185,
+      "offensiveSuccessRate": 0.4302,
+      "defensivePlays": 1053,
+      "defensiveEpaAllowedPerPlay": 0.0884,
+      "defensiveSuccessRateAllowed": 0.4853
+    },
+    {
+      "abbreviation": "ATL",
+      "offensivePlays": 1036,
+      "offensiveEpaPerPlay": -0.0214,
+      "offensiveSuccessRate": 0.4373,
+      "defensivePlays": 1047,
+      "defensiveEpaAllowedPerPlay": -0.0037,
+      "defensiveSuccessRateAllowed": 0.446
+    },
+    {
+      "abbreviation": "BAL",
+      "offensivePlays": 956,
+      "offensiveEpaPerPlay": 0.034,
+      "offensiveSuccessRate": 0.4456,
+      "defensivePlays": 1076,
+      "defensiveEpaAllowedPerPlay": 0.0241,
+      "defensiveSuccessRateAllowed": 0.4414
+    },
+    {
+      "abbreviation": "BUF",
+      "offensivePlays": 1065,
+      "offensiveEpaPerPlay": 0.1355,
+      "offensiveSuccessRate": 0.4854,
+      "defensivePlays": 950,
+      "defensiveEpaAllowedPerPlay": -0.0163,
+      "defensiveSuccessRateAllowed": 0.4242
+    },
+    {
+      "abbreviation": "CAR",
+      "offensivePlays": 996,
+      "offensiveEpaPerPlay": -0.0393,
+      "offensiveSuccessRate": 0.4307,
+      "defensivePlays": 998,
+      "defensiveEpaAllowedPerPlay": 0.0673,
+      "defensiveSuccessRateAllowed": 0.4429
+    },
+    {
+      "abbreviation": "CHI",
+      "offensivePlays": 1096,
+      "offensiveEpaPerPlay": 0.0795,
+      "offensiveSuccessRate": 0.458,
+      "defensivePlays": 1022,
+      "defensiveEpaAllowedPerPlay": 0.0181,
+      "defensiveSuccessRateAllowed": 0.4667
+    },
+    {
+      "abbreviation": "CIN",
+      "offensivePlays": 1049,
+      "offensiveEpaPerPlay": -0.0085,
+      "offensiveSuccessRate": 0.4547,
+      "defensivePlays": 1035,
+      "defensiveEpaAllowedPerPlay": 0.1298,
+      "defensiveSuccessRateAllowed": 0.4783
+    },
+    {
+      "abbreviation": "CLE",
+      "offensivePlays": 1028,
+      "offensiveEpaPerPlay": -0.1902,
+      "offensiveSuccessRate": 0.3453,
+      "defensivePlays": 994,
+      "defensiveEpaAllowedPerPlay": -0.0958,
+      "defensiveSuccessRateAllowed": 0.4024
+    },
+    {
+      "abbreviation": "DAL",
+      "offensivePlays": 1103,
+      "offensiveEpaPerPlay": 0.097,
+      "offensiveSuccessRate": 0.466,
+      "defensivePlays": 1027,
+      "defensiveEpaAllowedPerPlay": 0.1674,
+      "defensiveSuccessRateAllowed": 0.4888
+    },
+    {
+      "abbreviation": "DEN",
+      "offensivePlays": 1079,
+      "offensiveEpaPerPlay": 0.0497,
+      "offensiveSuccessRate": 0.4421,
+      "defensivePlays": 1055,
+      "defensiveEpaAllowedPerPlay": -0.0879,
+      "defensiveSuccessRateAllowed": 0.3668
+    },
+    {
+      "abbreviation": "DET",
+      "offensivePlays": 1050,
+      "offensiveEpaPerPlay": 0.0813,
+      "offensiveSuccessRate": 0.4524,
+      "defensivePlays": 1040,
+      "defensiveEpaAllowedPerPlay": -0.0099,
+      "defensiveSuccessRateAllowed": 0.4173
+    },
+    {
+      "abbreviation": "GB",
+      "offensivePlays": 993,
+      "offensiveEpaPerPlay": 0.1149,
+      "offensiveSuccessRate": 0.4773,
+      "defensivePlays": 1056,
+      "defensiveEpaAllowedPerPlay": 0.0332,
+      "defensiveSuccessRateAllowed": 0.4479
+    },
+    {
+      "abbreviation": "HOU",
+      "offensivePlays": 1078,
+      "offensiveEpaPerPlay": -0.0129,
+      "offensiveSuccessRate": 0.4128,
+      "defensivePlays": 982,
+      "defensiveEpaAllowedPerPlay": -0.1314,
+      "defensiveSuccessRateAllowed": 0.3829
+    },
+    {
+      "abbreviation": "IND",
+      "offensivePlays": 1011,
+      "offensiveEpaPerPlay": 0.0721,
+      "offensiveSuccessRate": 0.4629,
+      "defensivePlays": 1101,
+      "defensiveEpaAllowedPerPlay": 0.0043,
+      "defensiveSuccessRateAllowed": 0.455
+    },
+    {
+      "abbreviation": "JAX",
+      "offensivePlays": 1073,
+      "offensiveEpaPerPlay": 0.0305,
+      "offensiveSuccessRate": 0.4436,
+      "defensivePlays": 1030,
+      "defensiveEpaAllowedPerPlay": -0.1054,
+      "defensiveSuccessRateAllowed": 0.4126
+    },
+    {
+      "abbreviation": "KC",
+      "offensivePlays": 1048,
+      "offensiveEpaPerPlay": 0.0349,
+      "offensiveSuccessRate": 0.4447,
+      "defensivePlays": 977,
+      "defensiveEpaAllowedPerPlay": -0.0203,
+      "defensiveSuccessRateAllowed": 0.436
+    },
+    {
+      "abbreviation": "LAC",
+      "offensivePlays": 1080,
+      "offensiveEpaPerPlay": -0.0235,
+      "offensiveSuccessRate": 0.4315,
+      "defensivePlays": 955,
+      "defensiveEpaAllowedPerPlay": -0.083,
+      "defensiveSuccessRateAllowed": 0.4136
+    },
+    {
+      "abbreviation": "LAR",
+      "offensivePlays": 1056,
+      "offensiveEpaPerPlay": 0.1448,
+      "offensiveSuccessRate": 0.518,
+      "defensivePlays": 1068,
+      "defensiveEpaAllowedPerPlay": -0.0609,
+      "defensiveSuccessRateAllowed": 0.4204
+    },
+    {
+      "abbreviation": "LV",
+      "offensivePlays": 942,
+      "offensiveEpaPerPlay": -0.2154,
+      "offensiveSuccessRate": 0.3758,
+      "defensivePlays": 1054,
+      "defensiveEpaAllowedPerPlay": 0.0243,
+      "defensiveSuccessRateAllowed": 0.4497
+    },
+    {
+      "abbreviation": "MIA",
+      "offensivePlays": 942,
+      "offensiveEpaPerPlay": -0.0168,
+      "offensiveSuccessRate": 0.4193,
+      "defensivePlays": 1016,
+      "defensiveEpaAllowedPerPlay": 0.0882,
+      "defensiveSuccessRateAllowed": 0.4852
+    },
+    {
+      "abbreviation": "MIN",
+      "offensivePlays": 943,
+      "offensiveEpaPerPlay": -0.1155,
+      "offensiveSuccessRate": 0.4263,
+      "defensivePlays": 1017,
+      "defensiveEpaAllowedPerPlay": -0.0995,
+      "defensiveSuccessRateAllowed": 0.41
+    },
+    {
+      "abbreviation": "NE",
+      "offensivePlays": 1016,
+      "offensiveEpaPerPlay": 0.1583,
+      "offensiveSuccessRate": 0.4843,
+      "defensivePlays": 966,
+      "defensiveEpaAllowedPerPlay": -0.0471,
+      "defensiveSuccessRateAllowed": 0.4462
+    },
+    {
+      "abbreviation": "NO",
+      "offensivePlays": 1064,
+      "offensiveEpaPerPlay": -0.0881,
+      "offensiveSuccessRate": 0.4201,
+      "defensivePlays": 1029,
+      "defensiveEpaAllowedPerPlay": -0.0591,
+      "defensiveSuccessRateAllowed": 0.4179
+    },
+    {
+      "abbreviation": "NYG",
+      "offensivePlays": 1079,
+      "offensiveEpaPerPlay": 0.0123,
+      "offensiveSuccessRate": 0.4208,
+      "defensivePlays": 1032,
+      "defensiveEpaAllowedPerPlay": 0.0874,
+      "defensiveSuccessRateAllowed": 0.47
+    },
+    {
+      "abbreviation": "NYJ",
+      "offensivePlays": 1009,
+      "offensiveEpaPerPlay": -0.1265,
+      "offensiveSuccessRate": 0.4073,
+      "defensivePlays": 1053,
+      "defensiveEpaAllowedPerPlay": 0.1472,
+      "defensiveSuccessRateAllowed": 0.4558
+    },
+    {
+      "abbreviation": "PHI",
+      "offensivePlays": 995,
+      "offensiveEpaPerPlay": 0.0258,
+      "offensiveSuccessRate": 0.4312,
+      "defensivePlays": 1066,
+      "defensiveEpaAllowedPerPlay": -0.079,
+      "defensiveSuccessRateAllowed": 0.4174
+    },
+    {
+      "abbreviation": "PIT",
+      "offensivePlays": 976,
+      "offensiveEpaPerPlay": 0.0246,
+      "offensiveSuccessRate": 0.4395,
+      "defensivePlays": 1104,
+      "defensiveEpaAllowedPerPlay": 0.0177,
+      "defensiveSuccessRateAllowed": 0.433
+    },
+    {
+      "abbreviation": "SEA",
+      "offensivePlays": 997,
+      "offensiveEpaPerPlay": 0.0328,
+      "offensiveSuccessRate": 0.4634,
+      "defensivePlays": 1062,
+      "defensiveEpaAllowedPerPlay": -0.1172,
+      "defensiveSuccessRateAllowed": 0.3964
+    },
+    {
+      "abbreviation": "SF",
+      "offensivePlays": 1065,
+      "offensiveEpaPerPlay": 0.088,
+      "offensiveSuccessRate": 0.4826,
+      "defensivePlays": 1019,
+      "defensiveEpaAllowedPerPlay": 0.0704,
+      "defensiveSuccessRateAllowed": 0.4848
+    },
+    {
+      "abbreviation": "TB",
+      "offensivePlays": 1065,
+      "offensiveEpaPerPlay": -0.0089,
+      "offensiveSuccessRate": 0.4235,
+      "defensivePlays": 990,
+      "defensiveEpaAllowedPerPlay": 0.0133,
+      "defensiveSuccessRateAllowed": 0.4485
+    },
+    {
+      "abbreviation": "TEN",
+      "offensivePlays": 995,
+      "offensiveEpaPerPlay": -0.1597,
+      "offensiveSuccessRate": 0.3739,
+      "defensivePlays": 991,
+      "defensiveEpaAllowedPerPlay": 0.1004,
+      "defensiveSuccessRateAllowed": 0.4511
+    },
+    {
+      "abbreviation": "WSH",
+      "offensivePlays": 978,
+      "offensiveEpaPerPlay": 0.0054,
+      "offensiveSuccessRate": 0.456,
+      "defensivePlays": 1072,
+      "defensiveEpaAllowedPerPlay": 0.1425,
+      "defensiveSuccessRateAllowed": 0.4757
+    }
+  ]
+}
