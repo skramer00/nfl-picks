@@ -391,7 +391,7 @@ const teams = [...summaries.values()]
   .sort((first, second) => second.rating - first.rating);
 
 const output = {
-  version: "2026.3",
+  version: "2026.4",
   generatedAt: new Date().toISOString(),
   sourceSeason: SOURCE_SEASON,
   targetSeason: TARGET_SEASON,

@@ -10,7 +10,7 @@ import {
 } from "./modelRatings";
 
 test("Model v2 contains one auditable rating for every NFL team", () => {
-  assert.equal(MODEL_VERSION, "2026.3");
+  assert.equal(MODEL_VERSION, "2026.4");
   assert.equal(MODEL_RATINGS.length, 32);
   assert.equal(new Set(MODEL_RATINGS.map((team) => team.abbreviation)).size, 32);
 });
@@ -18,7 +18,7 @@ test("Model v2 contains one auditable rating for every NFL team", () => {
 test("every rating equals its published components", () => {
   for (const team of MODEL_RATINGS) {
     assert.equal(
-      team.rating,
+      team.baseRating,
       1500 + team.performanceElo + team.playEfficiencyElo + team.outcomeElo + team.quarterbackAdjustment + team.continuityAdjustment,
       team.abbreviation,
     );
@@ -49,4 +49,15 @@ test("weekly quarterback availability blends starter and backup value", () => {
   assert.ok(matchupTeamStrength("KC", 1) < preseasonTeamStrength("KC"));
   assert.equal(matchupTeamStrength("KC", 5), preseasonTeamStrength("KC"));
   assert.equal(matchupTeamStrength("LAC", 1), preseasonTeamStrength("LAC"));
+});
+
+test("offseason ledger applies net, bounded adjustments without changing base arithmetic", () => {
+  const rams = modelRatingAudit("LAR");
+  const chiefs = modelRatingAudit("KC");
+  const chargers = modelRatingAudit("LAC");
+  assert.ok(rams && chiefs && chargers);
+  assert.equal(rams.offseasonAdjustment, 23);
+  assert.equal(chiefs.offseasonAdjustment, -11);
+  assert.equal(chargers.offseasonAdjustment, 5);
+  assert.equal(rams.rating, rams.baseRating + rams.offseasonAdjustment);
 });

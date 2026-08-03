@@ -16,8 +16,10 @@ import { buildPowerRankings, type PowerRanking } from "@/lib/powerRankings";
 import {
   MODEL_GENERATED_AT,
   MODEL_METHODOLOGY,
+  MODEL_OFFSEASON_METHODOLOGY,
   MODEL_RATINGS,
   MODEL_VERSION,
+  offseasonAdjustmentAudit,
   quarterbackAvailabilityAudit,
 } from "@/lib/modelRatings";
 import { supabase } from "@/lib/supabaseClient";
@@ -214,6 +216,7 @@ export default function PowerRankingsPage() {
             <AnalyticsCard label="Rating scale" value={`${MODEL_METHODOLOGY.eloPerPoint} points`} detail="Elo points awarded per retained point of opponent-adjusted scoring strength" />
             <AnalyticsCard label="Quarterback" value={`±${MODEL_METHODOLOGY.maximumQuarterbackAdjustment} max`} detail="2025 Adjusted QBR, scaled down when the passer has fewer than 400 attempts" />
             <AnalyticsCard label="Availability" value="Weekly" detail="Starter and backup values are blended by availability for each matchup" />
+            <AnalyticsCard label="Offseason layer" value={`±${MODEL_OFFSEASON_METHODOLOGY.coachingCap} coach`} detail="Bounded coaching transitions and objectively material veteran trades only" />
           </div>
 
           <details className="mt-6 rounded-2xl border border-gray-800 bg-gray-950 p-5" open>
@@ -224,7 +227,8 @@ export default function PowerRankingsPage() {
               <p><span className="text-gray-200">3.</span> Scoring performance retains 70% of its value for 2026; the other 30% regresses toward the neutral 1500 rating.</p>
               <p><span className="text-gray-200">4.</span> Bounded, sample-weighted starter QBR and a small quarterback-continuity component are added to the healthy-team rating.</p>
               <p><span className="text-gray-200">5.</span> Weekly availability blends the starter and backup quarterback values before each matchup.</p>
-              <p><span className="text-gray-200">6.</span> Home field, rest, Week 1 uncertainty, and divisional uncertainty are applied later to individual matchups.</p>
+              <p><span className="text-gray-200">6.</span> A capped offseason ledger adds confirmed coaching changes and only objectively material veteran trades.</p>
+              <p><span className="text-gray-200">7.</span> Home field, rest, Week 1 uncertainty, and divisional uncertainty are applied later to individual matchups.</p>
             </div>
           </details>
 
@@ -254,9 +258,10 @@ export default function PowerRankingsPage() {
                   <div><span className="text-gray-500">Backup quarterback</span><div className="mt-1 font-semibold">{team.backupQuarterback} · {team.backup2025AdjustedQbr === null ? "no verified sample" : `${team.backup2025AdjustedQbr} QBR · ${team.backupQuarterbackAdjustment >= 0 ? "+" : ""}${team.backupQuarterbackAdjustment}`}</div></div>
                   <div><span className="text-gray-500">QB sample</span><div className="mt-1 font-semibold">{team.quarterback2025Attempts === null ? "No attempts" : `${team.quarterback2025Attempts} attempts · ${Math.round(team.quarterbackSampleWeight * 100)}% weight`}</div></div>
                   <div><span className="text-gray-500">QB continuity</span><div className="mt-1 font-semibold">{team.quarterbackContinuity.replaceAll("-", " ")} · {team.continuityAdjustment >= 0 ? "+" : ""}{team.continuityAdjustment}</div></div>
+                  {offseasonAdjustmentAudit(team.abbreviation).total !== 0 ? <div className="sm:col-span-2"><span className="text-gray-500">Offseason adjustment · {offseasonAdjustmentAudit(team.abbreviation).total >= 0 ? "+" : ""}{offseasonAdjustmentAudit(team.abbreviation).total}</span><div className="mt-2 space-y-2">{[...offseasonAdjustmentAudit(team.abbreviation).coaching, ...offseasonAdjustmentAudit(team.abbreviation).personnel].map((entry) => <div key={entry.label} className="rounded-lg border border-gray-800 p-3"><div className="font-semibold">{entry.label} · {entry.finalPoints >= 0 ? "+" : ""}{entry.finalPoints}</div><p className="mt-1 text-xs leading-5 text-gray-500">{entry.reason}</p></div>)}</div></div> : null}
                   {quarterbackAvailabilityAudit(team.abbreviation) ? <div className="sm:col-span-2"><span className="text-gray-500">Current availability</span><div className="mt-1 font-semibold text-amber-200">{quarterbackAvailabilityAudit(team.abbreviation)!.note}</div></div> : null}
                   <div><span className="text-gray-500">2025 scoring</span><div className="mt-1 font-semibold">{team.pointsFor} for · {team.pointsAgainst} against</div></div>
-                  <div className="sm:col-span-2"><span className="text-gray-500">Healthy-team formula</span><div className="mt-1 font-semibold">1500 {team.performanceElo >= 0 ? "+" : "−"} {Math.abs(team.performanceElo)} {team.playEfficiencyElo >= 0 ? "+" : "−"} {Math.abs(team.playEfficiencyElo)} {team.outcomeElo >= 0 ? "+" : "−"} {Math.abs(team.outcomeElo)} {team.quarterbackAdjustment >= 0 ? "+" : "−"} {Math.abs(team.quarterbackAdjustment)} {team.continuityAdjustment >= 0 ? "+" : "−"} {Math.abs(team.continuityAdjustment)} = {team.rating}</div></div>
+                  <div className="sm:col-span-2"><span className="text-gray-500">Healthy-team formula</span><div className="mt-1 font-semibold">Base {team.baseRating} {team.offseasonAdjustment >= 0 ? "+" : "−"} {Math.abs(team.offseasonAdjustment)} offseason = {team.rating}</div></div>
                 </div>
               </details>
             ))}

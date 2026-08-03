@@ -1,0 +1,152 @@
+{
+  "version": "2026.4",
+  "updatedAt": "2026-08-02T00:00:00.000Z",
+  "methodology": {
+    "description": "Bounded adjustments for confirmed coaching transitions and objectively material veteran trades. Draft picks and ordinary free-agent movement are excluded.",
+    "rules": [
+      "A proven head coach with at least 10 seasons and a career winning percentage above .575 is worth 8 rating points when added or lost.",
+      "A coordinator or play-caller with a multi-season top-10 unit track record is worth up to 6 unit-specific rating points.",
+      "A first-time head-coach transition carries 3 points of implementation uncertainty.",
+      "A reigning AP Player of the Year at a premium position is worth 18 points; recent first-team All-Pro premium players are worth 12; established premium starters are worth 6.",
+      "Trades are scored net of the material player sent away, and total coaching and personnel effects are capped separately."
+    ],
+    "coachingCap": 25,
+    "personnelCap": 35
+  },
+  "teams": {
+    "BAL": {
+      "coaching": [
+        {
+          "label": "Jesse Minter / Anthony Weaver defensive leadership",
+          "unit": "defense",
+          "points": 6,
+          "confidence": 0.75,
+          "finalPoints": 5,
+          "reason": "Minter brings a demonstrated defensive track record and Weaver returns as coordinator.",
+          "source": "https://www.baltimoreravens.com/news/anthony-weaver-ravens-defensive-coordinator-hire-jesse-minter"
+        },
+        {
+          "label": "First-year head-coach implementation",
+          "unit": "overall",
+          "points": -3,
+          "confidence": 1,
+          "finalPoints": -3,
+          "reason": "Minter is installing his first program as an NFL head coach.",
+          "source": "https://www.baltimoreravens.com/news/jesse-minter-ravens-coaching-staff-2026"
+        }
+      ],
+      "personnel": []
+    },
+    "NYG": {
+      "coaching": [
+        {
+          "label": "John Harbaugh head-coach track record",
+          "unit": "overall",
+          "points": 8,
+          "confidence": 1,
+          "finalPoints": 8,
+          "reason": "Harbaugh arrives with 18 seasons, a .614 regular-season winning percentage and a Super Bowl title.",
+          "source": "https://www.giants.com/news/john-harbaugh-hired-head-coach-new-york-giants-nfl"
+        },
+        {
+          "label": "Established coordinator staff",
+          "unit": "overall",
+          "points": 4,
+          "confidence": 0.75,
+          "finalPoints": 3,
+          "reason": "Matt Nagy, Dennard Wilson and Chris Horton bring prior coordinator experience across all three units.",
+          "source": "https://www.giants.com/news/john-harbaugh-announces-2026-coaching-staff-coordinators-matt-nagy-dennard-wilson-chris-horton"
+        }
+      ],
+      "personnel": []
+    },
+    "PIT": {
+      "coaching": [
+        {
+          "label": "Mike Tomlin departure",
+          "unit": "overall",
+          "points": -8,
+          "confidence": 1,
+          "finalPoints": -8,
+          "reason": "Pittsburgh loses a head coach with 19 seasons of organizational continuity and no losing regular season.",
+          "source": "https://www.steelers.com/news/statement-from-mike-tomlin"
+        }
+      ],
+      "personnel": []
+    },
+    "LAC": {
+      "coaching": [
+        {
+          "label": "Mike McDaniel offensive play-calling",
+          "unit": "offense",
+          "points": 6,
+          "confidence": 0.85,
+          "finalPoints": 5,
+          "reason": "McDaniel replaces Greg Roman after directing a multi-season top-10 Miami offense.",
+          "source": "https://www.chargers.com/news/chargers-name-mike-mcdaniel-offensive-coordinator"
+        },
+        {
+          "label": "Defensive coordinator continuity",
+          "unit": "defense",
+          "points": 0,
+          "confidence": 1,
+          "finalPoints": 0,
+          "reason": "Chris O'Leary replaces Minter but previously coached in the same Chargers defensive system.",
+          "source": "https://www.nfl.com/news/chargers-hire-western-michigan-defensive-coordinator-chris-o-leary-as-new-dc"
+        }
+      ],
+      "personnel": []
+    },
+    "LAR": {
+      "coaching": [],
+      "personnel": [
+        {
+          "label": "Myles Garrett for Jared Verse",
+          "unit": "defense",
+          "points": 12,
+          "confidence": 1,
+          "finalPoints": 12,
+          "reason": "The reigning Defensive Player of the Year replaces an established premium edge starter, so only the net upgrade is credited.",
+          "source": "https://www.therams.com/news/rams-agree-to-terms-on-trade-myles-garrett-browns"
+        },
+        {
+          "label": "Trent McDuffie acquisition",
+          "unit": "defense",
+          "points": 12,
+          "confidence": 0.9,
+          "finalPoints": 11,
+          "reason": "A recent first-team All-Pro cornerback is added to a premium coverage role.",
+          "source": "https://www.therams.com/news/rams-2026-newcomer-update-trent-mcduffie"
+        }
+      ]
+    },
+    "KC": {
+      "coaching": [],
+      "personnel": [
+        {
+          "label": "Trent McDuffie departure",
+          "unit": "defense",
+          "points": -12,
+          "confidence": 0.9,
+          "finalPoints": -11,
+          "reason": "Kansas City loses a recent first-team All-Pro cornerback from a premium coverage role.",
+          "source": "https://www.therams.com/news/rams-2026-newcomer-update-trent-mcduffie"
+        }
+      ]
+    },
+    "CLE": {
+      "coaching": [],
+      "personnel": [
+        {
+          "label": "Myles Garrett for Jared Verse",
+          "unit": "defense",
+          "points": -12,
+          "confidence": 1,
+          "finalPoints": -12,
+          "reason": "Cleveland receives an established edge starter but loses the reigning Defensive Player of the Year.",
+          "source": "https://www.nfl.com/news/nfl-network-browns-trading-myles-garrett-to-rams-jared-verse"
+        }
+      ]
+    }
+  }
+}
