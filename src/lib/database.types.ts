@@ -454,6 +454,12 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_predictions: {
+        Row: { id: string; user_id: string; kind: string; public_token: string; payload: Json; display_name: string; is_public: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; user_id: string; kind: string; public_token?: string; payload?: Json; display_name: string; is_public?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; user_id?: string; kind?: string; public_token?: string; payload?: Json; display_name?: string; is_public?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
     }
     Views: {
       leaderboard_points: {

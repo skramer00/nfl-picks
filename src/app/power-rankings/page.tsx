@@ -26,6 +26,7 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
 import { getUserRanking, saveUserRanking } from "@/lib/userRankingsDb";
+import { getMyShares, type SharedPrediction } from "@/lib/sharedPredictions";
 
 const SEASON = 2026;
 type ConferenceFilter = "All" | "AFC" | "NFC";
@@ -100,6 +101,8 @@ export default function PowerRankingsPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [userRankingOrder, setUserRankingOrder] = useState<string[] | null>(null);
+  const [displayName, setDisplayName] = useState("Pretzel Quest player");
+  const [rankingShare, setRankingShare] = useState<SharedPrediction | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -116,8 +119,11 @@ export default function PowerRankingsPage() {
         if (userResult.data.user) {
           setSignedIn(true);
           setUserId(userResult.data.user.id);
-          const [saved, savedRanking] = await Promise.all([getUserPicks(userResult.data.user.id), getUserRanking(userResult.data.user.id)]);
-          if (!cancelled) { setPicks(saved); setUserRankingOrder(savedRanking); }
+          const [saved, savedRanking, shares, profile] = await Promise.all([
+            getUserPicks(userResult.data.user.id), getUserRanking(userResult.data.user.id), getMyShares(userResult.data.user.id),
+            supabase.from("profiles").select("display_name").eq("user_id", userResult.data.user.id).maybeSingle(),
+          ]);
+          if (!cancelled) { setPicks(saved); setUserRankingOrder(savedRanking); setRankingShare(shares.find((item) => item.kind === "power_rankings") ?? null); setDisplayName(profile.data?.display_name || userResult.data.user.email?.split("@")[0] || "Pretzel Quest player"); }
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -217,6 +223,9 @@ export default function PowerRankingsPage() {
           teams={rankings}
           initialOrder={userRankingOrder}
           signedIn={signedIn}
+          userId={userId}
+          displayName={displayName}
+          initialShare={rankingShare}
           onSave={async (order) => {
             if (!userId) throw new Error("Log in to save your rankings.");
             await saveUserRanking(userId, order);

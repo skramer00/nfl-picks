@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { ShareImageButton } from "@/components/ShareImageButton";
+import { PublicShareControls } from "@/components/PublicShareControls";
 import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
 import {
@@ -17,6 +18,7 @@ import {
 } from "@/lib/postseasonProjection";
 import { supabase } from "@/lib/supabaseClient";
 import { getTeamTheme } from "@/lib/teamColors";
+import { getMyShares, publishShare, revokeShare, type SharedPrediction, type ShareKind } from "@/lib/sharedPredictions";
 
 const SEASON = 2026;
 
@@ -106,6 +108,9 @@ export default function PostseasonPage() {
   const [mode, setMode] = useState<ProjectionMode>("model");
   const [conference, setConference] = useState<"AFC" | "NFC">("AFC");
   const [signedIn, setSignedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState("Pretzel Quest player");
+  const [shares, setShares] = useState<SharedPrediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -115,14 +120,19 @@ export default function PostseasonPage() {
       try {
         const gameRowsPromise = getGamesBySeason(SEASON);
         const userResponse = await supabase.auth.getUser();
-        const [gameRows, pickMap] = await Promise.all([
+        const [gameRows, pickMap, savedShares, profile] = await Promise.all([
           gameRowsPromise,
           userResponse.data.user ? getUserPicks(userResponse.data.user.id) : Promise.resolve({}),
+          userResponse.data.user ? getMyShares(userResponse.data.user.id) : Promise.resolve([]),
+          userResponse.data.user ? supabase.from("profiles").select("display_name").eq("user_id", userResponse.data.user.id).maybeSingle() : Promise.resolve({ data: null }),
         ]);
         if (cancelled) return;
         setGames(gameRows);
         setPicks(pickMap);
         setSignedIn(Boolean(userResponse.data.user));
+        setUserId(userResponse.data.user?.id ?? null);
+        setShares(savedShares);
+        setDisplayName(profile.data?.display_name || userResponse.data.user?.email?.split("@")[0] || "Pretzel Quest player");
       } catch (loadError) {
         if (!cancelled) setError(loadError instanceof Error ? loadError.message : "Unable to build postseason projections.");
       } finally {
@@ -152,6 +162,11 @@ export default function PostseasonPage() {
     const nfc = projection.find((item) => item.conference === "NFC")?.teams.map((team) => team.abbreviation).join(",") ?? "";
     return `/api/share/playoffs?mode=${mode}&afc=${encodeURIComponent(afc)}&nfc=${encodeURIComponent(nfc)}`;
   }, [mode, projection]);
+  const shareKind: ShareKind = mode === "model" ? "playoffs_model" : "playoffs_user";
+  const currentShare = shares.find((item) => item.kind === shareKind) ?? null;
+  const publicPayload = { mode, ...Object.fromEntries(projection.map((item) => [item.conference, item.teams.map((team) => ({ seed: team.seed, abbreviation: team.abbreviation, name: team.name, record: record(team), chance: chances.get(team.id) ?? 0 }))])) };
+  const publish = async (regenerate = false) => { if (!userId) throw new Error("Log in to share your prediction."); const next = await publishShare({ userId, kind: shareKind, payload: publicPayload, displayName, regenerate }); setShares((current) => [...current.filter((item) => item.kind !== shareKind), next]); return next; };
+  const revoke = async () => { if (!userId) throw new Error("Log in to manage sharing."); const next = await revokeShare(userId, shareKind); setShares((current) => [...current.filter((item) => item.kind !== shareKind), next]); return next; };
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -197,6 +212,7 @@ export default function PostseasonPage() {
       </div>
       {projection.length ? <ShareImageButton imageUrl={playoffShareUrl} fileName={`pretzel-quest-${mode}-playoffs.png`} label="Share playoff picture" /> : null}
       </div>
+      {projection.length && signedIn ? <PublicShareControls key={shareKind} share={currentShare} path="playoffs" onPublish={() => publish()} onRegenerate={() => publish(true)} onRevoke={revoke} /> : null}
       {loading ? <div className="mt-8 rounded-xl border border-gray-800 bg-gray-950 p-6">Building the playoff picture…</div> : null}
       {error ? <div className="mt-8 rounded-xl border border-red-900 bg-red-950/40 p-6 text-red-200">{error}</div> : null}
 
