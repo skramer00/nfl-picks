@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { supabase } from "@/lib/supabaseClient";
+import { SharedPredictionsManager } from "@/components/SharedPredictionsManager";
+import { getMyShares, type SharedPrediction } from "@/lib/sharedPredictions";
 
 type Profile = { display_name: string | null };
 
@@ -27,6 +29,7 @@ export default function ProfilePage() {
   const [status, setStatus] = useState("");
   const [userId, setUserId] = useState<string | null>(null);
   const [signedOut, setSignedOut] = useState(false);
+  const [shares, setShares] = useState<SharedPrediction[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -39,15 +42,16 @@ export default function ProfilePage() {
         if (userError) throw userError;
 
         setUserId(user.id);
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("display_name")
-          .eq("user_id", user.id)
-          .maybeSingle();
+        const [profileResult, savedShares] = await Promise.all([
+          supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
+          getMyShares(user.id),
+        ]);
+        const { data, error } = profileResult;
         if (error) throw error;
 
         const profile = data as unknown as Profile | null;
         setDisplayName(profile?.display_name ?? user.email?.split("@")[0] ?? "");
+        setShares(savedShares);
       } catch (error) {
         setStatus(`Load failed: ${messageFrom(error)}`);
       } finally {
@@ -77,6 +81,9 @@ export default function ProfilePage() {
         .update({ display_name: name })
         .eq("user_id", userId);
       if (error) throw error;
+      const { error: shareError } = await supabase.from("shared_predictions").update({ display_name: name, updated_at: new Date().toISOString() }).eq("user_id", userId);
+      if (shareError) throw shareError;
+      setShares((current) => current.map((share) => ({ ...share, display_name: name, updated_at: new Date().toISOString() })));
       setStatus("Profile updated successfully.");
     } catch (error) {
       setStatus(`Save failed: ${messageFrom(error)}`);
@@ -103,11 +110,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-6">
+    <main className="mx-auto max-w-3xl p-6">
       <h1 className="text-3xl font-semibold">Profile</h1>
       {status && <div className="mt-4 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm" role="status">{status}</div>}
       {userId && (
-        <div className="mt-6 space-y-4">
+        <div className="mt-6 max-w-md space-y-4">
           <label className="block text-sm text-gray-300">
             Display name
             <input maxLength={40} value={displayName} onChange={(event) => setDisplayName(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white" />
@@ -117,6 +124,7 @@ export default function ProfilePage() {
           </button>
         </div>
       )}
+      {userId ? <SharedPredictionsManager userId={userId} initialShares={shares} /> : null}
     </main>
   );
 }
