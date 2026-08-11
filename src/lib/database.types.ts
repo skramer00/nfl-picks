@@ -295,6 +295,18 @@ export type Database = {
           },
         ]
       }
+      pool_members: {
+        Row: { joined_at: string; pool_id: string; role: string; user_id: string }
+        Insert: { joined_at?: string; pool_id: string; role?: string; user_id: string }
+        Update: { joined_at?: string; pool_id?: string; role?: string; user_id?: string }
+        Relationships: [{ foreignKeyName: "pool_members_pool_id_fkey"; columns: ["pool_id"]; isOneToOne: false; referencedRelation: "pools"; referencedColumns: ["id"] }]
+      }
+      pools: {
+        Row: { created_at: string; id: string; invite_code: string; invite_enabled: boolean; name: string; owner_id: string; updated_at: string }
+        Insert: { created_at?: string; id?: string; invite_code: string; invite_enabled?: boolean; name: string; owner_id: string; updated_at?: string }
+        Update: { created_at?: string; id?: string; invite_code?: string; invite_enabled?: boolean; name?: string; owner_id?: string; updated_at?: string }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -477,6 +489,14 @@ export type Database = {
       }
     }
     Functions: {
+      create_pool: { Args: { p_name: string }; Returns: string }
+      join_pool: { Args: { p_invite_code: string }; Returns: string }
+      get_my_pools: { Args: never; Returns: { pool_id: string; name: string; owner_id: string; invite_code: string; invite_enabled: boolean; role: string; member_count: number }[] }
+      get_pool_members: { Args: { p_pool_id: string }; Returns: { user_id: string; display_name: string; role: string; joined_at: string }[] }
+      get_pool_standings: { Args: { p_pool_id: string; p_week?: number }; Returns: { user_id: string; display_name: string; points: number; picks_made: number; correct: number; upsets: number; final_picks: number; accuracy: number }[] }
+      set_pool_invites: { Args: { p_pool_id: string; p_enabled: boolean }; Returns: undefined }
+      regenerate_pool_invite: { Args: { p_pool_id: string }; Returns: string }
+      remove_pool_member: { Args: { p_pool_id: string; p_user_id: string }; Returns: undefined }
       submit_pick: {
         Args: { p_game_id: string; p_team_id: string }
         Returns: undefined

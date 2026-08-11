@@ -42,6 +42,8 @@ function AuthForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const requestedMode = searchParams.get("mode");
+  const requestedNext = searchParams.get("next");
+  const safeNext = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : null;
   const [mode, setMode] = useState<AuthMode>(
     requestedMode === "signup" || requestedMode === "reset"
       ? requestedMode
@@ -69,7 +71,7 @@ function AuthForm() {
         supabase.auth.signInWithPassword({ email, password })
       );
       if (error) throw error;
-      router.push(await destinationAfterAuth());
+      router.push(safeNext ?? await destinationAfterAuth());
       router.refresh();
     } catch (error) {
       setStatus(`Login failed: ${messageFrom(error)}`);
@@ -90,7 +92,7 @@ function AuthForm() {
       if (error) throw error;
 
       if (data.session) {
-        router.push("/onboarding");
+        router.push(safeNext ?? "/onboarding");
         router.refresh();
       } else {
         setStatus("Account created. Check your email to confirm your address, then log in.");
