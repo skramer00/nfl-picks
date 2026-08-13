@@ -1,0 +1,4 @@
+import { supabase } from "@/lib/supabaseClient";
+export type ReminderPreferences = { user_id: string; thursday_enabled: boolean; sunday_enabled: boolean; timezone: string; local_hour: number; updated_at: string };
+export async function getReminderPreferences(userId: string) { const { data, error } = await supabase.from("pick_reminder_preferences").select("user_id, thursday_enabled, sunday_enabled, timezone, local_hour, updated_at").eq("user_id", userId).maybeSingle(); if (error) throw error; return data as ReminderPreferences | null; }
+export async function saveReminderPreferences(preferences: Omit<ReminderPreferences, "updated_at">) { const { data, error } = await supabase.from("pick_reminder_preferences").upsert({ ...preferences, updated_at: new Date().toISOString() }, { onConflict: "user_id" }).select("user_id, thursday_enabled, sunday_enabled, timezone, local_hour, updated_at").single(); if (error) throw error; return data as ReminderPreferences; }

@@ -4,6 +4,10 @@
     {
       "path": "/api/cron/sync-results",
       "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/pick-reminders",
+      "schedule": "15 12 * * *"
     }
   ]
 }

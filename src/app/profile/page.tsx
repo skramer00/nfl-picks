@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { SharedPredictionsManager } from "@/components/SharedPredictionsManager";
 import { getMyShares, type SharedPrediction } from "@/lib/sharedPredictions";
+import { ReminderSettings } from "@/components/ReminderSettings";
 
 type Profile = { display_name: string | null };
 
@@ -125,6 +126,7 @@ export default function ProfilePage() {
         </div>
       )}
       {userId ? <SharedPredictionsManager userId={userId} initialShares={shares} /> : null}
+      {userId ? <ReminderSettings userId={userId} /> : null}
     </main>
   );
 }

@@ -129,6 +129,7 @@ export default function AppHeader() {
           <nav className="flex flex-col gap-1 lg:flex-row lg:items-center" aria-label="Primary">
             <NavLink href="/week" label="Picks" onSelect={() => setMenuOpen(false)} />
             <NavLink href="/my-picks" label="Season" onSelect={() => setMenuOpen(false)} />
+            <NavLink href="/recap" label="Recap" onSelect={() => setMenuOpen(false)} />
             <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
             <NavLink href="/power-rankings" label="Model" onSelect={() => setMenuOpen(false)} />
             <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />

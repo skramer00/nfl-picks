@@ -295,6 +295,18 @@ export type Database = {
           },
         ]
       }
+      pick_reminder_preferences: {
+        Row: { user_id: string; thursday_enabled: boolean; sunday_enabled: boolean; timezone: string; local_hour: number; created_at: string; updated_at: string }
+        Insert: { user_id: string; thursday_enabled?: boolean; sunday_enabled?: boolean; timezone?: string; local_hour?: number; created_at?: string; updated_at?: string }
+        Update: { user_id?: string; thursday_enabled?: boolean; sunday_enabled?: boolean; timezone?: string; local_hour?: number; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      pick_reminder_deliveries: {
+        Row: { id: string; user_id: string; season: number; week: number; reminder_kind: string; scheduled_for: string; resend_email_id: string | null; status: string; error: string | null; created_at: string }
+        Insert: { id?: string; user_id: string; season: number; week: number; reminder_kind: string; scheduled_for: string; resend_email_id?: string | null; status?: string; error?: string | null; created_at?: string }
+        Update: { id?: string; user_id?: string; season?: number; week?: number; reminder_kind?: string; scheduled_for?: string; resend_email_id?: string | null; status?: string; error?: string | null; created_at?: string }
+        Relationships: []
+      }
       pool_members: {
         Row: { joined_at: string; pool_id: string; role: string; user_id: string }
         Insert: { joined_at?: string; pool_id: string; role?: string; user_id: string }
