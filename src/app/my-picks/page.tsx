@@ -76,7 +76,14 @@ export default function MyPicksPage() {
         ]);
         if (cancelled) return;
 
-        setGameRows(rows as GameRow[]);
+        const typedRows = rows as GameRow[];
+        const hasFinalResults = typedRows.some((game) => game.status === "final");
+        setGameRows(typedRows);
+        if (window.location.hash === "#recap" && hasFinalResults) {
+          setSection("recap");
+        } else if (window.location.hash === "#recap") {
+          history.replaceState(null, "", "/my-picks");
+        }
         setGames(
           (rows as GameRow[]).map((r) => ({
             id: r.id,
@@ -109,9 +116,7 @@ export default function MyPicksPage() {
       cancelled = true;
     };
   }, []);
-  useEffect(() => {
-    if (window.location.hash === "#recap") setSection("recap");
-  }, []);
+  const hasResults = gameRows.some((game) => game.status === "final");
   const filteredGames = useMemo(
     () => selectedTeamId === "all"
       ? games
@@ -198,10 +203,10 @@ export default function MyPicksPage() {
   return (
     <main className="mx-auto max-w-4xl p-6">
       <h1 className="text-2xl font-semibold">Season Summary</h1>
-      <div className="mt-5 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Season view">
+      {hasResults ? <div className="mt-5 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Season view">
         <button type="button" onClick={() => { setSection("summary"); history.replaceState(null, "", "/my-picks"); }} className={`rounded-lg px-4 py-2 text-sm ${section === "summary" ? "bg-gray-800 text-white" : "text-gray-400 hover:text-white"}`}>Summary</button>
         <button type="button" onClick={() => { setSection("recap"); history.replaceState(null, "", "/my-picks#recap"); }} className={`rounded-lg px-4 py-2 text-sm ${section === "recap" ? "bg-gray-800 text-white" : "text-gray-400 hover:text-white"}`}>Weekly Recap</button>
-      </div>
+      </div> : null}
 
       {status ? (
         <div className="mt-4 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-200">
@@ -209,7 +214,7 @@ export default function MyPicksPage() {
         </div>
       ) : null}
 
-      {section === "recap" ? <SeasonRecap games={gameRows} picks={picks} userId={userId} /> : <>
+      {hasResults && section === "recap" ? <SeasonRecap games={gameRows} picks={picks} userId={userId} /> : <>
       {/* Top dashboard: 3 cards in one row */}
       <div className="mt-4 grid gap-4 md:grid-cols-3">
         <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
