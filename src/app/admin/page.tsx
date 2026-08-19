@@ -15,6 +15,13 @@ type SyncRun = Database["public"]["Tables"]["sync_runs"]["Row"];
 type HealthResponse = {
   runs: SyncRun[];
   schedule: string;
+  system: {
+    schedule: { games: number; weeks: number; complete: boolean };
+    snapshots: { captured: number; due: number; missingDue: number; late: number; ready: boolean };
+    results: { finals: number; incomplete: number; ready: boolean };
+    reminders: { scheduled: number; failed: number; ready: boolean };
+    sync: { stuck: boolean; latestStatus: string | null };
+  };
 };
 
 function dateTime(value: string | null) {
@@ -166,8 +173,10 @@ export default function AdminPage() {
   const [games, setGames] = useState<GameRow[]>([]);
   const [runs, setRuns] = useState<SyncRun[]>([]);
   const [schedule, setSchedule] = useState("");
+  const [system, setSystem] = useState<HealthResponse["system"] | null>(null);
   const [week, setWeek] = useState(1);
   const [syncing, setSyncing] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async (accessToken: string) => {
@@ -180,6 +189,7 @@ export default function AdminPage() {
     setGames(gameRows);
     setRuns(health.runs);
     setSchedule(health.schedule);
+    setSystem(health.system);
   }, []);
 
   useEffect(() => {
@@ -238,6 +248,25 @@ export default function AdminPage() {
     }
   }
 
+  async function checkProvider() {
+    setChecking(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ week, dryRun: true }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Provider check failed.");
+      setMessage(`Week ${week} provider check: ${payload.summary.matched} matched, ${payload.summary.updated} differences, ${payload.summary.unmatched.length} unmatched. No data was changed.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Provider check failed.");
+    } finally {
+      setChecking(false);
+    }
+  }
+
   if (loading) return <main className="mx-auto max-w-6xl p-6">Loading admin tools…</main>;
   if (!authorized) return <main className="mx-auto max-w-6xl p-6">Administrator access required.</main>;
 
@@ -258,8 +287,16 @@ export default function AdminPage() {
           </select>
           <button
             type="button"
+            onClick={checkProvider}
+            disabled={checking || syncing}
+            className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-900 disabled:opacity-50"
+          >
+            {checking ? "Checking…" : "Dry run"}
+          </button>
+          <button
+            type="button"
             onClick={syncNow}
-            disabled={syncing}
+            disabled={syncing || checking}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
           >
             {syncing ? "Syncing…" : "Sync now"}
@@ -289,6 +326,34 @@ export default function AdminPage() {
           <div className="mt-2 text-base font-medium">{schedule}</div>
           <div className="mt-1 text-xs text-gray-500">Vercel Hobby daily schedule</div>
         </div>
+      </section>
+
+      <section className="mt-10">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-xl font-semibold">Season readiness</h2>
+            <p className="mt-1 text-sm text-gray-400">Live checks for the schedule, model lock, results, and reminders.</p>
+          </div>
+          <button type="button" onClick={refresh} className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-900">Refresh checks</button>
+        </div>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {system ? [
+            { label: "Schedule", ok: system.schedule.complete, detail: `${system.schedule.games} games · ${system.schedule.weeks} weeks` },
+            { label: "Pregame snapshots", ok: system.snapshots.ready, detail: system.snapshots.due ? `${system.snapshots.due - system.snapshots.missingDue}/${system.snapshots.due} due games locked` : `${system.snapshots.captured} locked · none due` },
+            { label: "Final results", ok: system.results.ready, detail: `${system.results.finals} finals · ${system.results.incomplete} incomplete` },
+            { label: "Pick reminders", ok: system.reminders.ready, detail: `${system.reminders.scheduled} scheduled · ${system.reminders.failed} failed` },
+          ].map((check) => (
+            <div key={check.label} className="rounded-2xl border border-gray-800 bg-gray-950 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm text-gray-400">{check.label}</span>
+                <span className={check.ok ? "text-emerald-300" : "text-red-300"}>{check.ok ? "Ready" : "Needs attention"}</span>
+              </div>
+              <p className="mt-3 text-sm text-gray-200">{check.detail}</p>
+            </div>
+          )) : <div className="text-sm text-gray-500">Loading readiness checks…</div>}
+        </div>
+        {system?.sync.stuck ? <p className="mt-3 rounded-xl border border-red-800 bg-red-950/70 p-3 text-sm text-red-200">The latest result sync has been running for more than 10 minutes.</p> : null}
+        {system && (system.snapshots.late > 0 || system.snapshots.missingDue > 0) ? <p className="mt-3 rounded-xl border border-amber-800 bg-amber-950/60 p-3 text-sm text-amber-100">Snapshot warning: {system.snapshots.missingDue} due games are unlocked and {system.snapshots.late} snapshots were captured after kickoff.</p> : null}
       </section>
 
       <section className="mt-10">
