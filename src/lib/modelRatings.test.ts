@@ -7,6 +7,7 @@ import {
   matchupTeamStrength,
   modelRatingAudit,
   preseasonTeamStrength,
+  quarterbackAvailability,
 } from "./modelRatings";
 
 test("Model v2 contains one auditable rating for every NFL team", () => {
@@ -49,6 +50,12 @@ test("weekly quarterback availability blends starter and backup value", () => {
   assert.ok(matchupTeamStrength("KC", 1) < preseasonTeamStrength("KC"));
   assert.equal(matchupTeamStrength("KC", 5), preseasonTeamStrength("KC"));
   assert.equal(matchupTeamStrength("LAC", 1), preseasonTeamStrength("LAC"));
+});
+
+test("Mahomes recovery discount reflects current team-drill participation", () => {
+  assert.equal(quarterbackAvailability("KC", 1), 0.85);
+  assert.equal(quarterbackAvailability("KC", 3), 0.95);
+  assert.equal(quarterbackAvailability("KC", 4), 1);
 });
 
 test("offseason ledger applies net, bounded adjustments without changing base arithmetic", () => {

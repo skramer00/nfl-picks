@@ -1,19 +1,19 @@
 {
-  "version": "2026-08-02",
+  "version": "2026-08-18",
+  "updatedAt": "2026-08-18T00:00:00.000Z",
   "methodology": "Availability is applied by week to the starter and backup quarterback components. Unlisted teams default to full starter availability.",
   "statusRules": {
-    "major-knee-recovery-not-cleared": "70% in Week 1, improving by 10 percentage points per week until Week 4, then 100% from Week 5."
+    "major-knee-recovery-in-team-drills": "85% in Week 1, improving as full-team work continues, then 100% from Week 4."
   },
   "teams": {
     "KC": {
-      "status": "major-knee-recovery-not-cleared",
-      "note": "Patrick Mahomes is rehabilitating the knee injury that ended his 2025 season. Week 1 remains a goal, not a confirmed clearance.",
-      "source": "https://www.chiefs.com/news/patrick-mahomes-shares-update-on-his-injury-rehab-it-s-a-long-process-but-i-m-excited-for-it",
+      "status": "major-knee-recovery-in-team-drills",
+      "note": "Patrick Mahomes has progressed to repeated 11-on-11 work in training camp, but the model retains a modest early-season recovery discount until regular-season clearance.",
+      "source": "https://www.chiefs.com/news/five-observations-from-thursday-s-practice-chiefs-training-camp-7-30",
       "availabilityByWeek": {
-        "1": 0.7,
-        "2": 0.8,
-        "3": 0.9,
-        "4": 0.95
+        "1": 0.85,
+        "2": 0.9,
+        "3": 0.95
       }
     }
   }

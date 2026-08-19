@@ -16,6 +16,7 @@ import {
 import { buildPowerRankings, type PowerRanking } from "@/lib/powerRankings";
 import {
   MODEL_GENERATED_AT,
+  MODEL_UPDATED_AT,
   MODEL_METHODOLOGY,
   MODEL_OFFSEASON_METHODOLOGY,
   MODEL_RATINGS,
@@ -184,6 +185,9 @@ export default function PowerRankingsPage() {
         <p className="mt-3 text-gray-400">
           Power rankings, projections, and a transparent scorecard for how the model performs throughout the season.
         </p>
+        <p className="mt-2 text-xs font-medium uppercase tracking-wider text-gray-500">
+          Inputs updated {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+        </p>
       </div>
 
       <div className="mt-6 sm:hidden">
@@ -307,7 +311,7 @@ export default function PowerRankingsPage() {
           </div>
 
           <p className="mt-5 text-xs leading-5 text-gray-500">
-            Generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Regenerating the published script from the same inputs produces this ledger; future model versions preserve their own snapshot.
+            Base ratings generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}; availability and offseason inputs updated through {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Regenerating the published script from the same inputs produces this ledger; future model versions preserve their own snapshot.
           </p>
         </section>
       ) : null}

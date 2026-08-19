@@ -48,6 +48,11 @@ const ratings = new Map(
 
 export const MODEL_VERSION = modelData.version;
 export const MODEL_GENERATED_AT = modelData.generatedAt;
+export const MODEL_UPDATED_AT = new Date(Math.max(
+  new Date(modelData.generatedAt).getTime(),
+  new Date(offseasonData.updatedAt).getTime(),
+  new Date(availabilityData.updatedAt).getTime(),
+)).toISOString();
 export const MODEL_METHODOLOGY = modelData.methodology;
 export const MODEL_OFFSEASON_METHODOLOGY = offseasonData.methodology;
 export const MODEL_SOURCES = modelData.sources;
