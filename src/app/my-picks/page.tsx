@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { SeasonRecap } from "@/components/SeasonRecap";
 import { getGamesBySeason, GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
 import { supabase } from "@/lib/supabaseClient";
@@ -45,12 +46,15 @@ function pct(n: number | null | undefined) {
 
 export default function MyPicksPage() {
   const [games, setGames] = useState<Game[]>([]);
+  const [gameRows, setGameRows] = useState<GameRow[]>([]);
   const [picks, setPicks] = useState<PickMap>({});
   const [viewMode, setViewMode] = useState<"week" | "team">("week");
   const [selectedTeamId, setSelectedTeamId] = useState("all");
   const [status, setStatus] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
+  const [userId, setUserId] = useState("");
+  const [section, setSection] = useState<"summary" | "recap">("summary");
 
   useEffect(() => {
     let cancelled = false;
@@ -65,12 +69,14 @@ export default function MyPicksPage() {
         }
 
         setSignedIn(true);
+        setUserId(user.id);
         const [rows, map] = await Promise.all([
           getGamesBySeason(SEASON),
           getUserPicks(user.id),
         ]);
         if (cancelled) return;
 
+        setGameRows(rows as GameRow[]);
         setGames(
           (rows as GameRow[]).map((r) => ({
             id: r.id,
@@ -102,6 +108,9 @@ export default function MyPicksPage() {
     return () => {
       cancelled = true;
     };
+  }, []);
+  useEffect(() => {
+    if (window.location.hash === "#recap") setSection("recap");
   }, []);
   const filteredGames = useMemo(
     () => selectedTeamId === "all"
@@ -189,6 +198,10 @@ export default function MyPicksPage() {
   return (
     <main className="mx-auto max-w-4xl p-6">
       <h1 className="text-2xl font-semibold">Season Summary</h1>
+      <div className="mt-5 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Season view">
+        <button type="button" onClick={() => { setSection("summary"); history.replaceState(null, "", "/my-picks"); }} className={`rounded-lg px-4 py-2 text-sm ${section === "summary" ? "bg-gray-800 text-white" : "text-gray-400 hover:text-white"}`}>Summary</button>
+        <button type="button" onClick={() => { setSection("recap"); history.replaceState(null, "", "/my-picks#recap"); }} className={`rounded-lg px-4 py-2 text-sm ${section === "recap" ? "bg-gray-800 text-white" : "text-gray-400 hover:text-white"}`}>Weekly Recap</button>
+      </div>
 
       {status ? (
         <div className="mt-4 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-200">
@@ -196,6 +209,7 @@ export default function MyPicksPage() {
         </div>
       ) : null}
 
+      {section === "recap" ? <SeasonRecap games={gameRows} picks={picks} userId={userId} /> : <>
       {/* Top dashboard: 3 cards in one row */}
       <div className="mt-4 grid gap-4 md:grid-cols-3">
         <div className="rounded-xl border border-gray-800 bg-gray-900 p-4">
@@ -380,6 +394,7 @@ export default function MyPicksPage() {
               </div>
             ))}
       </div>
+      </>}
     </main>
   );
 }
