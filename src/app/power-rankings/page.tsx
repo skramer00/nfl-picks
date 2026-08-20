@@ -185,9 +185,12 @@ export default function PowerRankingsPage() {
         <p className="mt-3 text-gray-400">
           Power rankings, projections, and a transparent scorecard for how the model performs throughout the season.
         </p>
-        <p className="mt-2 text-xs font-medium uppercase tracking-wider text-gray-500">
-          Inputs updated {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
+            Inputs updated {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+          </p>
+          <Link href="/model/about" className="text-sm font-semibold text-amber-400 hover:text-amber-300">About the model →</Link>
+        </div>
       </div>
 
       <div className="mt-6 sm:hidden">
@@ -618,6 +621,7 @@ export default function PowerRankingsPage() {
               <p>Teams begin with a preseason strength rating. Each final result moves both teams based on opponent quality and margin of victory.</p>
               <p>Game favorability combines team strength, home field, division-game limits, and rest differences. Manual adjustments are labeled on the Picks page.</p>
               <p>User picks never change model ratings. The scorecard above measures the favorite shown before each game against the final result.</p>
+              <Link href="/model/about" className="inline-flex font-semibold text-amber-400 hover:text-amber-300">Read the plain-language guide →</Link>
             </div>
           </details>
         </>
