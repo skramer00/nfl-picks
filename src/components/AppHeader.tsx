@@ -137,9 +137,13 @@ export default function AppHeader() {
 
           {user ? (
             <div className="flex flex-wrap items-center gap-2 border-t border-gray-800 pt-3 lg:border-0 lg:pt-0">
-              <span className="mr-auto text-sm text-gray-400 lg:mr-0">
+              <Link
+                href="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="mr-auto rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white lg:mr-0"
+              >
                 {userLabel}
-              </span>
+              </Link>
 
               <button
                 type="button"
@@ -151,7 +155,6 @@ export default function AppHeader() {
               >
                 Logout
               </button>
-              <NavLink href="/profile" label="Profile" onSelect={() => setMenuOpen(false)} />
             </div>
           ) : (
             <Link
