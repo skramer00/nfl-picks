@@ -89,11 +89,13 @@ export async function syncResults({
   season,
   weeks,
   dryRun = false,
+  fetchWeek = fetchEspnWeek,
 }: {
   supabase: SupabaseClient<Database>;
   season: number;
   weeks: number[];
   dryRun?: boolean;
+  fetchWeek?: (season: number, week: number) => Promise<ProviderGame[]>;
 }): Promise<SyncSummary> {
   const [{ data: teams, error: teamsError }, { data: games, error: gamesError }] =
     await Promise.all([
@@ -119,7 +121,7 @@ export async function syncResults({
     ])
   );
 
-  const providerWeeks = await Promise.all(weeks.map((week) => fetchEspnWeek(season, week)));
+  const providerWeeks = await Promise.all(weeks.map((week) => fetchWeek(season, week)));
   const providerGames = providerWeeks.flat();
   const summary: SyncSummary = {
     season,
