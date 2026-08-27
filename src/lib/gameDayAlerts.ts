@@ -1,9 +1,10 @@
 import "server-only";
 
+import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database, Json } from "./database.types";
-import { gameDayIncidentKey, type GameDayAlertType } from "./gameDayAlertLogic";
+import { gameDayIncidentKey, gameDayTestIncidentKey, type GameDayAlertType } from "./gameDayAlertLogic";
 import { gameDayHealth, type OperationsGame, type OperationsSyncRun } from "./operationsHealth";
 import { getResend, operationalAlertHtml } from "./resend";
 
@@ -23,6 +24,7 @@ type AlertInput = {
   summary: string;
   details: string[];
   now: Date;
+  incidentKey?: string;
 };
 
 async function adminRecipients(admin: AdminClient) {
@@ -45,7 +47,7 @@ async function sendAlert(admin: AdminClient, input: AlertInput) {
     return { sent: false, configured: false, deduplicated: false };
   }
 
-  const incidentKey = gameDayIncidentKey(input);
+  const incidentKey = input.incidentKey ?? gameDayIncidentKey(input);
   const { error: insertError } = await admin.from("game_day_alert_deliveries").insert({
     incident_key: incidentKey,
     incident_type: input.type,
@@ -143,4 +145,23 @@ export async function sendSyncFailureAlert(admin: AdminClient, season: number, w
     details: [message],
     now,
   });
+}
+
+export async function sendTestAlert(admin: AdminClient, season: number, now = new Date()) {
+  const result = await sendAlert(admin, {
+    type: "test_alert",
+    season,
+    subjects: [],
+    incidentKey: gameDayTestIncidentKey(season, randomUUID()),
+    title: "TEST — Operational alert delivery",
+    summary: "This is a controlled Pretzel Quest test. No game, score, or synchronization incident was detected.",
+    details: [
+      "Administrator-only delivery path completed.",
+      `Requested at ${now.toISOString()}.`,
+      "This test does not affect real incident deduplication.",
+    ],
+    now,
+  });
+  if (!result.configured) throw new Error("Operational email is not configured.");
+  return result;
 }

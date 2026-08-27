@@ -186,6 +186,7 @@ export default function AdminPage() {
   const [week, setWeek] = useState(1);
   const [syncing, setSyncing] = useState(false);
   const [checking, setChecking] = useState(false);
+  const [sendingTestAlert, setSendingTestAlert] = useState(false);
   const [message, setMessage] = useState("");
 
   const load = useCallback(async (accessToken: string) => {
@@ -284,6 +285,24 @@ export default function AdminPage() {
     }
   }
 
+  async function sendAlertTest() {
+    setSendingTestAlert(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/admin/test-alert", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error ?? "Test alert failed.");
+      setMessage("Test alert sent to the administrator email list and recorded in the delivery ledger.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Test alert failed.");
+    } finally {
+      setSendingTestAlert(false);
+    }
+  }
+
   if (loading) return <main className="mx-auto max-w-6xl p-6">Loading admin tools…</main>;
   if (!authorized) return <main className="mx-auto max-w-6xl p-6">Administrator access required.</main>;
 
@@ -342,6 +361,25 @@ export default function AdminPage() {
           <div className="text-sm text-gray-400">Next automatic run</div>
           <div className="mt-2 text-base font-medium">{schedule}</div>
           <div className="mt-1 text-xs text-gray-500">Supabase game-window scheduler plus Vercel catch-up</div>
+        </div>
+      </section>
+
+      <section className="mt-10 rounded-2xl border border-gray-800 bg-gray-950 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">Alert delivery test</h2>
+            <p className="mt-1 max-w-2xl text-sm text-gray-400">
+              Sends a clearly labeled test through the production Resend path to administrators only. It receives its own ledger entry and cannot suppress a real incident alert.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={sendAlertTest}
+            disabled={sendingTestAlert}
+            className="rounded-lg border border-amber-700 bg-amber-950/60 px-4 py-2 text-sm text-amber-100 hover:bg-amber-900/60 disabled:opacity-50"
+          >
+            {sendingTestAlert ? "Sending test…" : "Send test alert"}
+          </button>
         </div>
       </section>
 
