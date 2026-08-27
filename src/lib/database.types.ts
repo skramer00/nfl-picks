@@ -307,6 +307,12 @@ export type Database = {
         Update: { id?: string; user_id?: string; season?: number; week?: number; reminder_kind?: string; scheduled_for?: string; resend_email_id?: string | null; status?: string; error?: string | null; created_at?: string }
         Relationships: []
       }
+      game_day_alert_deliveries: {
+        Row: { incident_key: string; incident_type: string; season: number; details: Json; status: string; resend_email_id: string | null; error: string | null; created_at: string; updated_at: string }
+        Insert: { incident_key: string; incident_type: string; season: number; details?: Json; status?: string; resend_email_id?: string | null; error?: string | null; created_at?: string; updated_at?: string }
+        Update: { incident_key?: string; incident_type?: string; season?: number; details?: Json; status?: string; resend_email_id?: string | null; error?: string | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
       pool_members: {
         Row: { joined_at: string; pool_id: string; role: string; user_id: string }
         Insert: { joined_at?: string; pool_id: string; role?: string; user_id: string }
