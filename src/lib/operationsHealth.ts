@@ -13,6 +13,11 @@ export type OperationsSnapshot = {
   capture_is_pregame: boolean;
 };
 
+export type OperationsSyncRun = {
+  status: string;
+  finished_at: string | null;
+};
+
 export function scheduleHealth(games: OperationsGame[]) {
   const weekCounts = new Map<number, number>();
   for (const game of games) weekCounts.set(game.week, (weekCounts.get(game.week) ?? 0) + 1);
@@ -40,4 +45,63 @@ export function finalResultHealth(games: OperationsGame[]) {
     (game.away_score !== game.home_score && !game.winner_team_id)
   ).length;
   return { finals: finals.length, incomplete, ready: incomplete === 0 };
+}
+
+export function gameDayHealth(
+  games: OperationsGame[],
+  runs: OperationsSyncRun[],
+  now = new Date()
+) {
+  const nowMs = now.getTime();
+  const monitoredStart = nowMs - 6 * 60 * 60 * 1000;
+  const monitoredEnd = nowMs + 60 * 60 * 1000;
+  const staleResultDeadline = nowMs - 6 * 60 * 60 * 1000;
+  const recentFailureDeadline = nowMs - 24 * 60 * 60 * 1000;
+
+  const monitoredGameIds = games
+    .filter((game) => {
+      const kickoff = new Date(game.kickoff_at).getTime();
+      return kickoff >= monitoredStart && kickoff <= monitoredEnd;
+    })
+    .map((game) => game.id);
+
+  const attentionGameIds = games
+    .filter((game) => {
+      const kickoff = new Date(game.kickoff_at).getTime();
+      const incompleteFinal = game.status === "final" && (
+        game.away_score === null ||
+        game.home_score === null ||
+        (game.away_score !== game.home_score && !game.winner_team_id)
+      );
+      const overdue = kickoff < staleResultDeadline && game.status !== "final";
+      return incompleteFinal || overdue;
+    })
+    .map((game) => game.id);
+
+  const latestSuccessfulSyncAt = runs.find((run) => run.status === "success")?.finished_at ?? null;
+  const latestSuccessfulSyncMs = latestSuccessfulSyncAt
+    ? new Date(latestSuccessfulSyncAt).getTime()
+    : null;
+  const syncFresh = monitoredGameIds.length === 0 || (
+    latestSuccessfulSyncMs !== null && nowMs - latestSuccessfulSyncMs <= 30 * 60 * 1000
+  );
+  const recentFailures = runs.filter((run) => (
+    run.status === "error" &&
+    run.finished_at !== null &&
+    new Date(run.finished_at).getTime() >= recentFailureDeadline
+  )).length;
+  const nextKickoff = games
+    .map((game) => game.kickoff_at)
+    .filter((kickoff) => new Date(kickoff).getTime() > nowMs)
+    .sort((a, b) => new Date(a).getTime() - new Date(b).getTime())[0] ?? null;
+
+  return {
+    monitoredGameIds,
+    attentionGameIds,
+    latestSuccessfulSyncAt,
+    syncFresh,
+    recentFailures,
+    nextKickoff,
+    ready: syncFresh && recentFailures === 0 && attentionGameIds.length === 0,
+  };
 }

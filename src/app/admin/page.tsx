@@ -21,6 +21,15 @@ type HealthResponse = {
     results: { finals: number; incomplete: number; ready: boolean };
     reminders: { scheduled: number; failed: number; ready: boolean };
     sync: { stuck: boolean; latestStatus: string | null };
+    gameDay: {
+      monitoredGameIds: string[];
+      attentionGameIds: string[];
+      latestSuccessfulSyncAt: string | null;
+      syncFresh: boolean;
+      recentFailures: number;
+      nextKickoff: string | null;
+      ready: boolean;
+    };
   };
 };
 
@@ -219,6 +228,14 @@ export default function AdminPage() {
 
   const weekGames = useMemo(() => games.filter((game) => game.week === week), [games, week]);
   const latest = runs[0];
+  const monitoredGames = useMemo(() => {
+    const ids = new Set(system?.gameDay.monitoredGameIds ?? []);
+    return games.filter((game) => ids.has(game.id));
+  }, [games, system]);
+  const attentionGames = useMemo(() => {
+    const ids = new Set(system?.gameDay.attentionGameIds ?? []);
+    return games.filter((game) => ids.has(game.id));
+  }, [games, system]);
 
   async function refresh() {
     if (token) await load(token);
@@ -324,8 +341,79 @@ export default function AdminPage() {
         <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
           <div className="text-sm text-gray-400">Next automatic run</div>
           <div className="mt-2 text-base font-medium">{schedule}</div>
-          <div className="mt-1 text-xs text-gray-500">Vercel Hobby daily schedule</div>
+          <div className="mt-1 text-xs text-gray-500">Supabase game-window scheduler plus Vercel catch-up</div>
         </div>
+      </section>
+
+      <section className="mt-10">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <h2 className="text-xl font-semibold">Game-day status</h2>
+            <p className="mt-1 text-sm text-gray-400">Live visibility into monitored games, score freshness, and result exceptions.</p>
+          </div>
+          {system?.gameDay ? (
+            <span className={`rounded-full border px-3 py-1 text-sm ${system.gameDay.ready ? statusTone("success") : statusTone("error")}`}>
+              {system.gameDay.ready ? "Ready" : "Needs attention"}
+            </span>
+          ) : null}
+        </div>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-4">
+            <div className="text-sm text-gray-400">Monitored now</div>
+            <div className="mt-2 text-2xl font-semibold">{monitoredGames.length}</div>
+            <div className="mt-1 text-xs text-gray-500">Kickoff −6 hours through +1 hour</div>
+          </div>
+          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-4">
+            <div className="text-sm text-gray-400">Last successful sync</div>
+            <div className="mt-2 text-base font-semibold">{dateTime(system?.gameDay.latestSuccessfulSyncAt ?? null)}</div>
+            <div className={`mt-1 text-xs ${system?.gameDay.syncFresh ? "text-emerald-300" : "text-red-300"}`}>
+              {system?.gameDay.syncFresh ? "Fresh for the current window" : "More than 30 minutes old"}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-4">
+            <div className="text-sm text-gray-400">Failures, last 24 hours</div>
+            <div className="mt-2 text-2xl font-semibold">{system?.gameDay.recentFailures ?? 0}</div>
+            <div className={`mt-1 text-xs ${(system?.gameDay.recentFailures ?? 0) === 0 ? "text-emerald-300" : "text-red-300"}`}>
+              {(system?.gameDay.recentFailures ?? 0) === 0 ? "No recent failures" : "Review recent syncs below"}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-4">
+            <div className="text-sm text-gray-400">Next kickoff</div>
+            <div className="mt-2 text-base font-semibold">{dateTime(system?.gameDay.nextKickoff ?? null)}</div>
+            <div className="mt-1 text-xs text-gray-500">Pacific Time</div>
+          </div>
+        </div>
+
+        {monitoredGames.length ? (
+          <div className="mt-4 rounded-2xl border border-gray-800 bg-gray-950 p-4">
+            <h3 className="text-sm font-medium text-gray-300">Games in the active window</h3>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {monitoredGames.map((game) => (
+                <div key={game.id} className="rounded-xl border border-gray-800 bg-black/30 p-3">
+                  <div className="font-medium">{game.away_team.abbreviation} at {game.home_team.abbreviation}</div>
+                  <div className="mt-1 text-xs text-gray-500">Week {game.week} · {dateTime(game.kickoff_iso)} · {game.status}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="mt-4 rounded-xl border border-gray-800 bg-gray-950 p-4 text-sm text-gray-400">No games are inside the active monitoring window.</p>
+        )}
+
+        {attentionGames.length ? (
+          <div className="mt-4 rounded-2xl border border-red-800 bg-red-950/60 p-4">
+            <h3 className="font-medium text-red-100">Result attention required</h3>
+            <p className="mt-1 text-sm text-red-200">These games are overdue or marked final without complete scores and a winner.</p>
+            <div className="mt-3 space-y-2">
+              {attentionGames.map((game) => (
+                <div key={game.id} className="text-sm text-red-100">
+                  Week {game.week}: {game.away_team.abbreviation} at {game.home_team.abbreviation} · {game.status}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="mt-10">
