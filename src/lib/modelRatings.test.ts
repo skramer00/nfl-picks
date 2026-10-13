@@ -11,7 +11,7 @@ import {
 } from "./modelRatings";
 
 test("Model v2 contains one auditable rating for every NFL team", () => {
-  assert.equal(MODEL_VERSION, "2026.4");
+  assert.equal(MODEL_VERSION, "2026.5");
   assert.equal(MODEL_RATINGS.length, 32);
   assert.equal(new Set(MODEL_RATINGS.map((team) => team.abbreviation)).size, 32);
 });

@@ -1,3 +1,6 @@
+import { probabilityMetrics } from "./probabilityMetrics";
+import { isNeutralSite } from "./ratingEngine";
+import { MATCHUP_MODEL_VERSION } from "./favorability";
 import type { GameRow } from "./gamesDb";
 import { HOME_FIELD_ELO, teamStrength } from "./favorability";
 
@@ -27,6 +30,13 @@ export function modelPerformance(games: GameRow[]) {
   }
 
   return {
+    metrics: probabilityMetrics(finals.map((game) => ({ probability: game.home_win_prob ?? NaN, outcome: Number(game.winner_team_id === game.home_team_id) }))),
+    homeBaselineCorrect: finals.filter((game) => game.winner_team_id === game.home_team_id).length,
+    ties: games.filter((game) => game.status === "final" && game.home_score !== null && game.home_score === game.away_score).length,
+    groups: [...new Set(finals.map((game) => `${game.prediction_model_version} · ${game.favorability_override_reason ? "Manual" : "Automatic"}`))].map((label) => ({
+      label,
+      ...probabilityMetrics(finals.filter((game) => `${game.prediction_model_version} · ${game.favorability_override_reason ? "Manual" : "Automatic"}` === label).map((game) => ({ probability: game.home_win_prob ?? NaN, outcome: Number(game.winner_team_id === game.home_team_id) }))),
+    })),
     finals: finals.length,
     correct,
     accuracy: finals.length ? Math.round((correct / finals.length) * 100) : null,
@@ -48,10 +58,10 @@ export type ConfidenceBucket = {
 };
 
 const confidenceRanges = [
-  { label: "Toss-up", minimum: 0.5, maximum: 0.5499 },
-  { label: "Slight edge", minimum: 0.55, maximum: 0.5999 },
-  { label: "Clear edge", minimum: 0.6, maximum: 0.6499 },
-  { label: "Strong edge", minimum: 0.65, maximum: 1 },
+  { label: "Toss-up", minimum: 0.5, maximum: 0.55 },
+  { label: "Slight edge", minimum: 0.55, maximum: 0.6 },
+  { label: "Clear edge", minimum: 0.6, maximum: 0.65 },
+  { label: "Strong edge", minimum: 0.65, maximum: 1.01 },
 ];
 
 export function confidenceCalibration(games: GameRow[]): ConfidenceBucket[] {
@@ -65,7 +75,7 @@ export function confidenceCalibration(games: GameRow[]): ConfidenceBucket[] {
   return confidenceRanges.map((range) => {
     const rows = finals.filter((game) => {
       const confidence = modelFavorite(game).probability;
-      return confidence >= range.minimum && confidence <= range.maximum;
+      return confidence >= range.minimum && confidence < range.maximum;
     });
     const correct = rows.filter(
       (game) => modelFavorite(game).teamId === game.winner_team_id
@@ -177,6 +187,9 @@ type ExplainableMatchup = Pick<
   | "rest_advantage_team_id"
   | "rest_advantage_days"
   | "favorability_override_reason"
+  | "model_context"
+  | "neutral_site"
+  | "venue"
 >;
 
 export function matchupExplanation(game: ExplainableMatchup) {
@@ -187,8 +200,8 @@ export function matchupExplanation(game: ExplainableMatchup) {
     ];
   }
 
-  const homeStrength = teamStrength(game.home_team.abbreviation);
-  const awayStrength = teamStrength(game.away_team.abbreviation);
+  const homeStrength = game.model_context?.homeRating ?? teamStrength(game.home_team.abbreviation);
+  const awayStrength = game.model_context?.awayRating ?? teamStrength(game.away_team.abbreviation);
   const strengthTeam = homeStrength >= awayStrength ? game.home_team : game.away_team;
   const difference = Math.abs(homeStrength - awayStrength);
   const isDivisionGame =
@@ -201,13 +214,20 @@ export function matchupExplanation(game: ExplainableMatchup) {
   } else {
     reasons.push(`${strengthTeam.name} has the stronger model rating.`);
   }
-  reasons.push(`${game.home_team.name} receives the home-field edge.`);
+  reasons.push(isNeutralSite(game) ? "This is a neutral-site game; neither team receives the standard home-field edge." : `${game.home_team.name} receives the home-field edge.`);
 
   if (game.rest_advantage_team_id && game.rest_advantage_days) {
     const restTeam = game.rest_advantage_team_id === game.home_team_id
       ? game.home_team
       : game.away_team;
     reasons.push(`${restTeam.name} has ${game.rest_advantage_days} more ${game.rest_advantage_days === 1 ? "day" : "days"} of rest.`);
+  }
+  if (game.model_context) {
+    for (const side of ["away", "home"] as const) {
+      const team = game[`${side}_team`];
+      const qb = side === "away" ? game.model_context.awayQuarterback : game.model_context.homeQuarterback;
+      reasons.push(qb ? `${team.abbreviation}: ${qb.starter} · ${qb.status}.` : `${team.abbreviation}: no fresh quarterback report for this week; using preseason assumptions.`);
+    }
   }
   if (isDivisionGame) {
     reasons.push("The division matchup keeps this game more competitive.");
@@ -290,4 +310,22 @@ export function seasonModelInsights(games: GameRow[]) {
     confidence,
     homeFieldElo: HOME_FIELD_ELO,
   };
+}
+
+// Only paired, final pregame forecasts are compared. The revised probability is
+// the automatic estimate, so discretionary overrides cannot skew this experiment.
+export function pairedModelPerformance(games: GameRow[]) {
+  const revised: { probability: number; outcome: number }[] = [];
+  const baseline: { probability: number; outcome: number }[] = [];
+  for (const game of games) {
+    if (game.status !== "final" || !game.winner_team_id) continue;
+    const valid = (game.forecasts ?? []).filter((forecast) => forecast.forecast_kind === "final" && forecast.capture_is_pregame && new Date(forecast.captured_at) < new Date(game.kickoff_iso));
+    const next = valid.find((row) => row.model_version === MATCHUP_MODEL_VERSION);
+    const old = valid.find((row) => row.model_version === "2026.4-baseline");
+    if (!next || !old || next.captured_at !== old.captured_at) continue;
+    const outcome = Number(game.winner_team_id === game.home_team_id);
+    revised.push({ probability: Number(next.automatic_home_probability), outcome });
+    baseline.push({ probability: Number(old.automatic_home_probability), outcome });
+  }
+  return { revised: probabilityMetrics(revised), baseline: probabilityMetrics(baseline) };
 }

@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      model_quarterback_inputs: {
+        Row: import("./quarterbackInputs").QuarterbackInput
+        Insert: import("./quarterbackInputs").QuarterbackInput
+        Update: Partial<import("./quarterbackInputs").QuarterbackInput>
+        Relationships: []
+      }
+      model_forecasts: {
+        Row: Database["public"]["Tables"]["model_prediction_snapshots"]["Row"] & { forecast_kind: string; automatic_home_probability: number; inputs: Json }
+        Insert: Database["public"]["Tables"]["model_prediction_snapshots"]["Insert"] & { forecast_kind: string; automatic_home_probability: number; inputs: Json }
+        Update: never
+        Relationships: []
+      }
       favorability_overrides: {
         Row: {
           created_at: string
@@ -194,6 +206,7 @@ export type Database = {
           season_type: string
           status: string
           updated_at: string
+          neutral_site: boolean | null
           venue: string | null
           week: number
           winner_team_id: string | null
@@ -211,6 +224,7 @@ export type Database = {
           season_type?: string
           status?: string
           updated_at?: string
+          neutral_site?: boolean | null
           venue?: string | null
           week: number
           winner_team_id?: string | null
@@ -228,6 +242,7 @@ export type Database = {
           season_type?: string
           status?: string
           updated_at?: string
+          neutral_site?: boolean | null
           venue?: string | null
           week?: number
           winner_team_id?: string | null

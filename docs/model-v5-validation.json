@@ -1,0 +1,266 @@
+{
+  "generatedAt": "2026-10-13T21:38:18.394Z",
+  "source": "https://github.com/nflverse/nfldata/blob/master/data/games.csv",
+  "historicalMethod": "2010–2020 warm-up; 2021–2025 chronological evaluation, same preseason Elo prior for each experiment. Results available after 24h; 70% offseason retention. Architecture/heuristic check only, not a full backtest of the 2026 roster model. No coefficients optimized on these results.",
+  "historical": {
+    "2021:frozen": {
+      "count": 271,
+      "correct": 166,
+      "accuracy": 0.6125461254612546,
+      "brier": 0.2267527886166891,
+      "logLoss": 0.6447096202476381,
+      "expectedCorrect": 170.56545663556102
+    },
+    "pooled:frozen": {
+      "count": 1355,
+      "correct": 800,
+      "accuracy": 0.5904059040590406,
+      "brier": 0.23741251567207622,
+      "logLoss": 0.6682360730579714,
+      "expectedCorrect": 843.7438963498208
+    },
+    "2021:updated": {
+      "count": 271,
+      "correct": 162,
+      "accuracy": 0.5977859778597786,
+      "brier": 0.22976202644043842,
+      "logLoss": 0.6515423407957796,
+      "expectedCorrect": 174.28704892004822
+    },
+    "pooled:updated": {
+      "count": 1355,
+      "correct": 854,
+      "accuracy": 0.6302583025830258,
+      "brier": 0.22591358247589666,
+      "logLoss": 0.642920315140528,
+      "expectedCorrect": 864.8397958208865
+    },
+    "2021:updated_no_division_cap": {
+      "count": 271,
+      "correct": 162,
+      "accuracy": 0.5977859778597786,
+      "brier": 0.23090248803500601,
+      "logLoss": 0.655457490021061,
+      "expectedCorrect": 177.75575692043435
+    },
+    "pooled:updated_no_division_cap": {
+      "count": 1355,
+      "correct": 854,
+      "accuracy": 0.6302583025830258,
+      "brier": 0.22645234778283163,
+      "logLoss": 0.6444546652260121,
+      "expectedCorrect": 879.8988838286533
+    },
+    "2021:updated_no_rest": {
+      "count": 271,
+      "correct": 162,
+      "accuracy": 0.5977859778597786,
+      "brier": 0.22960124982211413,
+      "logLoss": 0.6511047617481189,
+      "expectedCorrect": 174.0405151504051
+    },
+    "pooled:updated_no_rest": {
+      "count": 1355,
+      "correct": 856,
+      "accuracy": 0.6317343173431734,
+      "brier": 0.22581827361973003,
+      "logLoss": 0.642771901918244,
+      "expectedCorrect": 864.5259785293102
+    },
+    "2021:updated_no_week1_regression": {
+      "count": 271,
+      "correct": 162,
+      "accuracy": 0.5977859778597786,
+      "brier": 0.23018231343206383,
+      "logLoss": 0.6523103905083765,
+      "expectedCorrect": 174.93487869103052
+    },
+    "pooled:updated_no_week1_regression": {
+      "count": 1355,
+      "correct": 854,
+      "accuracy": 0.6302583025830258,
+      "brier": 0.22586005282144078,
+      "logLoss": 0.6428373946179506,
+      "expectedCorrect": 867.810331653595
+    },
+    "2022:frozen": {
+      "count": 269,
+      "correct": 152,
+      "accuracy": 0.5650557620817844,
+      "brier": 0.24308714931333092,
+      "logLoss": 0.681138443708154,
+      "expectedCorrect": 167.6208027951113
+    },
+    "2022:updated": {
+      "count": 269,
+      "correct": 168,
+      "accuracy": 0.6245353159851301,
+      "brier": 0.22702165535680127,
+      "logLoss": 0.6447906288850761,
+      "expectedCorrect": 171.5758600431945
+    },
+    "2022:updated_no_division_cap": {
+      "count": 269,
+      "correct": 168,
+      "accuracy": 0.6245353159851301,
+      "brier": 0.22778872468911351,
+      "logLoss": 0.6468066303273226,
+      "expectedCorrect": 173.8355650004057
+    },
+    "2022:updated_no_rest": {
+      "count": 269,
+      "correct": 170,
+      "accuracy": 0.6319702602230484,
+      "brier": 0.22712063318953193,
+      "logLoss": 0.6450094564434454,
+      "expectedCorrect": 171.337246560079
+    },
+    "2022:updated_no_week1_regression": {
+      "count": 269,
+      "correct": 168,
+      "accuracy": 0.6245353159851301,
+      "brier": 0.2270079198576222,
+      "logLoss": 0.645105695655433,
+      "expectedCorrect": 172.11947282453525
+    },
+    "2023:frozen": {
+      "count": 272,
+      "correct": 160,
+      "accuracy": 0.5882352941176471,
+      "brier": 0.2358231037648831,
+      "logLoss": 0.6647018641912082,
+      "expectedCorrect": 167.55311372455134
+    },
+    "2023:updated": {
+      "count": 272,
+      "correct": 165,
+      "accuracy": 0.6066176470588235,
+      "brier": 0.2315397332185373,
+      "logLoss": 0.6562466401367559,
+      "expectedCorrect": 171.45334285269223
+    },
+    "2023:updated_no_division_cap": {
+      "count": 272,
+      "correct": 165,
+      "accuracy": 0.6066176470588235,
+      "brier": 0.23180859136773357,
+      "logLoss": 0.6568111482832673,
+      "expectedCorrect": 173.9694964785016
+    },
+    "2023:updated_no_rest": {
+      "count": 272,
+      "correct": 167,
+      "accuracy": 0.6139705882352942,
+      "brier": 0.23261685077811373,
+      "logLoss": 0.6589127915769906,
+      "expectedCorrect": 171.6495486803317
+    },
+    "2023:updated_no_week1_regression": {
+      "count": 272,
+      "correct": 165,
+      "accuracy": 0.6066176470588235,
+      "brier": 0.23207784254045727,
+      "logLoss": 0.6575940920977958,
+      "expectedCorrect": 172.0747555857248
+    },
+    "2024:frozen": {
+      "count": 272,
+      "correct": 162,
+      "accuracy": 0.5955882352941176,
+      "brier": 0.23649230996691806,
+      "logLoss": 0.6654269955682779,
+      "expectedCorrect": 167.2343260281303
+    },
+    "2024:updated": {
+      "count": 272,
+      "correct": 182,
+      "accuracy": 0.6691176470588235,
+      "brier": 0.2149344868737611,
+      "logLoss": 0.618442611969544,
+      "expectedCorrect": 172.63184651776146
+    },
+    "2024:updated_no_division_cap": {
+      "count": 272,
+      "correct": 182,
+      "accuracy": 0.6691176470588235,
+      "brier": 0.2144487874335236,
+      "logLoss": 0.6170167462646703,
+      "expectedCorrect": 175.94620068553485
+    },
+    "2024:updated_no_rest": {
+      "count": 272,
+      "correct": 182,
+      "accuracy": 0.6691176470588235,
+      "brier": 0.2142522816139687,
+      "logLoss": 0.6171844123324485,
+      "expectedCorrect": 172.82351630404293
+    },
+    "2024:updated_no_week1_regression": {
+      "count": 272,
+      "correct": 182,
+      "accuracy": 0.6691176470588235,
+      "brier": 0.21423495161015782,
+      "logLoss": 0.6168083139960856,
+      "expectedCorrect": 173.26871191038185
+    },
+    "2025:frozen": {
+      "count": 271,
+      "correct": 160,
+      "accuracy": 0.5904059040590406,
+      "brier": 0.24495836649522076,
+      "logLoss": 0.6853220689828946,
+      "expectedCorrect": 170.7701971664635
+    },
+    "2025:updated": {
+      "count": 271,
+      "correct": 177,
+      "accuracy": 0.6531365313653137,
+      "brier": 0.22633794071364152,
+      "logLoss": 0.6436343059659,
+      "expectedCorrect": 174.89169748718757
+    },
+    "2025:updated_no_division_cap": {
+      "count": 271,
+      "correct": 177,
+      "accuracy": 0.6531365313653137,
+      "brier": 0.22734753879312444,
+      "logLoss": 0.6462543199647638,
+      "expectedCorrect": 178.39186474377814
+    },
+    "2025:updated_no_rest": {
+      "count": 271,
+      "correct": 175,
+      "accuracy": 0.6457564575645757,
+      "brier": 0.2255275561413689,
+      "logLoss": 0.6416994591100538,
+      "expectedCorrect": 174.6751518344484
+    },
+    "2025:updated_no_week1_regression": {
+      "count": 271,
+      "correct": 177,
+      "accuracy": 0.6531365313653137,
+      "brier": 0.22582566118928332,
+      "logLoss": 0.6424268165708655,
+      "expectedCorrect": 175.41251264191962
+    }
+  },
+  "replay": {
+    "original": {
+      "count": 75,
+      "correct": 42,
+      "accuracy": 0.56,
+      "brier": 0.23658206373333324,
+      "logLoss": 0.6640432762401886,
+      "expectedCorrect": 47.86280000000002
+    },
+    "revised": {
+      "count": 75,
+      "correct": 45,
+      "accuracy": 0.6,
+      "brier": 0.22909525973333336,
+      "logLoss": 0.6473852849463901,
+      "expectedCorrect": 48.34600000000001
+    },
+    "note": "Retrospective replay at original capture timestamps; excludes manual overrides and ties. Historical live QB reports are unavailable and are not reconstructed. Current final-result updated_at timestamps are used conservatively."
+  }
+}

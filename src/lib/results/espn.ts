@@ -23,7 +23,7 @@ type EspnEvent = {
       name?: string;
     };
   };
-  competitions?: Array<{ competitors?: EspnCompetitor[] }>;
+  competitions?: Array<{ competitors?: EspnCompetitor[]; neutralSite?: boolean }>;
 };
 
 type EspnScoreboard = { events?: EspnEvent[] };
@@ -35,6 +35,7 @@ export type ProviderGame = {
   away: string;
   home: string;
   status: "scheduled" | "in_progress" | "final";
+  neutralSite?: boolean;
   awayScore: number | null;
   homeScore: number | null;
 };
@@ -81,6 +82,7 @@ export async function fetchEspnWeek(season: number, week: number): Promise<Provi
 
     return [{
       providerId: event.id,
+      neutralSite: event.competitions?.[0]?.neutralSite,
       week,
       kickoffAt: event.date,
       away: abbreviation(away.team?.abbreviation),

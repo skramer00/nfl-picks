@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "../database.types";
 import { capturePredictionSnapshots } from "../predictionSnapshots";
+import { refreshQuarterbacks } from "../quarterbackSync";
 import { syncResults } from "./sync";
 
 export async function runTrackedSync({
@@ -26,13 +27,17 @@ export async function runTrackedSync({
   if (insertError) throw insertError;
 
   try {
+    const summary = await syncResults({ supabase, season, weeks });
+    const quarterbacks = await refreshQuarterbacks(supabase, season).catch((error) => {
+      console.error("Quarterback refresh failed; freshness checks will mark fallbacks", error);
+      return { refreshed: 0, failed: ["provider-unavailable"] };
+    });
     const snapshots = await capturePredictionSnapshots({
       supabase,
       season,
       weeks,
       source,
     });
-    const summary = await syncResults({ supabase, season, weeks });
     const { error: updateError } = await supabase
       .from("sync_runs")
       .update({
@@ -46,7 +51,7 @@ export async function runTrackedSync({
       })
       .eq("id", run.id);
     if (updateError) throw updateError;
-    return { ...summary, snapshots };
+    return { ...summary, snapshots, quarterbacks };
   } catch (error) {
     await supabase
       .from("sync_runs")

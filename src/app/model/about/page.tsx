@@ -9,9 +9,9 @@ export const metadata: Metadata = {
 
 const inputs = [
   { title: "Team performance", text: "Opponent-adjusted scoring, play efficiency, and result quality form the starting strength for every team." },
-  { title: "Quarterbacks", text: "Recent quarterback performance, sample size, continuity, and weekly availability help describe the offense expected to play." },
+  { title: "Quarterbacks", text: "Prior-season quarterback performance and current depth-chart reports help describe the expected starter. Reports expire after 36 hours; unverified availability is labeled, and unknown backups receive a conservative estimate." },
   { title: "Offseason context", text: "Confirmed coaching changes and only clearly material veteran trades receive small, bounded adjustments." },
-  { title: "The matchup", text: "Home field, extra rest, early-season uncertainty, and the unpredictability of division games shape each individual game." },
+  { title: "The matchup", text: "Home field, extra rest, and early-season and divisional uncertainty shape each game. Neutral-site games do not receive the standard home-field bonus." },
 ];
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
@@ -60,8 +60,8 @@ export default function AboutModelPage() {
         </Section>
 
         <Section title="How the model changes during the season">
-          <p>Completed games replace predictions with actual results. Team ratings and projections then respond to opponent quality and performance, while future matchups continue to use the latest available information.</p>
-          <p>Each game’s displayed prediction is saved before kickoff so the Performance scorecard can judge the model fairly instead of rewriting history after the result is known.</p>
+          <p>Completed games replace predictions with actual results. One shared rating engine updates both rankings and future game probabilities from completed results, opponent strength, and scoring margin. Only results observed before a forecast are used. Preseason EPA and scoring inputs remain the starting prior; they are not refreshed play by play.</p>
+          <p>Early forecasts are saved within 30 hours of kickoff. A separate final forecast is saved in the last hour, when the scheduled sync runs. The scorecard uses that final forecast when available and preserves the early forecast. The previous model also runs in parallel for a fair comparison on the same games.</p>
         </Section>
 
         <Section title="What the model does not try to do">

@@ -1,8 +1,7 @@
 import { teamStrength } from "./favorability";
 import type { GameRow, Team } from "./gamesDb";
 
-const HOME_FIELD_ELO = 55;
-const BASE_K_FACTOR = 24;
+import { eligibleRatingResults, isNeutralSite, resultRatingChange } from "./ratingEngine";
 
 export type PowerRanking = Team & {
   rank: number;
@@ -21,17 +20,6 @@ type TeamState = Team & {
   losses: number;
   ties: number;
 };
-
-function expectedHomeScore(awayRating: number, homeRating: number) {
-  return 1 / (1 + 10 ** ((awayRating - (homeRating + HOME_FIELD_ELO)) / 400));
-}
-
-function marginMultiplier(awayScore: number | null, homeScore: number | null) {
-  if (awayScore === null || homeScore === null) return 1;
-  const margin = Math.abs(homeScore - awayScore);
-  if (margin === 0) return 1;
-  return Math.min(2.5, Math.max(1, Math.log2(margin + 1) / 2));
-}
 
 function ordered(states: Iterable<TeamState>) {
   return [...states].sort(
@@ -70,12 +58,7 @@ export function buildPowerRankings(games: GameRow[]) {
     }
   }
 
-  const finalGames = games
-    .filter((game) => game.status === "final")
-    .sort(
-      (first, second) =>
-        new Date(first.kickoff_iso).getTime() - new Date(second.kickoff_iso).getTime()
-    );
+  const finalGames = eligibleRatingResults(games, new Date()) as GameRow[];
   const latestCompletedWeek = finalGames.length
     ? Math.max(...finalGames.map((game) => game.week))
     : null;
@@ -86,12 +69,8 @@ export function buildPowerRankings(games: GameRow[]) {
     const home = states.get(game.home_team_id);
     if (!away || !home) continue;
 
-    const expectedHome = expectedHomeScore(away.rating, home.rating);
     const actualHome = finalOutcome(game);
-    const change =
-      BASE_K_FACTOR *
-      marginMultiplier(game.away_score, game.home_score) *
-      (actualHome - expectedHome);
+    const change = resultRatingChange(away.rating, home.rating, game.away_score!, game.home_score!, isNeutralSite(game));
     home.rating += change;
     away.rating -= change;
 

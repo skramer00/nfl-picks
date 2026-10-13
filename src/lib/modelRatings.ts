@@ -46,7 +46,7 @@ const ratings = new Map(
   MODEL_RATINGS.map((team) => [team.abbreviation, team] as const),
 );
 
-export const MODEL_VERSION = modelData.version;
+export const MODEL_VERSION = "2026.5";
 export const MODEL_GENERATED_AT = modelData.generatedAt;
 export const MODEL_UPDATED_AT = new Date(Math.max(
   new Date(modelData.generatedAt).getTime(),
@@ -83,12 +83,18 @@ export function preseasonTeamStrength(abbreviation: string) {
   return modelRatingAudit(abbreviation)?.rating ?? modelData.methodology.neutralRating;
 }
 
+export function replacementQuarterbackAdjustment(audit: Pick<ModelRatingAudit, "quarterbackAdjustment" | "backupQuarterbackAdjustment" | "backupSampleWeight">) {
+  // Unknown backups receive a conservative prior, never a free upgrade over the starter.
+  const prior = Math.min(-15, audit.quarterbackAdjustment - 10);
+  return audit.backupQuarterbackAdjustment + prior * (1 - audit.backupSampleWeight);
+}
+
 export function matchupTeamStrength(abbreviation: string, week?: number) {
   const audit = modelRatingAudit(abbreviation);
   if (!audit) return modelData.methodology.neutralRating;
   const availability = quarterbackAvailability(abbreviation, week);
   const effectiveQuarterback =
     audit.quarterbackAdjustment * availability +
-    audit.backupQuarterbackAdjustment * (1 - availability);
+    replacementQuarterbackAdjustment(audit) * (1 - availability);
   return audit.rating - audit.quarterbackAdjustment + effectiveQuarterback;
 }

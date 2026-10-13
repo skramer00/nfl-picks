@@ -1,6 +1,10 @@
 import { supabase } from "./supabaseClient";
+import { predictionContext } from "./predictionContext";
+import type { QuarterbackInput } from "./quarterbackInputs";
+import type { RatingGame } from "./ratingEngine";
+import type { Database } from "./database.types";
 import { matchupFavorability } from "./favorability";
-import { buildRestAdvantageMap, type RestAdvantage, type RestScheduleGame } from "./restAdvantage";
+import { buildRestAdvantageMap, type RestAdvantage } from "./restAdvantage";
 
 export type Team = {
   id: string;
@@ -11,6 +15,9 @@ export type Team = {
 };
 
 export type ScheduleGame = {
+  model_context?: ReturnType<typeof predictionContext>;
+  neutral_site?: boolean | null;
+  prediction_forecast_kind?: string;
   id: string;
   week: number;
   kickoff_at: string;
@@ -32,7 +39,14 @@ export type ScheduleGame = {
 };
 
 // Compatibility shape used by the existing admin and My Picks screens.
+export type Forecast = Database["public"]["Tables"]["model_forecasts"]["Row"];
+
 export type GameRow = {
+  venue?: string | null;
+  neutral_site?: boolean | null;
+  model_context?: ReturnType<typeof predictionContext>;
+  forecasts?: Forecast[];
+  prediction_forecast_kind?: string;
   id: string;
   season: number;
   week: number;
@@ -65,6 +79,7 @@ type FavorabilityOverride = {
 };
 
 type PredictionSnapshot = {
+  forecast_kind?: string;
   game_id: string;
   captured_at: string;
   capture_is_pregame: boolean;
@@ -84,6 +99,7 @@ function predictionForGame(
   if (!snapshot) {
     return {
       ...calculated,
+      prediction_forecast_kind: "live",
       prediction_captured_at: null,
       prediction_model_version: null,
       prediction_snapshot_is_pregame: false,
@@ -96,6 +112,7 @@ function predictionForGame(
     restAdvantageTeamId: snapshot.rest_advantage_team_id,
     restAdvantageDays: snapshot.rest_advantage_days,
     restAdjustment: Number(snapshot.rest_adjustment),
+    prediction_forecast_kind: snapshot.forecast_kind ?? "early",
     prediction_captured_at: snapshot.captured_at,
     prediction_model_version: snapshot.model_version,
     prediction_snapshot_is_pregame: snapshot.capture_is_pregame,
@@ -113,9 +130,10 @@ async function getFavorabilityOverrides(gameIds: string[]) {
 }
 
 function favorabilityForGame(
-  game: { id: string; week: number; away_team_id: string; home_team_id: string; away_team: Team; home_team: Team },
+  game: RatingGame & { away_team: Team; home_team: Team },
   overrides: Map<string, FavorabilityOverride>,
-  rest?: RestAdvantage
+  rest?: RestAdvantage,
+  context?: ReturnType<typeof predictionContext>
 ) {
   const override = overrides.get(game.id);
   if (override) {
@@ -134,7 +152,8 @@ function favorabilityForGame(
     game.week,
     rest?.homeAdvantageDays ?? 0,
     game.away_team.conference === game.home_team.conference &&
-      game.away_team.division === game.home_team.division
+      game.away_team.division === game.home_team.division,
+    context
   );
   const restAdvantageDays = Math.round(Math.abs(rest?.homeAdvantageDays ?? 0));
   return {
@@ -151,75 +170,36 @@ function favorabilityForGame(
   };
 }
 
-export async function getGamesByWeek(season: number, week: number) {
-  const [weekResult, scheduleResult, snapshotResult] = await Promise.all([
-    supabase.from("games").select(`
-      id,
-      week,
-      kickoff_at,
-      away_team_id,
-      home_team_id,
-      venue,
-      status,
-      away_team:teams!games_away_team_id_fkey(id, abbreviation, name, conference, division),
-      home_team:teams!games_home_team_id_fkey(id, abbreviation, name, conference, division)
-    `)
-    .eq("season", season)
-    .eq("season_type", "REG")
-    .eq("week", week)
-    .order("kickoff_at", { ascending: true }),
-    supabase
-      .from("games")
-      .select("id, week, kickoff_at, away_team_id, home_team_id")
-      .eq("season", season)
-      .eq("season_type", "REG")
-      .order("kickoff_at", { ascending: true }),
-    supabase
-      .from("model_prediction_snapshots")
-      .select("game_id, captured_at, capture_is_pregame, model_version, away_win_probability, home_win_probability, manual_override_reason, rest_advantage_team_id, rest_advantage_days, rest_adjustment")
-      .eq("season", season)
-      .eq("week", week),
-  ]);
+export async function getGamesByWeek(season: number, week: number): Promise<ScheduleGame[]> {
+  const games = await getGamesBySeason(season);
+  return games.filter((game) => game.week === week).map((game) => ({
+    ...game, kickoff_at: game.kickoff_iso, venue: game.venue ?? null,
+    away_win_prob: game.away_win_prob ?? 0.5, home_win_prob: game.home_win_prob ?? 0.5,
+  }));
+}
 
-  if (weekResult.error) throw weekResult.error;
-  if (scheduleResult.error) throw scheduleResult.error;
-  if (snapshotResult.error) throw snapshotResult.error;
-  const games = (weekResult.data ?? []) as unknown as Omit<ScheduleGame, "away_win_prob" | "home_win_prob" | "favorability_override_reason" | "rest_advantage_team_id" | "rest_advantage_days" | "rest_adjustment" | "prediction_captured_at" | "prediction_model_version" | "prediction_snapshot_is_pregame">[];
-  const restByGame = buildRestAdvantageMap((scheduleResult.data ?? []) as RestScheduleGame[]);
-  const overrides = await getFavorabilityOverrides(games.map((game) => game.id));
-  const snapshots = new Map(
-    ((snapshotResult.data ?? []) as PredictionSnapshot[]).map((snapshot) => [snapshot.game_id, snapshot])
-  );
-  return games.map((game) => {
-    const favorability = predictionForGame(
-      favorabilityForGame(game, overrides, restByGame.get(game.id)),
-      snapshots.get(game.id)
-    );
-    return {
-      ...game,
-      away_win_prob: favorability.away,
-      home_win_prob: favorability.home,
-      favorability_override_reason: favorability.reason,
-      rest_advantage_team_id: favorability.restAdvantageTeamId,
-      rest_advantage_days: favorability.restAdvantageDays,
-      rest_adjustment: favorability.restAdjustment,
-      prediction_captured_at: favorability.prediction_captured_at,
-      prediction_model_version: favorability.prediction_model_version,
-      prediction_snapshot_is_pregame: favorability.prediction_snapshot_is_pregame,
-    };
-  });
+async function getForecasts(season: number) {
+  const data: Forecast[] = [];
+  for (let offset = 0; ; offset += 500) {
+    const result = await supabase.from("model_forecasts").select("*").eq("season", season)
+      .order("game_id").order("model_version").order("forecast_kind").range(offset, offset + 499);
+    if (result.error) throw result.error;
+    data.push(...(result.data ?? []));
+    if ((result.data?.length ?? 0) < 500) return { data, error: null };
+  }
 }
 
 export async function getGamesBySeason(season: number): Promise<GameRow[]> {
   const { data, error } = await supabase
     .from("games")
     .select(
-      `id, season, week, kickoff_at, away_team_id, home_team_id, away_score, home_score,
+      `id, season, week, kickoff_at, away_team_id, home_team_id, away_score, home_score, venue, neutral_site,
        status, winner_team_id, updated_at,
        away_team:teams!games_away_team_id_fkey(id, abbreviation, name, conference, division),
        home_team:teams!games_home_team_id_fkey(id, abbreviation, name, conference, division)`
     )
     .eq("season", season)
+    .eq("season_type", "REG")
     .order("week", { ascending: true })
     .order("kickoff_at", { ascending: true });
 
@@ -231,26 +211,40 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
     }
   >;
 
-  const [overrides, snapshotResult] = await Promise.all([
+  const [overrides, snapshotResult, forecastResult, quarterbackResult] = await Promise.all([
     getFavorabilityOverrides(games.map((game) => game.id)),
     supabase
       .from("model_prediction_snapshots")
       .select("game_id, captured_at, capture_is_pregame, model_version, away_win_probability, home_win_probability, manual_override_reason, rest_advantage_team_id, rest_advantage_days, rest_adjustment")
       .eq("season", season),
+    getForecasts(season),
+    supabase.from("model_quarterback_inputs").select("*").eq("season", season),
   ]);
   if (snapshotResult.error) throw snapshotResult.error;
+  if (forecastResult.error) throw forecastResult.error;
+  if (quarterbackResult.error) throw quarterbackResult.error;
   const snapshots = new Map(
     ((snapshotResult.data ?? []) as PredictionSnapshot[]).map((snapshot) => [snapshot.game_id, snapshot])
   );
   const restByGame = buildRestAdvantageMap(games);
 
+  const now = new Date();
   return games.map((game) => {
+    const forecasts = (forecastResult.data ?? []).filter((row) => row.game_id === game.id && new Date(row.captured_at) < new Date(game.kickoff_at));
+    const current = forecasts.filter((row) => !row.model_version.endsWith("-baseline"))
+      .sort((a, b) => Number(b.forecast_kind === "final") - Number(a.forecast_kind === "final") || b.captured_at.localeCompare(a.captured_at))[0];
+    const archived = current ?? snapshots.get(game.id);
+    const snapshot = new Date(game.kickoff_at) <= now || current?.forecast_kind === "final" ? archived : undefined;
+    const context = predictionContext(game, games, now, (quarterbackResult.data ?? []) as QuarterbackInput[]);
     const favorability = predictionForGame(
-      favorabilityForGame(game, overrides, restByGame.get(game.id)),
-      snapshots.get(game.id)
+      favorabilityForGame(game, overrides, restByGame.get(game.id), context),
+      snapshot
     );
     return {
       ...game,
+      model_context: snapshot ? (current?.inputs && typeof current.inputs === "object" && "awayRating" in current.inputs ? current.inputs as ReturnType<typeof predictionContext> : undefined) : context,
+      forecasts,
+      prediction_forecast_kind: favorability.prediction_forecast_kind,
       kickoff_iso: game.kickoff_at,
       home_win_prob: favorability.home,
       away_win_prob: favorability.away,

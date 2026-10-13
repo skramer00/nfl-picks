@@ -10,6 +10,7 @@ type GameRef = {
   kickoff_at: string;
   away_team_id: string;
   home_team_id: string;
+  neutral_site?: boolean | null;
   status: string;
   away_score: number | null;
   home_score: number | null;
@@ -47,6 +48,7 @@ function desiredResult(provider: ProviderGame, game: GameRef) {
 
   return {
     kickoff_at: provider.kickoffAt,
+    neutral_site: provider.neutralSite ?? game.neutral_site ?? null,
     status: provider.status,
     home_score: homeScore,
     away_score: awayScore,
@@ -59,6 +61,7 @@ function hasChanged(game: GameRef, result: ReturnType<typeof desiredResult>) {
   return (
     new Date(game.kickoff_at).getTime() !== new Date(result.kickoff_at).getTime() ||
     game.status !== result.status ||
+    (game.neutral_site ?? null) !== result.neutral_site ||
     game.home_score !== result.home_score ||
     game.away_score !== result.away_score ||
     game.winner_team_id !== result.winner_team_id
@@ -102,7 +105,7 @@ export async function syncResults({
       supabase.from("teams").select("id, abbreviation"),
       supabase
         .from("games")
-        .select("id, week, kickoff_at, away_team_id, home_team_id, status, away_score, home_score, winner_team_id")
+        .select("id, week, kickoff_at, away_team_id, home_team_id, neutral_site, status, away_score, home_score, winner_team_id")
         .eq("season", season)
         .eq("season_type", "REG")
         .in("week", weeks),

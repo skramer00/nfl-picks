@@ -9,6 +9,7 @@ import { getUserPicks } from "@/lib/picksDb";
 import {
   confidenceCalibration,
   modelPerformance,
+  pairedModelPerformance,
   pickDisagreements,
   seasonModelInsights,
   userPickPerformance,
@@ -164,6 +165,7 @@ export default function PowerRankingsPage() {
     () => games.filter((game) => game.prediction_snapshot_is_pregame).length,
     [games]
   );
+  const comparison = useMemo(() => pairedModelPerformance(games), [games]);
   const calibration = useMemo(() => confidenceCalibration(games), [games]);
   const pickPerformance = useMemo(
     () => userPickPerformance(games, picks),
@@ -174,6 +176,14 @@ export default function PowerRankingsPage() {
     [games, picks]
   );
   const insights = useMemo(() => seasonModelInsights(games), [games]);
+  const quarterbackRows = useMemo(() => {
+    const remaining = games.filter((game) => game.status !== "final");
+    const week = Math.min(...remaining.map((game) => game.week));
+    return remaining.filter((game) => game.week === week).flatMap((game) => [
+      { team: game.away_team, week, input: game.model_context?.awayQuarterback },
+      { team: game.home_team, week, input: game.model_context?.homeQuarterback },
+    ]).sort((a, b) => a.team.abbreviation.localeCompare(b.team.abbreviation));
+  }, [games]);
 
   return (
     <main className="mx-auto max-w-6xl p-6">
@@ -187,7 +197,7 @@ export default function PowerRankingsPage() {
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-            Inputs updated {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            Preseason inputs {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
           </p>
           <Link href="/model/about" className="text-sm font-semibold text-amber-400 hover:text-amber-300">About the model →</Link>
         </div>
@@ -265,6 +275,17 @@ export default function PowerRankingsPage() {
             <AnalyticsCard label="Offseason layer" value={`±${MODEL_OFFSEASON_METHODOLOGY.coachingCap} coach`} detail="Bounded coaching transitions and objectively material veteran trades only" />
           </div>
 
+          <div className="mt-6 rounded-2xl border border-gray-800 bg-gray-950 p-5">
+            <h3 className="text-lg font-semibold">Quarterback report freshness</h3>
+            <p className="mt-2 text-sm text-gray-300">Depth charts refresh every six hours during active sync windows, and more frequently near kickoff. Reports expire after 36 hours. Questionable status is shown without inventing a play probability; confirmed out players are skipped in the depth chart.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {quarterbackRows.map(({ team, week, input }) => <div key={team.id} className="rounded-lg border border-gray-800 p-3 text-sm">
+                <p className="font-semibold">{team.abbreviation} · Week {week}</p>
+                {input ? <><p className="mt-1">{input.starter} · {input.status}</p><p className="mt-1 text-gray-300">Checked {new Date(input.observed_at).toLocaleString("en-US")}</p><a href={input.source} target="_blank" rel="noreferrer" className="mt-1 inline-block text-blue-300 underline">Source</a></> : <p className="mt-1 text-amber-200">No fresh report. Using preseason quarterback assumptions.</p>}
+              </div>)}
+            </div>
+          </div>
+
           <details className="mt-6 rounded-2xl border border-gray-800 bg-gray-950 p-5" open>
             <summary className="cursor-pointer font-semibold">How a rating is calculated</summary>
             <div className="mt-4 space-y-2 text-sm leading-6 text-gray-400">
@@ -272,9 +293,9 @@ export default function PowerRankingsPage() {
               <p><span className="text-gray-200">2.</span> Opponent-adjusted scoring, play-level EPA and success rate, and opponent-adjusted wins each contribute independently.</p>
               <p><span className="text-gray-200">3.</span> Scoring performance retains 70% of its value for 2026; the other 30% regresses toward the neutral 1500 rating.</p>
               <p><span className="text-gray-200">4.</span> Bounded, sample-weighted starter QBR and a small quarterback-continuity component are added to the healthy-team rating.</p>
-              <p><span className="text-gray-200">5.</span> Weekly availability blends the starter and backup quarterback values before each matchup.</p>
+              <p><span className="text-gray-200">5.</span> Recent depth charts identify the expected quarterback. Missing or expired reports are labeled as preseason assumptions; unknown backups receive a conservative replacement estimate.</p>
               <p><span className="text-gray-200">6.</span> A capped offseason ledger adds confirmed coaching changes and only objectively material veteran trades.</p>
-              <p><span className="text-gray-200">7.</span> Home field, rest, Week 1 uncertainty, and divisional uncertainty are applied later to individual matchups.</p>
+              <p><span className="text-gray-200">7.</span> Completed results update the shared team ratings before future predictions. Neutral venues receive no standard home-field bonus; rest, Week 1 uncertainty, and divisional uncertainty are applied to matchups.</p>
             </div>
           </details>
 
@@ -305,7 +326,7 @@ export default function PowerRankingsPage() {
                   <div><span className="text-gray-500">QB sample</span><div className="mt-1 font-semibold">{team.quarterback2025Attempts === null ? "No attempts" : `${team.quarterback2025Attempts} attempts · ${Math.round(team.quarterbackSampleWeight * 100)}% weight`}</div></div>
                   <div><span className="text-gray-500">QB continuity</span><div className="mt-1 font-semibold">{team.quarterbackContinuity.replaceAll("-", " ")} · {team.continuityAdjustment >= 0 ? "+" : ""}{team.continuityAdjustment}</div></div>
                   {offseasonAdjustmentAudit(team.abbreviation).total !== 0 ? <div className="sm:col-span-2"><span className="text-gray-500">Offseason adjustment · {offseasonAdjustmentAudit(team.abbreviation).total >= 0 ? "+" : ""}{offseasonAdjustmentAudit(team.abbreviation).total}</span><div className="mt-2 space-y-2">{[...offseasonAdjustmentAudit(team.abbreviation).coaching, ...offseasonAdjustmentAudit(team.abbreviation).personnel].map((entry) => <div key={entry.label} className="rounded-lg border border-gray-800 p-3"><div className="font-semibold">{entry.label} · {entry.finalPoints >= 0 ? "+" : ""}{entry.finalPoints}</div><p className="mt-1 text-xs leading-5 text-gray-500">{entry.reason}</p></div>)}</div></div> : null}
-                  {quarterbackAvailabilityAudit(team.abbreviation) ? <div className="sm:col-span-2"><span className="text-gray-500">Current availability</span><div className="mt-1 font-semibold text-amber-200">{quarterbackAvailabilityAudit(team.abbreviation)!.note}</div></div> : null}
+                  {quarterbackAvailabilityAudit(team.abbreviation) ? <div className="sm:col-span-2"><span className="text-gray-500">Preseason availability note</span><div className="mt-1 font-semibold text-amber-200">{quarterbackAvailabilityAudit(team.abbreviation)!.note}</div></div> : null}
                   <div><span className="text-gray-500">2025 scoring</span><div className="mt-1 font-semibold">{team.pointsFor} for · {team.pointsAgainst} against</div></div>
                   <div className="sm:col-span-2"><span className="text-gray-500">Healthy-team formula</span><div className="mt-1 font-semibold">Base {team.baseRating} {team.offseasonAdjustment >= 0 ? "+" : "−"} {Math.abs(team.offseasonAdjustment)} offseason = {team.rating}</div></div>
                 </div>
@@ -314,7 +335,7 @@ export default function PowerRankingsPage() {
           </div>
 
           <p className="mt-5 text-xs leading-5 text-gray-500">
-            Base ratings generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}; availability and offseason inputs updated through {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. Regenerating the published script from the same inputs produces this ledger; future model versions preserve their own snapshot.
+            Base ratings generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}; availability and offseason inputs updated through {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. This is the preseason ledger. Current rankings and future forecasts additionally incorporate completed results; each saved forecast preserves its model version and inputs.
           </p>
         </section>
       ) : null}
@@ -327,7 +348,7 @@ export default function PowerRankingsPage() {
 
       <div className={`${section === "performance" ? "block" : "hidden"} mt-4 rounded-xl border border-gray-800 bg-gray-950 px-4 py-3 text-sm text-gray-400`}>
         <span className="font-semibold text-gray-200">Pregame archive: </span>
-        {lockedPredictions} of {games.length || 272} predictions locked. Snapshots are captured as kickoff approaches, and only verified pregame snapshots count toward model accuracy.
+        {lockedPredictions} of {games.length || 272} predictions locked. Early forecasts are archived within 30 hours of kickoff; final forecasts are archived within the last hour. Only pregame forecasts count toward accuracy.
       </div>
 
       {section === "outlook" && !loading && !error && games.length ? (
@@ -419,6 +440,32 @@ export default function PowerRankingsPage() {
                 ))}
               </div>
             ))}
+          </div>
+        </section>
+      ) : null}
+
+      {section === "performance" ? (
+        <section className="mt-6 space-y-5" aria-label="Probability quality and model comparison">
+          <div className="grid gap-4 sm:grid-cols-3">
+            <AnalyticsCard label="Brier score" value={performance.metrics.brier?.toFixed(3) ?? "—"} detail="Lower is better. A 50/50 forecast scores 0.250." />
+            <AnalyticsCard label="Log loss" value={performance.metrics.logLoss?.toFixed(3) ?? "—"} detail="Lower is better. A 50/50 forecast scores 0.693." />
+            <AnalyticsCard label="Always pick home" value={performance.finals ? `${Math.round(performance.homeBaselineCorrect / performance.finals * 100)}%` : "—"} detail={`${performance.homeBaselineCorrect}/${performance.finals} on the same games`} />
+          </div>
+          <p className="text-sm text-gray-300">Expected correct: {performance.metrics.expectedCorrect.toFixed(1)} · Actual: {performance.correct}. Ties excluded: {performance.ties}. Small samples can fluctuate substantially.</p>
+          <div className="overflow-x-auto rounded-2xl border border-gray-800 bg-gray-950 p-5">
+            <h2 className="text-xl font-semibold">Results by model version</h2>
+            <p className="mt-2 text-sm text-gray-300">Original forecasts are preserved. New games use the final pregame forecast when available, otherwise the early archive.</p>
+            <table className="mt-4 w-full text-left text-sm"><thead><tr className="text-gray-300"><th className="p-2">Model / source</th><th className="p-2">Correct</th><th className="p-2">Brier</th><th className="p-2">Log loss</th></tr></thead><tbody>
+              {performance.groups.map((group) => <tr key={group.label} className="border-t border-gray-800"><td className="p-2">{group.label}</td><td className="p-2">{group.correct}/{group.count}</td><td className="p-2">{group.brier?.toFixed(3)}</td><td className="p-2">{group.logLoss?.toFixed(3)}</td></tr>)}
+            </tbody></table>
+          </div>
+          <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
+            <h2 className="text-xl font-semibold">Revised model vs. preseason baseline</h2>
+            <p className="mt-2 text-sm text-gray-300">Automatic predictions captured at the same time, within the final hour before kickoff. Manual adjustments are excluded from this comparison.</p>
+            {comparison.revised.count ? <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <AnalyticsCard label="2026.5 revised" value={`${comparison.revised.correct}/${comparison.revised.count}`} detail={`Brier ${comparison.revised.brier?.toFixed(3)} · Log loss ${comparison.revised.logLoss?.toFixed(3)}`} />
+              <AnalyticsCard label="2026.4 baseline" value={`${comparison.baseline.correct}/${comparison.baseline.count}`} detail={`Brier ${comparison.baseline.brier?.toFixed(3)} · Log loss ${comparison.baseline.logLoss?.toFixed(3)}`} />
+            </div> : <p className="mt-4 text-amber-200">Collecting new paired forecasts. Results will appear after those games finish; past games are not relabeled as new predictions.</p>}
           </div>
         </section>
       ) : null}

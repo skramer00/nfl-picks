@@ -49,3 +49,40 @@ test("manual override is preserved without applying rest twice", () => {
   assert.equal(snapshot.rest_adjustment, 0);
   assert.equal(snapshot.rest_advantage_team_id, null);
 });
+
+test("early and final forecasts are independent, immutable, paired and never backfilled after kickoff", async () => {
+  const { capturePredictionSnapshots } = await import("./predictionSnapshots");
+  const archives: Record<string, unknown>[] = [];
+  const forecasts: Record<string, unknown>[] = [];
+  const client = {
+    from(table: string) {
+      const data = table === "games" ? [game] : table === "model_prediction_snapshots" ? archives : [];
+      const query = {
+        select() { return query; }, eq() { return query; }, in() { return query; }, order() { return query; },
+        then(resolve: (result: { data: unknown[]; error: null }) => unknown) { return Promise.resolve(resolve({ data, error: null })); },
+        async upsert(rows: Record<string, unknown>[], options: { ignoreDuplicates: boolean }) {
+          assert.equal(options.ignoreDuplicates, true);
+          const target = table === "model_prediction_snapshots" ? archives : forecasts;
+          for (const row of rows) if (!target.some((old) => old.game_id === row.game_id && (target === archives || old.model_version === row.model_version && old.forecast_kind === row.forecast_kind))) target.push(row);
+          return { error: null };
+        },
+      };
+      return query;
+    },
+  } as unknown as Parameters<typeof capturePredictionSnapshots>[0]["supabase"];
+  const capture = (time: string) => capturePredictionSnapshots({ supabase: client, season: 2026, weeks: [3], source: "cron", now: new Date(time) });
+  await capture("2026-09-20T00:00:00Z");
+  assert.equal(archives.length, 1);
+  assert.equal(forecasts.length, 2);
+  const original = JSON.stringify(archives);
+  await capture("2026-09-20T19:15:00Z");
+  assert.equal(forecasts.length, 4);
+  const final = forecasts.filter((row) => row.forecast_kind === "final");
+  assert.equal(final[0].captured_at, final[1].captured_at);
+  assert.equal(final[0].model_version, "2026.5");
+  assert.equal(final[1].model_version, "2026.4-baseline");
+  await capture("2026-09-20T19:45:00Z");
+  await capture("2026-09-20T20:01:00Z");
+  assert.equal(forecasts.length, 4);
+  assert.equal(JSON.stringify(archives), original);
+});
