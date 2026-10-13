@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { UserRankingEditor } from "@/components/UserRankingEditor";
+import { ModelExperimentPanel } from "@/components/ModelExperimentPanel";
 import { getGamesBySeason, type GameRow } from "@/lib/gamesDb";
 import { getUserPicks } from "@/lib/picksDb";
 import {
@@ -470,6 +471,7 @@ export default function PowerRankingsPage() {
         </section>
       ) : null}
 
+      {section === "performance" ? <ModelExperimentPanel games={games} season={SEASON} /> : null}
       <section className={`${section === "performance" ? "grid" : "hidden"} mt-8 gap-6 lg:grid-cols-2`} aria-label="Detailed model analytics">
         <div className="rounded-2xl border border-gray-800 bg-gray-950 p-5 sm:p-6">
           <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">Weekly scorecard</p>

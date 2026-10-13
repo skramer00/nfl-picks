@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      model_efficiency_observations: {
+        Row: import("./efficiencyModel").EfficiencyObservation
+        Insert: import("./efficiencyModel").EfficiencyObservation
+        Update: never
+        Relationships: []
+      }
+      model_market_snapshots: {
+        Row: import("./marketOdds").MarketQuote & { game_id: string; season: number; week: number; forecast_kind: string; captured_at: string; kickoff_at: string }
+        Insert: import("./marketOdds").MarketQuote & { game_id: string; season: number; week: number; forecast_kind: string; captured_at: string; kickoff_at: string }
+        Update: never
+        Relationships: []
+      }
+      model_data_refreshes: {
+        Row: { season: number; source: string; attempted_at: string; status: string; row_count: number; error: string | null }
+        Insert: { season: number; source: string; attempted_at: string; status: string; row_count: number; error: string | null }
+        Update: { attempted_at?: string; status?: string; row_count?: number; error?: string | null }
+        Relationships: []
+      }
       model_quarterback_inputs: {
         Row: import("./quarterbackInputs").QuarterbackInput
         Insert: import("./quarterbackInputs").QuarterbackInput

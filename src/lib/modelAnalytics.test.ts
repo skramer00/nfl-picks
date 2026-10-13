@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import type { GameRow, Team } from "./gamesDb";
+import type { Forecast, GameRow, Team } from "./gamesDb";
 import {
   confidenceCalibration,
   modelPerformance,
@@ -10,6 +10,7 @@ import {
   projectedTeamRecord,
   seasonModelInsights,
   userPickPerformance,
+  efficiencyExperiment,
 } from "./modelAnalytics";
 import { buildPlayoffHunt, buildPostseasonProjection, playoffChances } from "./postseasonProjection";
 
@@ -28,6 +29,21 @@ function game(overrides: Partial<GameRow> = {}): GameRow {
     away_team: away, home_team: home, ...overrides,
   };
 }
+
+test("trial scoring pairs the same final timestamp, ignores overrides, ties and stale market quotes", () => {
+  const production = { game_id: "game-1", forecast_kind: "final", captured_at: "2026-08-31T23:30:00Z", capture_is_pregame: true,
+    model_version: "2026.5", automatic_home_probability: .7, home_win_probability: .2, manual_override: true,
+    inputs: { market: { home_probability: .6, observed_at: "2026-08-31T23:29:00Z" } } } as unknown as Forecast;
+  const shadow = { ...production, model_version: "2026.6-efficiency-shadow", automatic_home_probability: .8 };
+  const g = game({ status: "final", winner_team_id: home.id, forecasts: [production, shadow] });
+  const result = efficiencyExperiment([g]);
+  assert.equal(result.live.correct, 1); assert.equal(result.shadow.count, 1); assert.equal(result.market.count, 1);
+  assert.ok(Math.abs(result.live.brier! - .09) < 1e-10);
+  assert.equal(efficiencyExperiment([{ ...g, forecasts: [production, { ...shadow, captured_at: "2026-08-31T23:31:00Z" }] }]).shadow.count, 0);
+  assert.equal(efficiencyExperiment([{ ...g, winner_team_id: null }]).live.count, 0);
+  assert.equal(efficiencyExperiment([{ ...g, forecasts: [{ ...production, inputs: { market: { home_probability: .6, observed_at: "2026-08-31T23:00:00Z" } } }] }]).market.count, 0);
+  assert.equal(efficiencyExperiment([{ ...g, forecasts: [{ ...production, forecast_kind: "early" }, { ...shadow, forecast_kind: "early" }] }]).live.count, 0);
+});
 
 test("model performance scores favorites against final results", () => {
   const results = modelPerformance([

@@ -13,6 +13,8 @@ import type { QuarterbackInput } from "./quarterbackInputs";
 import type { RatingGame } from "./ratingEngine";
 import { modelRatingAudit, quarterbackAvailability } from "./modelRatings";
 import { buildRestAdvantageMap, type RestAdvantage } from "./restAdvantage";
+import { EFFICIENCY_MODEL_VERSION, efficiencyShadowContext, type EfficiencyObservation } from "./efficiencyModel";
+import type { MarketQuote } from "./marketOdds";
 
 type SnapshotTeam = {
   id: string;
@@ -112,6 +114,8 @@ export async function capturePredictionSnapshots({
   source,
   now = new Date(),
   lookAheadHours = 30,
+  efficiency = [],
+  markets = new Map(),
 }: {
   supabase: SupabaseClient<Database>;
   season: number;
@@ -119,6 +123,8 @@ export async function capturePredictionSnapshots({
   source: "cron" | "manual";
   now?: Date;
   lookAheadHours?: number;
+  efficiency?: EfficiencyObservation[];
+  markets?: Map<string, MarketQuote>;
 }) {
   const [{ data: schedule, error: scheduleError }, { data: existing, error: existingError }] =
     await Promise.all([
@@ -148,6 +154,7 @@ export async function capturePredictionSnapshots({
   const eligible = games.filter(
     (game) =>
       weeks.includes(game.week) &&
+      game.status !== "final" && game.status !== "in_progress" &&
       new Date(game.kickoff_at).getTime() <= captureDeadline &&
       new Date(game.kickoff_at).getTime() > now.getTime()
   );
@@ -185,12 +192,24 @@ export async function capturePredictionSnapshots({
   // Keep the original archive intact and append independently versioned early/final
   // forecasts. The final window starts one hour before kickoff, after inactive lists.
   const forecasts: Database["public"]["Tables"]["model_forecasts"]["Insert"][] = [];
+  const marketRows: Database["public"]["Tables"]["model_market_snapshots"]["Insert"][] = [];
   for (const game of eligible) {
     const kind = new Date(game.kickoff_at).getTime() - now.getTime() <= 3600000 ? "final" : "early";
     const snapshot = predictionSnapshotForGame({ game, override: overrideByGame.get(game.id), rest: restByGame.get(game.id), source, now, schedule: games, quarterbacks: quarterbacks ?? [] });
     const context = predictionContext(game, games, now, quarterbacks ?? []);
     const automatic = predictionSnapshotForGame({ game, rest: restByGame.get(game.id), source, now, schedule: games, quarterbacks: quarterbacks ?? [] });
-    forecasts.push({ ...snapshot, forecast_kind: kind, automatic_home_probability: automatic.home_win_probability, inputs: JSON.parse(JSON.stringify(context)) });
+    const quote = markets.get(game.id);
+    const market = quote && Date.parse(quote.observed_at) <= now.getTime() && now.getTime() - Date.parse(quote.observed_at) <= 5 * 60000 ? quote : null;
+    if (market) marketRows.push({ ...market, game_id: game.id, season, week: game.week, forecast_kind: kind, captured_at: now.toISOString(), kickoff_at: game.kickoff_at });
+    forecasts.push({ ...snapshot, forecast_kind: kind, automatic_home_probability: automatic.home_win_probability, inputs: JSON.parse(JSON.stringify({ ...context, market })) });
+    const shadow = efficiencyShadowContext(game, context, efficiency, now);
+    if (shadow) {
+      const prediction = matchupFavorability(game.away_team.abbreviation, game.home_team.abbreviation, game.week, restByGame.get(game.id)?.homeAdvantageDays ?? 0, automatic.is_division_matchup, shadow);
+      forecasts.push({ ...automatic, forecast_kind: kind, model_version: EFFICIENCY_MODEL_VERSION,
+        away_team_rating: Math.round(shadow.awayRating), home_team_rating: Math.round(shadow.homeRating),
+        home_win_probability: Number(prediction.home.toFixed(4)), away_win_probability: Number(prediction.away.toFixed(4)),
+        automatic_home_probability: Number(prediction.home.toFixed(4)), inputs: JSON.parse(JSON.stringify({ ...shadow, market })) });
+    }
     // Parallel unchanged preseason baseline at the same timestamp, without manual overrides.
     const legacyRating = (team: string) => {
       const audit = modelRatingAudit(team);
@@ -209,6 +228,10 @@ export async function capturePredictionSnapshots({
   }
   if (forecasts.length) {
     const { error } = await supabase.from("model_forecasts").upsert(forecasts, { onConflict: "game_id,model_version,forecast_kind", ignoreDuplicates: true });
+    if (error) throw error;
+  }
+  if (marketRows.length) {
+    const { error } = await supabase.from("model_market_snapshots").upsert(marketRows, { onConflict: "game_id,forecast_kind,captured_at,provider", ignoreDuplicates: true });
     if (error) throw error;
   }
   return {

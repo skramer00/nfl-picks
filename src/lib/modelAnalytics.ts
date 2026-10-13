@@ -3,6 +3,47 @@ import { isNeutralSite } from "./ratingEngine";
 import { MATCHUP_MODEL_VERSION } from "./favorability";
 import type { GameRow } from "./gamesDb";
 import { HOME_FIELD_ELO, teamStrength } from "./favorability";
+import { EFFICIENCY_MODEL_VERSION } from "./efficiencyModel";
+import type { MarketQuote } from "./marketOdds";
+import type { Forecast } from "./gamesDb";
+
+export function forecastMarket(forecast: Forecast): MarketQuote | null {
+  const inputs = forecast.inputs;
+  if (!inputs || typeof inputs !== "object" || Array.isArray(inputs)) return null;
+  const market = inputs.market;
+  if (!market || typeof market !== "object" || Array.isArray(market)) return null;
+  const p = market.home_probability;
+  const observed = Date.parse(String(market.observed_at));
+  const captured = Date.parse(forecast.captured_at);
+  if (typeof p !== "number" || !Number.isFinite(p) || p <= 0 || p >= 1 ||
+    !Number.isFinite(observed) || observed > captured || captured - observed > 5 * 60000) return null;
+  return market as unknown as MarketQuote;
+}
+
+export function efficiencyExperiment(games: GameRow[]) {
+  const live: { probability: number; outcome: number }[] = [];
+  const shadow: typeof live = [];
+  const marketLive: typeof live = [];
+  const market: typeof live = [];
+  const flags: { game: GameRow; model: number; market: number; gap: number }[] = [];
+  let shadowCaptured = 0;
+  for (const game of games) {
+    const valid = (game.forecasts ?? []).filter((row) => row.capture_is_pregame && Date.parse(row.captured_at) < Date.parse(game.kickoff_iso));
+    shadowCaptured += valid.filter((row) => row.model_version === EFFICIENCY_MODEL_VERSION).length;
+    const production = valid.filter((row) => row.model_version === MATCHUP_MODEL_VERSION)
+      .sort((a, b) => Number(b.forecast_kind === "final") - Number(a.forecast_kind === "final") || b.captured_at.localeCompare(a.captured_at))[0];
+    if (!production) continue;
+    const quote = forecastMarket(production);
+    const p = Number(production.automatic_home_probability);
+    if (quote && game.status !== "final" && Math.abs(p - quote.home_probability) >= .10) flags.push({ game, model: p, market: quote.home_probability, gap: Math.abs(p - quote.home_probability) });
+    if (game.status !== "final" || !game.winner_team_id || production.forecast_kind !== "final") continue;
+    const outcome = Number(game.home_team_id === game.winner_team_id);
+    const trial = valid.find((row) => row.model_version === EFFICIENCY_MODEL_VERSION && row.forecast_kind === "final" && row.captured_at === production.captured_at);
+    if (trial) { live.push({ probability: p, outcome }); shadow.push({ probability: Number(trial.automatic_home_probability), outcome }); }
+    if (quote) { marketLive.push({ probability: p, outcome }); market.push({ probability: quote.home_probability, outcome }); }
+  }
+  return { live: probabilityMetrics(live), shadow: probabilityMetrics(shadow), marketLive: probabilityMetrics(marketLive), market: probabilityMetrics(market), shadowCaptured, flags: flags.sort((a, b) => b.gap - a.gap) };
+}
 
 export function modelFavorite(game: GameRow) {
   const away = game.away_win_prob ?? 0.5;

@@ -11,7 +11,7 @@ export type QuarterbackInput = {
   source: string;
 };
 export const QB_FRESH_HOURS = 36;
-export function currentQuarterbackInput(inputs: QuarterbackInput[], abbreviation: string, week: number, asOf: Date) {
+export function currentQuarterbackInput(inputs: QuarterbackInput[], abbreviation: string, week: number, asOf: Date): QuarterbackInput | undefined {
   return inputs.filter((input) => normalizeTeamAbbreviation(input.team_abbreviation) === normalizeTeamAbbreviation(abbreviation) &&
     input.week === week && new Date(input.observed_at).getTime() <= asOf.getTime() &&
     asOf.getTime() - new Date(input.observed_at).getTime() <= QB_FRESH_HOURS * 3600000)

@@ -4,7 +4,7 @@ import { findActiveWeeks } from "@/lib/results/sync";
 import { runTrackedSync } from "@/lib/results/runSync";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 const SEASON = 2026;
 

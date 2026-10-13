@@ -5,6 +5,7 @@ import type { RatingGame } from "./ratingEngine";
 import type { Database } from "./database.types";
 import { matchupFavorability } from "./favorability";
 import { buildRestAdvantageMap, type RestAdvantage } from "./restAdvantage";
+import { isPublishedForecast } from "./forecastRoles";
 
 export type Team = {
   id: string;
@@ -231,7 +232,7 @@ export async function getGamesBySeason(season: number): Promise<GameRow[]> {
   const now = new Date();
   return games.map((game) => {
     const forecasts = (forecastResult.data ?? []).filter((row) => row.game_id === game.id && new Date(row.captured_at) < new Date(game.kickoff_at));
-    const current = forecasts.filter((row) => !row.model_version.endsWith("-baseline"))
+    const current = forecasts.filter((row) => isPublishedForecast(row.model_version))
       .sort((a, b) => Number(b.forecast_kind === "final") - Number(a.forecast_kind === "final") || b.captured_at.localeCompare(a.captured_at))[0];
     const archived = current ?? snapshots.get(game.id);
     const snapshot = new Date(game.kickoff_at) <= now || current?.forecast_kind === "final" ? archived : undefined;

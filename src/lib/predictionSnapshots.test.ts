@@ -86,3 +86,26 @@ test("early and final forecasts are independent, immutable, paired and never bac
   assert.equal(forecasts.length, 4);
   assert.equal(JSON.stringify(archives), original);
 });
+
+test("capture saves a separate trial and observed market without overriding the production forecast", async () => {
+  const { capturePredictionSnapshots } = await import("./predictionSnapshots");
+  const writes = new Map<string, Record<string, unknown>[]>();
+  const client = { from(table: string) {
+    const query = { select() { return query; }, eq() { return query; }, in() { return query; }, order() { return query; },
+      then(resolve: (r: unknown) => unknown) { return Promise.resolve(resolve({ data: table === "games" ? [game] : [], error: null })); },
+      async upsert(rows: Record<string, unknown>[]) { writes.set(table, rows); return { error: null }; } };
+    return query;
+  } } as unknown as Parameters<typeof capturePredictionSnapshots>[0]["supabase"];
+  const efficiency = ["DAL", "NYG"].flatMap((team) => [1, 2].map((week) => ({ game_id: `past-${week}`, team, opponent: team === "DAL" ? "NYG" : "DAL", week, season: 2026, kickoff_at: "2026-09-10T00:00:00Z", observed_at: "2026-09-12T00:00:00Z", plays: 60, epa: team === "DAL" ? -10 : 10, successes: 30, pass_plays: 40, pass_epa: 0, rush_plays: 20, rush_epa: 0, content_hash: team, source: "test" })));
+  await capturePredictionSnapshots({ supabase: client, season: 2026, weeks: [3], source: "cron", now: new Date("2026-09-20T19:15:00Z"), efficiency,
+    markets: new Map([[game.id, { provider: "DraftKings", observed_at: "2026-09-20T19:14:00Z", provider_event_id: "123", source: "test", home_moneyline: -155, away_moneyline: 130, home_probability: .583 }]]) });
+  const forecasts = writes.get("model_forecasts")!;
+  assert.equal(forecasts.length, 3);
+  const prod = forecasts.find((r) => r.model_version === "2026.5")!;
+  const trial = forecasts.find((r) => r.model_version === "2026.6-efficiency-shadow")!;
+  const original = predictionSnapshotForGame({ game, source: "cron", now: new Date("2026-09-20T19:15:00Z") });
+  assert.equal(prod.home_win_probability, original.home_win_probability);
+  assert.notEqual(trial.home_win_probability, prod.home_win_probability);
+  assert.equal(trial.captured_at, prod.captured_at);
+  assert.equal(writes.get("model_market_snapshots")!.length, 1);
+});
