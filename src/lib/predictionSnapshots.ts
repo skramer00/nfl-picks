@@ -201,8 +201,8 @@ export async function capturePredictionSnapshots({
     const legacy = matchupFavorability(game.away_team.abbreviation, game.home_team.abbreviation, game.week, restByGame.get(game.id)?.homeAdvantageDays ?? 0, snapshot.is_division_matchup, {
       awayRating: legacyRating(game.away_team.abbreviation), homeRating: legacyRating(game.home_team.abbreviation), neutralSite: false,
     });
-    forecasts.push({ ...snapshot, forecast_kind: kind, model_version: "2026.4-baseline", home_field_elo: HOME_FIELD_ELO,
-      away_team_rating: legacyRating(game.away_team.abbreviation), home_team_rating: legacyRating(game.home_team.abbreviation),
+    forecasts.push({ ...automatic, forecast_kind: kind, model_version: "2026.4-baseline", home_field_elo: HOME_FIELD_ELO,
+      away_team_rating: Math.round(legacyRating(game.away_team.abbreviation)), home_team_rating: Math.round(legacyRating(game.home_team.abbreviation)),
       manual_override: false, manual_override_reason: null,
       home_win_probability: Number(legacy.home.toFixed(4)), away_win_probability: Number((1 - legacy.home).toFixed(4)),
       automatic_home_probability: Number(legacy.home.toFixed(4)), inputs: { baseline: true } });
