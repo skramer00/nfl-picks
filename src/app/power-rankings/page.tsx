@@ -197,7 +197,7 @@ export default function PowerRankingsPage() {
         </p>
         <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-            Preseason inputs {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+            Preseason inputs {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", day: "numeric", year: "numeric" })}
           </p>
           <Link href="/model/about" className="text-sm font-semibold text-amber-400 hover:text-amber-300">About the model →</Link>
         </div>
@@ -335,7 +335,7 @@ export default function PowerRankingsPage() {
           </div>
 
           <p className="mt-5 text-xs leading-5 text-gray-500">
-            Base ratings generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}; availability and offseason inputs updated through {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}. This is the preseason ledger. Current rankings and future forecasts additionally incorporate completed results; each saved forecast preserves its model version and inputs.
+            Base ratings generated {new Date(MODEL_GENERATED_AT).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", day: "numeric", year: "numeric" })}; availability and offseason inputs updated through {new Date(MODEL_UPDATED_AT).toLocaleDateString("en-US", { timeZone: "UTC", month: "long", day: "numeric", year: "numeric" })}. This is the preseason ledger. Current rankings and future forecasts additionally incorporate completed results; each saved forecast preserves its model version and inputs.
           </p>
         </section>
       ) : null}
