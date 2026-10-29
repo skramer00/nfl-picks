@@ -1,15 +1,17 @@
 import catalog from '../data/draft-duel.json';
+import exclusions from '../data/draft-duel-exclusions.json';
 
 export type Position = 'QB' | 'RB' | 'WR' | 'TE' | 'K' | 'DST';
 export type Card = { id: string; name: string; position: Position; team: string; season: number; games: number; points: number; average: number };
 export type Side = 'you' | 'cpu';
 export type Duel = { seed: string; mode: 'daily' | 'practice'; first: Side; pool: Card[]; picks: string[] };
-export const CARDS = catalog.cards as Card[];
+const excludedIds = new Set(exclusions.players.map(player=>player.id));
+export const CARDS = (catalog.cards as Card[]).filter(card=>!excludedIds.has(card.id));
 export const TEAMS = catalog.teams as Record<string, string>;
 export const POSITIONS: Position[] = ['QB','RB','WR','TE','K','DST'];
 export const POOL_COUNTS: Record<Position, number> = { QB:4, RB:8, WR:10, TE:4, K:3, DST:3 };
 const BASE: Record<Position, number> = { QB:1, RB:2, WR:2, TE:1, K:1, DST:1 };
-export const STORAGE_KEY = 'pretzel-draft-duel-v1';
+export const STORAGE_KEY = 'pretzel-draft-duel-v2';
 
 export function random(seed: string) {
   let state = 2166136261;
@@ -22,7 +24,7 @@ function shuffle<T>(values: T[], rng: () => number): T[] {
 export function dailySeed(date: Date) {
   const parts = new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(date);
   const get=(type:string)=>parts.find(p=>p.type===type)!.value;
-  return `daily-v1-${get('year')}-${get('month')}-${get('day')}`;
+  return `daily-v2-${get('year')}-${get('month')}-${get('day')}`;
 }
 
 /** Assign each franchise to exactly one position before choosing its card.
@@ -90,7 +92,11 @@ export function chooseGreedy(duel:Duel):Card {
  * scarcity heuristic in the rollout; CPU cannot see information the user lacks. */
 export function chooseComputer(duel:Duel):Card {
   let best:Card|undefined;let bestMargin=-Infinity;
-  for(const card of legalCards(duel)){
+  const legal=legalCards(duel);
+  // Same-position cards have identical eligibility. Never let rollout artifacts
+  // prefer a strictly lower score; there are no team bonuses or salary costs.
+  const candidates=legal.filter(card=>!legal.some(other=>other.position===card.position&&other.average>card.average));
+  for(const card of candidates){
     const trial={...duel,picks:[...duel.picks,card.id]};
     while(trial.picks.length<18)trial.picks.push(chooseGreedy(trial).id);
     const margin=score(roster(trial,'cpu'))-score(roster(trial,'you'));

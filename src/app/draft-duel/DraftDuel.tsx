@@ -46,6 +46,7 @@ export default function DraftDuel(){
       try{
         const text=localStorage.getItem(STORAGE_KEY);
         const raw=text?JSON.parse(text):null;
+        if(!text&&localStorage.getItem('pretzel-draft-duel-v1'))setNotice('The player pool and computer strategy have been updated. Start a fresh draft; older drafts are no longer loaded.');
         const restored=restoreDuel(raw?.active);
         const completed=Array.isArray(raw?.completed)?raw.completed.filter((v:Saved)=>v&&typeof v.seed==='string'&&Array.isArray(v.picks)&&v.picks.length===18).slice(-60):[];
         setArchive({active:restored?saved(restored):null,completed});setGame(restored);
@@ -64,7 +65,7 @@ export default function DraftDuel(){
     setPendingMode(null);setFilter('ALL');setSearch('');setShowDrafted(false);
     startTransition(()=>{
       try{
-        const seed=mode==='daily'?dailySeed(new Date()):'practice-v1-'+crypto.randomUUID();
+        const seed=mode==='daily'?dailySeed(new Date()):'practice-v2-'+crypto.randomUUID();
         const previous=mode==='daily'?archive.completed.find(g=>g.seed===seed):null;
         const next=(previous&&restoreDuel(previous))||startDuel(seed,mode);
         commit(next,previous?'Your completed daily draft. Try unlimited practice for another matchup.':next.first==='you'?'You have the first pick.':'The computer picked first. You have the next two picks.');

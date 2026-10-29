@@ -60,3 +60,13 @@ drafts against the CPU, snake order, unique picks, flexible slot legality, exact
 score addition, restored/tampered saves and Los Angeles daily rollover.
 The importer rejects missing seasons, unknown franchises and duplicate identities.
 Keep original picks, model and survivor features outside this module.
+
+## Curation update — 2026-10-29
+
+Initial targeted review excluded 31 cards. Evidence and precise case descriptions are in `src/data/draft-duel-exclusions.json`. This is editorial selection, not a criminal registry or exhaustive clearance of remaining players. NFL findings, pleas and convictions are distinguished. Animal cruelty is included; rumors and unrelated offenses are not automatic exclusions. Stable IDs prevent confusion between the two Adrian Petersons, Michael Pittman Sr./Jr. and Kellen Winslow II/his father.
+
+The generator excludes those IDs before curation; the game also filters them defensively. Existing dataset has 1,269 cards. Future rebuilds may add replacement cards. Team/position pool quotas remain unchanged.
+
+CPU rollout candidates are limited to the highest available score at each position. Same-position cards have identical eligibility and no franchise bonuses. Version 2 seeds/storage prevent changed catalogs or CPU rules from silently altering old saved drafts; old browser data remains untouched but is not loaded, with a one-time migration notice until the first new save.
+
+At the owner’s direction, documented serious civil allegations can also lead to editorial exclusion. Settlements do not prove wrongdoing; disputed allegations and denials are recorded explicitly.

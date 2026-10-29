@@ -1,6 +1,7 @@
+import exclusions from '../data/draft-duel-exclusions.json';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CARDS, TEAMS, POOL_COUNTS, POSITIONS, generatePool, random, dailySeed, startDuel, draftCard, legalCards, roster, score, canAdd, restoreDuel, sideAt, lineup } from './draftDuel';
+import { CARDS, TEAMS, POOL_COUNTS, POSITIONS, generatePool, random, dailySeed, startDuel, draftCard, legalCards, roster, score, canAdd, restoreDuel, sideAt, lineup, chooseComputer } from './draftDuel';
 
 test('catalog has unique players, 32 defenses, eligible seasons and reproducible rounded averages',()=>{
   assert.equal(new Set(CARDS.map(c=>c.id)).size,CARDS.length);
@@ -52,7 +53,24 @@ test('illegal picks and tampered save files cannot change a draft',()=>{
   assert.deepEqual(restoreDuel(game),game);
 });
 test('daily seed changes at Los Angeles midnight, including daylight saving time',()=>{
-  assert.equal(dailySeed(new Date('2026-10-29T06:59:59Z')),'daily-v1-2026-10-28');
-  assert.equal(dailySeed(new Date('2026-10-29T07:00:00Z')),'daily-v1-2026-10-29');
-  assert.equal(dailySeed(new Date('2026-12-01T07:59:59Z')),'daily-v1-2026-11-30');
+  assert.equal(dailySeed(new Date('2026-10-29T06:59:59Z')),'daily-v2-2026-10-28');
+  assert.equal(dailySeed(new Date('2026-10-29T07:00:00Z')),'daily-v2-2026-10-29');
+  assert.equal(dailySeed(new Date('2026-12-01T07:59:59Z')),'daily-v2-2026-11-30');
+});
+
+test('curation excludes stable IDs without excluding unrelated namesakes',()=>{
+  for(const entry of exclusions.players)assert.ok(!CARDS.some(c=>c.id===entry.id),entry.name);
+  assert.ok(CARDS.some(c=>c.id==='00-0021306')); // Bears Adrian Peterson
+  assert.ok(CARDS.some(c=>c.id==='00-0036252')); // Colts Michael Pittman
+});
+test('CPU never chooses a lower-valued available card at the same position',()=>{
+  for(let i=0;i<20;i++){
+    let game={seed:'dominance-'+i,mode:'practice' as const,first:'cpu' as const,pool:generatePool('dominance-'+i),picks:[] as string[]};
+    while(game.picks.length<18){
+      const legal=legalCards(game);
+      const card=sideAt(game.picks.length,game.first)==='cpu'?chooseComputer(game):legal[0];
+      if(sideAt(game.picks.length,game.first)==='cpu')assert.equal(card.average,Math.max(...legal.filter(c=>c.position===card.position).map(c=>c.average)));
+      game={...game,picks:[...game.picks,card.id]};
+    }
+  }
 });

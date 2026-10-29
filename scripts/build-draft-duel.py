@@ -58,13 +58,15 @@ if __name__ == '__main__':
     with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
         fetched = list(pool.map(fetch, jobs))
     files = {name: rows for name, rows, _ in fetched}
+    exclusions = json.loads((ROOT/'src/data/draft-duel-exclusions.json').read_text())
+    excluded_ids = {entry['id'] for entry in exclusions['players']}
     best = {}
     floors = {'QB':8, 'RB':5, 'WR':5, 'TE':3, 'K':4}
     for year in YEARS:
         for r in files[f'stats_player_reg_{year}.csv']:
             pos = r['position']
             games = int(n(r,'games'))
-            if pos not in floors or games < 8:
+            if pos not in floors or games < 8 or r['player_id'] in excluded_ids:
                 continue
             points = kicking(r) if pos == 'K' else offense(r)
             team = ALIASES.get(r['recent_team'],r['recent_team'])
@@ -106,7 +108,7 @@ if __name__ == '__main__':
     assert len({c['id'] for c in cards}) == len(cards)
     assert set(c['team'] for c in cards) == set(TEAMS)
     cards.sort(key=lambda c:(c['team'],c['position'],-c['average'],c['id']))
-    out = {'version':'1','firstSeason':2000,'lastSeason':2025,'minimumGames':8,'teams':TEAMS,'cards':cards}
+    out = {'version':'2','firstSeason':2000,'lastSeason':2025,'minimumGames':8,'teams':TEAMS,'cards':cards}
     (ROOT/'src/data/draft-duel.json').write_text(json.dumps(out,separators=(',',':'))+'\n')
     (ROOT/'docs/draft-duel-sources.json').write_text(json.dumps({'retrievedAt':datetime.now(timezone.utc).isoformat(),'sources':[m for _,_,m in fetched]},indent=2)+'\n')
     print('Generated',len(cards),'cards across',len(TEAMS),'franchises.', flush=True)

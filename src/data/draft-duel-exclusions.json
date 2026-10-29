@@ -1,0 +1,192 @@
+{
+  "reviewedAt": "2026-10-29",
+  "scope": "Initial targeted editorial review, not an exhaustive background check. Exclude documented serious violence, sexual misconduct, child/partner abuse and animal cruelty supported by pleas, findings, admissions, video or NFL discipline. An exclusion is not a claim of criminal conviction. Mere arrest, rumor, substance use or unpopular opinions are not sufficient. Recheck disputed cases before adding. Match stable player IDs, never names alone. At owner request, serious allegations documented in reputable reporting and formal civil proceedings can also justify editorial omission; label disputed allegations and settlements explicitly, without inferring guilt.",
+  "players": [
+    {
+      "id": "00-0027713",
+      "name": "Aaron Hernandez",
+      "basis": "Murder conviction reinstated in 2019.",
+      "source": "https://www.wbur.org/news/2019/03/13/aaron-hernandez-murder-conviction-reinstated"
+    },
+    {
+      "id": "00-0035700",
+      "name": "Josh Jacobs",
+      "basis": "Reported misdemeanor battery conviction following a no-contest plea in 2026.",
+      "source": "https://abcnews.com/US/green-bay-packers-josh-jacobs-convicted-misdemeanor-battery/story?id=136340313"
+    },
+    {
+      "id": "00-0026195",
+      "name": "Ray Rice",
+      "basis": "Video-documented assault of his partner; NFL discipline.",
+      "source": "https://amp.nfl.com/news/ray-rice-released-by-ravens-indefinitely-suspended-0ap3000000391538"
+    },
+    {
+      "id": "00-0025394",
+      "name": "Adrian Peterson (Vikings RB)",
+      "basis": "No-contest plea to reckless assault of a child; NFL discipline.",
+      "source": "https://www.nfl.com/news/adrian-peterson-suspended-without-pay-for-at-least-2014-season-0ap3000000430325"
+    },
+    {
+      "id": "00-0021940",
+      "name": "Josh Brown",
+      "basis": "Admitted partner abuse; NFL suspension.",
+      "source": "https://www.nfl.com/_amp/nfl-suspends-ex-giants-kicker-josh-brown-six-games-0ap3000000841005"
+    },
+    {
+      "id": "00-0033537",
+      "name": "Deshaun Watson",
+      "basis": "NFL disciplinary finding concerning sexual misconduct; not a criminal conviction.",
+      "source": "https://www.nfl.com/news/deshaun-watson-informed-by-judge-sue-l-robinson-he-should-be-suspended-six-games?campaign=Twitter_atn"
+    },
+    {
+      "id": "00-0029597",
+      "name": "Justin Tucker",
+      "basis": "NFL suspension following sexual-misconduct allegations; not a criminal conviction.",
+      "source": "https://www.nfl.com/_amp/nfl-suspends-free-agent-kicker-justin-tucker-for-first-10-games-of-2025-season-for-violation-of-personal-conduct-policy"
+    },
+    {
+      "id": "00-0033923",
+      "name": "Kareem Hunt",
+      "basis": "NFL suspension for physical altercations after investigation.",
+      "source": "https://www.clevelandbrowns.com/news/nfl-announces-suspension-for-browns-rb-kareem-hunt"
+    },
+    {
+      "id": "00-0033040",
+      "name": "Tyreek Hill",
+      "basis": "Pleaded guilty to domestic assault and battery by strangulation in college.",
+      "source": "https://www.nfl.com/news/dolphins-wr-tyreek-hill-remains-under-investigation-for-alleged-assault-and-batt"
+    },
+    {
+      "id": "00-0022922",
+      "name": "Kellen Winslow II",
+      "basis": "Sentenced to prison for rape and other sexual offenses. Not his father.",
+      "source": "https://www.nfl.com/_amp/kellen-winslow-ii-former-nfl-player-sentenced-to-14-years-in-prison-for-multiple"
+    },
+    {
+      "id": "00-0031503",
+      "name": "Jameis Winston",
+      "basis": "NFL finding of nonconsensual sexual touching; not a criminal conviction.",
+      "source": "https://www.nfl.com/news/buccaneers-jameis-winston-suspended-three-games-0ap3000000938898"
+    },
+    {
+      "id": "00-0027793",
+      "name": "Antonio Brown",
+      "basis": "No-contest plea in battery case; probation.",
+      "source": "https://www.nfl.com/news/antonio-brown-pleads-no-contest-in-battery-case-gets-probation"
+    },
+    {
+      "id": "00-0030536",
+      "name": "Zac Stacy",
+      "basis": "Documented partner attack and criminal plea proceedings.",
+      "source": "https://www.clickorlando.com/news/local/2023/02/28/ex-nfl-player-zac-stacy-sentenced-to-probation-in-attack-on-ex-girlfriend-in-florida/"
+    },
+    {
+      "id": "00-0022924",
+      "name": "Ben Roethlisberger",
+      "basis": "NFL conduct suspension following sexual-assault allegations; no criminal charges in the cited case.",
+      "source": "https://amp.nfl.com/news/goodell-suspends-roethlisberger-for-six-games-orders-evaluation-09000d5d817aaafc"
+    },
+    {
+      "id": "00-0033045",
+      "name": "Ezekiel Elliott",
+      "basis": "NFL finding of partner violence and suspension; not a criminal conviction.",
+      "source": "https://www.nfl.com/news/nfl-statement-on-ezekiel-elliott-s-six-game-suspension-0ap3000000828560"
+    },
+    {
+      "id": "00-0021976",
+      "name": "Larry Johnson",
+      "basis": "No-contest plea and guilty finding for domestic battery and assault.",
+      "source": "https://lasvegassun.com/news/2013/jul/23/former-all-pro-running-back-reaches-plea-deal-dome/"
+    },
+    {
+      "id": "00-0020397",
+      "name": "Chad Johnson",
+      "basis": "No-contest plea to domestic battery.",
+      "source": "https://www.nbcsports.com/nfl/profootballtalk/rumor-mill/news/chad-johnson-pleads-no-contest-avoid-jail-time-at-ex-wifes-request"
+    },
+    {
+      "id": "00-0033897",
+      "name": "Joe Mixon",
+      "basis": "Alford plea following assault of a female student; deferred sentence.",
+      "source": "https://abcnews.com/Sports/joe-mixon-reaches-plea-deal/story?id=26577604"
+    },
+    {
+      "id": "00-0027786",
+      "name": "Jonathan Dwyer",
+      "basis": "Disorderly-conduct guilty plea reduced from assault charge in partner-abuse case.",
+      "source": "https://www.si.com/nfl/2015/01/29/ap-fbn-cardinals-player-domestic-abuse-2nd-ld-writethru"
+    },
+    {
+      "id": "00-0037801",
+      "name": "KaVontae Turpin",
+      "basis": "Guilty plea to assaulting girlfriend; deferred adjudication.",
+      "source": "https://www.ksl.com/article/46541825"
+    },
+    {
+      "id": "00-0020245",
+      "name": "Mike Vick",
+      "basis": "Guilty plea to dogfighting conspiracy; animal abuse included in editorial scope.",
+      "source": "https://www.nfl.com/news/timeline-of-michael-vick-s-legal-troubles-09000d5d8106e6f0"
+    },
+    {
+      "id": "00-0013013",
+      "name": "Michael Pittman (RB)",
+      "basis": "Endangerment guilty plea after vehicle incident involving family. Not Colts WR Michael Pittman.",
+      "source": "https://www.washingtonpost.com/archive/sports/2004/04/24/bucs-pittman-is-sentenced-to-jail/b3f0dbd6-faca-4115-8032-d0703dcbd9b3/"
+    },
+    {
+      "id": "00-0033110",
+      "name": "Tyler Higbee",
+      "basis": "Guilty plea to assault; diversion.",
+      "source": "https://www.wbko.com/content/news/Professional-football-player-pleads-guilty-434594223.html"
+    },
+    {
+      "id": "00-0001532",
+      "name": "David Boston",
+      "basis": "Guilty plea to aggravated battery.",
+      "source": "https://www.nfl.com/news/former-nfl-wide-receiver-david-boston-guilty-of-battery-0ap1000000091443"
+    },
+    {
+      "id": "00-0030522",
+      "name": "Montee Ball",
+      "basis": "Guilty pleas to battery and disorderly conduct in domestic-abuse cases.",
+      "source": "https://www.ksl.com/article/sports/nfl/ball-sentenced-to-60-days-in-jail-for-domestic-abuse/40948764"
+    },
+    {
+      "id": "00-0033906",
+      "name": "Alvin Kamara",
+      "basis": "NFL suspension and breach-of-peace plea following Las Vegas violence.",
+      "source": "https://www.nfl.com/news/saints-rb-alvin-kamara-suspended-three-games-for-role-in-february-2022-incident-"
+    },
+    {
+      "id": "00-0006305",
+      "name": "Ahman Green",
+      "basis": "Alford plea to disorderly conduct and property damage after altercation with daughter; child-abuse charge replaced; denies abuse.",
+      "source": "https://www.wbay.com/content/news/Ahman-Green-gets-18-months-probation-on-child-abuse-charge-480300943.html"
+    },
+    {
+      "id": "00-0021236",
+      "name": "Randy McMichael",
+      "basis": "Criminal-trespass guilty plea following alleged partner assault; battery charge not pursued.",
+      "source": "https://www.patriots.com/news/dolphins-mcmichael-pleads-guilty-to-charge-91836"
+    },
+    {
+      "id": "00-0014722",
+      "name": "Shannon Sharpe",
+      "basis": "Sexual-assault civil lawsuit settled; denied allegations. Settlement is not a finding of guilt. Editorial exclusion.",
+      "source": "https://apnews.com/article/9e3c12ae999e08cf2cd0a8c2951b74b1"
+    },
+    {
+      "id": "00-0033893",
+      "name": "Dalvin Cook",
+      "basis": "Partner-assault civil lawsuit settled; disputed allegations and said he was the victim. No guilt inferred from settlement. Editorial exclusion.",
+      "source": "https://abcnews.com/Sports/dalvin-cook-settles-lawsuit-filed-girlfriend/story?id=109577439"
+    },
+    {
+      "id": "00-0021159",
+      "name": "Jerramy Stevens",
+      "basis": "Reported guilty plea to misdemeanor assault in 1998.",
+      "source": "https://www.seattlepi.com/sports/article/huskies-star-charged-in-hit-and-run-1053953.php"
+    }
+  ]
+}
