@@ -1,0 +1,270 @@
+{
+  "retrievedAt": "2026-10-29T02:20:28.233305+00:00",
+  "sources": [
+    {
+      "file": "stats_player_reg_2000.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2000.csv",
+      "sha256": "955a8b895920a2b01ecf02cb1eb29c2df7a9385c5e11385ae09107963dc0cf9a"
+    },
+    {
+      "file": "stats_team_reg_2000.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2000.csv",
+      "sha256": "0afd0d2ee5f27017aedf6c45f285b73cafb81ce48e3e8124972dc55b3ed8e498"
+    },
+    {
+      "file": "stats_player_reg_2001.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2001.csv",
+      "sha256": "dfa161eb8a851c8cc3ff0088f24810daf47db4f098c3d920a60836cd7312bf4a"
+    },
+    {
+      "file": "stats_team_reg_2001.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2001.csv",
+      "sha256": "85b2450887ed31ff7aecd05c69165bc8780ff383f9fb7405e563a9fd2304d0ab"
+    },
+    {
+      "file": "stats_player_reg_2002.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2002.csv",
+      "sha256": "d81c84f3694d8e3e5f228a854aa3caf72d9eeb52f4eb1d312f47d5cbc40d47d4"
+    },
+    {
+      "file": "stats_team_reg_2002.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2002.csv",
+      "sha256": "7ffd763a2f0efe062bbceec437032294c515c56ad54e00e46a0f2bfc621ad938"
+    },
+    {
+      "file": "stats_player_reg_2003.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2003.csv",
+      "sha256": "b25c71e80850a9b9abd1147eb073bd196b32f4a4ae83d2d2702abc83b0f147d3"
+    },
+    {
+      "file": "stats_team_reg_2003.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2003.csv",
+      "sha256": "1db479cefa9d550a6a9fd411b201bb8df67f8761bf8401dc35840941307e7a33"
+    },
+    {
+      "file": "stats_player_reg_2004.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2004.csv",
+      "sha256": "e8c8353a2826e5cab14dc27c20cae9286bd671c6ddf7e0cf4eb244a07459d84b"
+    },
+    {
+      "file": "stats_team_reg_2004.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2004.csv",
+      "sha256": "abef041bff685507b46c9a3d7df39a434547177bb1a3df9e884bbd621ee62cf7"
+    },
+    {
+      "file": "stats_player_reg_2005.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2005.csv",
+      "sha256": "09968f4edcb50292741e1b3815e76a1e0d08ea97af5e697f2846b97085db733a"
+    },
+    {
+      "file": "stats_team_reg_2005.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2005.csv",
+      "sha256": "90ff6b0f4f7911f20c3fe20f8146aeb15dd7586fe015edf6328031db31858361"
+    },
+    {
+      "file": "stats_player_reg_2006.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2006.csv",
+      "sha256": "e2489849c95d875326e73da0916550e73fe5393216423120b84560b93cc09979"
+    },
+    {
+      "file": "stats_team_reg_2006.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2006.csv",
+      "sha256": "c3d85fe727685b6bf60536e864734977a1e604e24ce26235b1a0cd3f85705295"
+    },
+    {
+      "file": "stats_player_reg_2007.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2007.csv",
+      "sha256": "40545c443bdf4020d522b740f7ad16e441f23d08a7d726729e9b2be035366793"
+    },
+    {
+      "file": "stats_team_reg_2007.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2007.csv",
+      "sha256": "4fe9484c1b50e5652d91af8019029ddd61d084c072b114d07af8a3d8b7a2ca02"
+    },
+    {
+      "file": "stats_player_reg_2008.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2008.csv",
+      "sha256": "1f79617f3448b0467e9cb4a1d73d171adb0f4fa8df92969d96c70030632d0c55"
+    },
+    {
+      "file": "stats_team_reg_2008.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2008.csv",
+      "sha256": "33e82530c27fe700c7595977871b61b9e420e60c2418649c4b6a772229942cdc"
+    },
+    {
+      "file": "stats_player_reg_2009.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2009.csv",
+      "sha256": "1d18048fed34be4faf476b07de46f4c158e419e03cfb12deb54b93cc26fdd130"
+    },
+    {
+      "file": "stats_team_reg_2009.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2009.csv",
+      "sha256": "5b7f257b72109e3f95b5b808b803297a567a1b69ac5dcbfa70ee97b9594eaa6b"
+    },
+    {
+      "file": "stats_player_reg_2010.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2010.csv",
+      "sha256": "a0ea4f139f49cb0542a2f74a4a72a2a72a8eee37f80c81f073d878abc97159b8"
+    },
+    {
+      "file": "stats_team_reg_2010.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2010.csv",
+      "sha256": "00fd03947b44b128849425c47d45ab4cdbca4c2832d03a04b036425ea9895519"
+    },
+    {
+      "file": "stats_player_reg_2011.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2011.csv",
+      "sha256": "f8a8e44ccf198570e3c1b05b7dd1430c7d05bdd977dd85a42398b3e97013dff4"
+    },
+    {
+      "file": "stats_team_reg_2011.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2011.csv",
+      "sha256": "15d8367b52ff30d50405b8007ca55ef88d0b23ee8942d88dd056d7613655554e"
+    },
+    {
+      "file": "stats_player_reg_2012.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2012.csv",
+      "sha256": "6cdfbf3b291cf1349b33fe8e90542d8ae54cca3726769866f94feaf866b329b5"
+    },
+    {
+      "file": "stats_team_reg_2012.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2012.csv",
+      "sha256": "0c20be601e0ca645e07ea1b012248e78cf8a919f44f9f63162d58fed2bd002f0"
+    },
+    {
+      "file": "stats_player_reg_2013.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2013.csv",
+      "sha256": "342fd27eef619a2aec4a74abf8f689e6b14fab526ae1300095b2654a3981882b"
+    },
+    {
+      "file": "stats_team_reg_2013.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2013.csv",
+      "sha256": "53f5b63fcc1956475cd6c828b74ca8d6dffdf73e590b60c261b9f1858cb5d4bc"
+    },
+    {
+      "file": "stats_player_reg_2014.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2014.csv",
+      "sha256": "9f7aee274dddd6b27ec66ae493507aebf5779ed81d4735a53b87bbf28030f7a1"
+    },
+    {
+      "file": "stats_team_reg_2014.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2014.csv",
+      "sha256": "976c9d9d4e3ec7c5f88f70a0304e05a58908af4e763dc9343f5c8510766b0fea"
+    },
+    {
+      "file": "stats_player_reg_2015.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2015.csv",
+      "sha256": "91cc6edbfe16bdc08c680c58ea6d8525c6b7668ef9b94ebdcc6ef9156fcd92d0"
+    },
+    {
+      "file": "stats_team_reg_2015.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2015.csv",
+      "sha256": "47b0a05045d870aa0390ed8fc1a14bab6f503af39ff0494599efa8899fde0b5e"
+    },
+    {
+      "file": "stats_player_reg_2016.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2016.csv",
+      "sha256": "17063fa01736c41b30ffbb15a284f64611fd8a517bfae5d4cdb0ebb19da78801"
+    },
+    {
+      "file": "stats_team_reg_2016.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2016.csv",
+      "sha256": "c0c1fd022dd43f532c046e04d5b47ddfdf89c5a8955eb7cf04bee3dc13e5bc3c"
+    },
+    {
+      "file": "stats_player_reg_2017.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2017.csv",
+      "sha256": "ee3ed8e1b9f7998b7b7b43ec1139e1d69186818ad3e2ce100e4467f163f1ca3c"
+    },
+    {
+      "file": "stats_team_reg_2017.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2017.csv",
+      "sha256": "5fb26da58f6d72548b82e3322d2cc91eb16ea1e5c8f8b1c2d918149561f5a1cc"
+    },
+    {
+      "file": "stats_player_reg_2018.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2018.csv",
+      "sha256": "8d66bc2dde26951038f6cb68edfcc9082c36423ec7df8185aa7b1b61906c866b"
+    },
+    {
+      "file": "stats_team_reg_2018.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2018.csv",
+      "sha256": "a01e7d21eac3b7dcb66f78589baa690f1b7953569253987bc956197c43c33bd0"
+    },
+    {
+      "file": "stats_player_reg_2019.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2019.csv",
+      "sha256": "324b77e6027839c15bad5d32a6d83d07f998e71e0a1e682a37543efeb5219064"
+    },
+    {
+      "file": "stats_team_reg_2019.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2019.csv",
+      "sha256": "6e414b91a5220a061d4a561ed4e71feb47784697070f751e9108de5a66ba7753"
+    },
+    {
+      "file": "stats_player_reg_2020.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2020.csv",
+      "sha256": "ac90bb97fd0cb8f8ae7783226c50f5db64bb375e99eaedbd32e97b8b16cf1a94"
+    },
+    {
+      "file": "stats_team_reg_2020.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2020.csv",
+      "sha256": "2b0e27512f66035ec55c40690db109a3793db9393143e280f423f6010a5d230f"
+    },
+    {
+      "file": "stats_player_reg_2021.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2021.csv",
+      "sha256": "2edb2190fa41c92eed8e997c0ba1ff6c737a0fe6d996129487fe34cb63264c6f"
+    },
+    {
+      "file": "stats_team_reg_2021.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2021.csv",
+      "sha256": "9295f980481a3d34df8de4ab40bed2d686df0188b02d4988d7a7cb1da8b49108"
+    },
+    {
+      "file": "stats_player_reg_2022.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2022.csv",
+      "sha256": "af2d534b208af43d4b17bcba242dc949f2d40b367253f78c882c19eee9dfc937"
+    },
+    {
+      "file": "stats_team_reg_2022.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2022.csv",
+      "sha256": "b377de87bc9a48a5161bfb4efc34174ad32909e33f63ef0094ddc882c795ab17"
+    },
+    {
+      "file": "stats_player_reg_2023.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2023.csv",
+      "sha256": "0cc79526a678907817713a7f603b75c4424a1cd4dfc98daa2b3018af80312b9c"
+    },
+    {
+      "file": "stats_team_reg_2023.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2023.csv",
+      "sha256": "e64afc42b3565994706c544e06f7a2865685b5d15c739b89decd0f6336041a8b"
+    },
+    {
+      "file": "stats_player_reg_2024.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2024.csv",
+      "sha256": "fbad4e9f1b892e3870a51a4eea808d692cde14ed6dbacd67cce3a0def8ddcbaa"
+    },
+    {
+      "file": "stats_team_reg_2024.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2024.csv",
+      "sha256": "f879dd4484daf7055549faf40573e413d70e8fa45d647886347d94293e23108f"
+    },
+    {
+      "file": "stats_player_reg_2025.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_reg_2025.csv",
+      "sha256": "aaa8559478dd8d58569c93e278239e70e9411e79ee649c99d8d506030cd42b12"
+    },
+    {
+      "file": "stats_team_reg_2025.csv",
+      "url": "https://github.com/nflverse/nflverse-data/releases/download/stats_team/stats_team_reg_2025.csv",
+      "sha256": "0f7ec981428ea75659fbe5d927068ee9582232d9bd72df53f8acac14bd510b63"
+    },
+    {
+      "file": "games.csv",
+      "url": "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv",
+      "sha256": "ea39c2df01d53e4f9f681da5f6e0542f62d34292d07b381d2ba0b7bb4de4ca5c"
+    }
+  ]
+}
