@@ -1,10 +1,15 @@
 import { CARDS, POSITIONS, random, dailySeed, type Card, type Position } from './draftDuel';
-export const RESCUE_STORAGE = 'pretzel-roster-rescue-v1';
+import roster from '../data/rescue-roster.json';
+export const ROSTER_AS_OF = roster.asOf;
+const current = roster.players as Record<string,{team:string;status:string}>;
+export const RESCUE_CARDS:Card[] = CARDS.filter(c=>c.position==='DST'||current[c.id]).map(c=>({...c,team:current[c.id]?.team??c.team}));
+export const scoringTeam=(card:Card)=>CARDS.find(c=>c.id===card.id)?.team??card.team;
+export const RESCUE_STORAGE = 'pretzel-roster-rescue-v2';
 export type Puzzle = { seed:string; starters:Card[]; bench:Card[] };
 export type RescueSave = { seed:string; mode:'daily'|'practice'; ids:string[]; submitted:boolean };
 const cents=(c:Card)=>Math.round(c.average*100);
 export const total=(cards:Card[])=>cards.reduce((sum,c)=>sum+cents(c),0)/100;
-export const rescueDailySeed=(date:Date)=>dailySeed(date).replace('daily-v2-','rescue-v1-daily-');
+export const rescueDailySeed=(date:Date)=>dailySeed(date).replace('daily-v2-','rescue-v2-daily-');
 export function validRoster(cards:Card[]) {
   if(cards.length!==9||new Set(cards.map(c=>c.id)).size!==9)return false;
   const n=(p:Position)=>cards.filter(c=>c.position===p).length;
@@ -17,7 +22,7 @@ export function makePuzzle(seed:string):Puzzle {
   const take=(pool:Card[])=>{const options=pool.filter(c=>!used.has(c.id));const card=options[Math.floor(rng()*options.length)];if(!card)throw Error('Catalog too small');used.add(card.id);return card;};
   const flex=(['RB','WR','TE'] as Position[])[Math.floor(rng()*3)];
   for(const p of POSITIONS){
-    const group=CARDS.filter(c=>c.position===p).sort((a,b)=>a.average-b.average||a.id.localeCompare(b.id));
+    const group=RESCUE_CARDS.filter(c=>c.position===p).sort((a,b)=>a.average-b.average||a.id.localeCompare(b.id));
     const count=p==='RB'||p==='WR'?2:1;
     for(let i=0;i<count+(p===flex?1:0);i++)starters.push(take(group.slice(Math.floor(group.length*.2),Math.ceil(group.length*.65))));
     // One strong option and one midrange option per position. Values are visible.
@@ -57,8 +62,8 @@ export function solvePuzzle(p:Puzzle):Card[] {
 export function restoreRescue(raw:unknown):{save:RescueSave;puzzle:Puzzle;cards:Card[]}|null {
   if(!raw||typeof raw!=='object')return null;
   const r=raw as RescueSave;
-  if(typeof r.seed!=='string'||r.seed.length>100||!r.seed.startsWith('rescue-v1-')||!['daily','practice'].includes(r.mode)||typeof r.submitted!=='boolean'||!Array.isArray(r.ids)||r.ids.length!==9)return null;
-  if(r.mode==='daily'&&!/^rescue-v1-daily-\d{4}-\d{2}-\d{2}$/.test(r.seed))return null;
+  if(typeof r.seed!=='string'||r.seed.length>100||!r.seed.startsWith('rescue-v2-')||!['daily','practice'].includes(r.mode)||typeof r.submitted!=='boolean'||!Array.isArray(r.ids)||r.ids.length!==9)return null;
+  if(r.mode==='daily'&&!/^rescue-v2-daily-\d{4}-\d{2}-\d{2}$/.test(r.seed))return null;
   const puzzle=makePuzzle(r.seed);const all=[...puzzle.starters,...puzzle.bench];const cards=r.ids.map(id=>all.find(c=>c.id===id));
   if(cards.some(c=>!c)||!allowedRoster(puzzle,cards as Card[]))return null;
   return {save:{seed:r.seed,mode:r.mode,submitted:r.submitted,ids:[...r.ids]},puzzle,cards:cards as Card[]};

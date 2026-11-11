@@ -1,0 +1,1084 @@
+{
+  "season": 2026,
+  "asOf": "2026-11-11",
+  "sourceUpdatedAt": "2026-11-11T07:04:39Z",
+  "source": "https://github.com/nflverse/nflverse-data/releases/download/rosters/roster_2026.csv",
+  "players": {
+    "00-0023459": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0025565": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0026158": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0026498": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0027973": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0028118": {
+      "team": "GB",
+      "status": "ACT"
+    },
+    "00-0028986": {
+      "team": "CHI",
+      "status": "INA"
+    },
+    "00-0029604": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0029822": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0030279": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0030506": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0030565": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0031136": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0031203": {
+      "team": "CHI",
+      "status": "ACT"
+    },
+    "00-0031235": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0031236": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0031381": {
+      "team": "LAR",
+      "status": "RES"
+    },
+    "00-0031408": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0031492": {
+      "team": "SEA",
+      "status": "ACT"
+    },
+    "00-0031588": {
+      "team": "WSH",
+      "status": "ACT"
+    },
+    "00-0031610": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0032268": {
+      "team": "WSH",
+      "status": "ACT"
+    },
+    "00-0032392": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0032394": {
+      "team": "BAL",
+      "status": "ACT"
+    },
+    "00-0032569": {
+      "team": "DEN",
+      "status": "ACT"
+    },
+    "00-0032726": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0032764": {
+      "team": "BAL",
+      "status": "ACT"
+    },
+    "00-0032950": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0033077": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0033090": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0033106": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0033119": {
+      "team": "BAL",
+      "status": "ACT"
+    },
+    "00-0033217": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0033246": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0033280": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0033288": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0033293": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0033303": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0033307": {
+      "team": "ARI",
+      "status": "RES"
+    },
+    "00-0033526": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0033553": {
+      "team": "ARI",
+      "status": "RES"
+    },
+    "00-0033555": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0033662": {
+      "team": "ATL",
+      "status": "INA"
+    },
+    "00-0033699": {
+      "team": "WSH",
+      "status": "ACT"
+    },
+    "00-0033757": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0033787": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0033858": {
+      "team": "GB",
+      "status": "ACT"
+    },
+    "00-0033869": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0033873": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0033881": {
+      "team": "DEN",
+      "status": "ACT"
+    },
+    "00-0033885": {
+      "team": "LAC",
+      "status": "RES"
+    },
+    "00-0033908": {
+      "team": "SEA",
+      "status": "ACT"
+    },
+    "00-0033921": {
+      "team": "TB",
+      "status": "ACT"
+    },
+    "00-0033949": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0033955": {
+      "team": "WSH",
+      "status": "RES"
+    },
+    "00-0034161": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0034173": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0034270": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0034351": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0034365": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0034383": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0034487": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0034577": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0034613": {
+      "team": "CIN",
+      "status": "RES"
+    },
+    "00-0034753": {
+      "team": "BAL",
+      "status": "ACT"
+    },
+    "00-0034771": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0034775": {
+      "team": "SF",
+      "status": "RES"
+    },
+    "00-0034794": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0034796": {
+      "team": "BAL",
+      "status": "RES"
+    },
+    "00-0034798": {
+      "team": "BAL",
+      "status": "RES"
+    },
+    "00-0034827": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0034829": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0034837": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0034844": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0034855": {
+      "team": "TB",
+      "status": "ACT"
+    },
+    "00-0034857": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0034869": {
+      "team": "SEA",
+      "status": "ACT"
+    },
+    "00-0034960": {
+      "team": "JAX",
+      "status": "ACT"
+    },
+    "00-0035192": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0035228": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0035229": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0035250": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0035261": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0035269": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0035289": {
+      "team": "ARI",
+      "status": "ACT"
+    },
+    "00-0035358": {
+      "team": "TB",
+      "status": "ACT"
+    },
+    "00-0035537": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0035640": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0035644": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0035659": {
+      "team": "WSH",
+      "status": "RES"
+    },
+    "00-0035662": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0035676": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0035685": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0035689": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0035710": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0035719": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0036040": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0036139": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0036158": {
+      "team": "DEN",
+      "status": "ACT"
+    },
+    "00-0036162": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0036212": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0036223": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0036244": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0036252": {
+      "team": "PIT",
+      "status": "RES"
+    },
+    "00-0036259": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0036264": {
+      "team": "GB",
+      "status": "ACT"
+    },
+    "00-0036265": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0036275": {
+      "team": "CHI",
+      "status": "ACT"
+    },
+    "00-0036290": {
+      "team": "CHI",
+      "status": "RES"
+    },
+    "00-0036309": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0036322": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0036355": {
+      "team": "LAC",
+      "status": "ACT"
+    },
+    "00-0036358": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0036389": {
+      "team": "PHI",
+      "status": "RES"
+    },
+    "00-0036407": {
+      "team": "CLE",
+      "status": "ACT"
+    },
+    "00-0036410": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0036425": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0036442": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0036554": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0036555": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0036556": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0036567": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0036613": {
+      "team": "DEN",
+      "status": "ACT"
+    },
+    "00-0036637": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0036854": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0036875": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0036876": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0036894": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0036898": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0036900": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0036906": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0036912": {
+      "team": "PHI",
+      "status": "INA"
+    },
+    "00-0036924": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0036945": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0036963": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0036970": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0036971": {
+      "team": "JAX",
+      "status": "ACT"
+    },
+    "00-0036972": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0036973": {
+      "team": "NO",
+      "status": "RES"
+    },
+    "00-0036980": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0036997": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0037005": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0037013": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0037077": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0037086": {
+      "team": "PHI",
+      "status": "ACT"
+    },
+    "00-0037112": {
+      "team": "SF",
+      "status": "RES"
+    },
+    "00-0037197": {
+      "team": "DET",
+      "status": "RES"
+    },
+    "00-0037224": {
+      "team": "LAC",
+      "status": "ACT"
+    },
+    "00-0037228": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0037238": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0037239": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0037247": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0037248": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0037252": {
+      "team": "MIA",
+      "status": "ACT"
+    },
+    "00-0037256": {
+      "team": "WSH",
+      "status": "ACT"
+    },
+    "00-0037276": {
+      "team": "NO",
+      "status": "RES"
+    },
+    "00-0037291": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0037292": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0037614": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0037666": {
+      "team": "MIA",
+      "status": "ACT"
+    },
+    "00-0037692": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0037740": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0037741": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0037744": {
+      "team": "ARI",
+      "status": "ACT"
+    },
+    "00-0037746": {
+      "team": "ATL",
+      "status": "RES"
+    },
+    "00-0037805": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0037809": {
+      "team": "WSH",
+      "status": "ACT"
+    },
+    "00-0037834": {
+      "team": "SF",
+      "status": "ACT"
+    },
+    "00-0037838": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0037840": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0038041": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0038102": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0038115": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0038120": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0038129": {
+      "team": "TB",
+      "status": "ACT"
+    },
+    "00-0038134": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0038428": {
+      "team": "CLE",
+      "status": "ACT"
+    },
+    "00-0038476": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0038542": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0038543": {
+      "team": "SEA",
+      "status": "ACT"
+    },
+    "00-0038547": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0038558": {
+      "team": "PIT",
+      "status": "ACT"
+    },
+    "00-0038559": {
+      "team": "ARI",
+      "status": "ACT"
+    },
+    "00-0038567": {
+      "team": "ARI",
+      "status": "ACT"
+    },
+    "00-0038579": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0038589": {
+      "team": "GB",
+      "status": "ACT"
+    },
+    "00-0038597": {
+      "team": "CIN",
+      "status": "ACT"
+    },
+    "00-0038619": {
+      "team": "CIN",
+      "status": "RES"
+    },
+    "00-0038705": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0038905": {
+      "team": "LAR",
+      "status": "RES"
+    },
+    "00-0038933": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0038935": {
+      "team": "JAX",
+      "status": "ACT"
+    },
+    "00-0038977": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0038994": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0038996": {
+      "team": "GB",
+      "status": "ACT"
+    },
+    "00-0038997": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0039021": {
+      "team": "CHI",
+      "status": "ACT"
+    },
+    "00-0039032": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0039040": {
+      "team": "MIA",
+      "status": "RES"
+    },
+    "00-0039041": {
+      "team": "ARI",
+      "status": "ACT"
+    },
+    "00-0039050": {
+      "team": "TB",
+      "status": "ACT"
+    },
+    "00-0039062": {
+      "team": "DAL",
+      "status": "ACT"
+    },
+    "00-0039064": {
+      "team": "BAL",
+      "status": "ACT"
+    },
+    "00-0039065": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0039067": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0039074": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0039075": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0039139": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0039150": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0039163": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0039164": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0039165": {
+      "team": "SEA",
+      "status": "ACT"
+    },
+    "00-0039172": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0039337": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0039338": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0039356": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0039361": {
+      "team": "TB",
+      "status": "ACT"
+    },
+    "00-0039376": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0039384": {
+      "team": "NYG",
+      "status": "RES"
+    },
+    "00-0039391": {
+      "team": "LAC",
+      "status": "ACT"
+    },
+    "00-0039404": {
+      "team": "MIN",
+      "status": "ACT"
+    },
+    "00-0039409": {
+      "team": "JAX",
+      "status": "ACT"
+    },
+    "00-0039491": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0039732": {
+      "team": "DEN",
+      "status": "ACT"
+    },
+    "00-0039750": {
+      "team": "LAR",
+      "status": "ACT"
+    },
+    "00-0039793": {
+      "team": "SEA",
+      "status": "ACT"
+    },
+    "00-0039794": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0039814": {
+      "team": "CIN",
+      "status": "RES"
+    },
+    "00-0039847": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0039849": {
+      "team": "HOU",
+      "status": "ACT"
+    },
+    "00-0039851": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0039868": {
+      "team": "DEN",
+      "status": "ACT"
+    },
+    "00-0039874": {
+      "team": "MIA",
+      "status": "ACT"
+    },
+    "00-0039875": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0039893": {
+      "team": "JAX",
+      "status": "ACT"
+    },
+    "00-0039894": {
+      "team": "KC",
+      "status": "ACT"
+    },
+    "00-0039910": {
+      "team": "WSH",
+      "status": "ACT"
+    },
+    "00-0039915": {
+      "team": "LAC",
+      "status": "ACT"
+    },
+    "00-0039917": {
+      "team": "ATL",
+      "status": "ACT"
+    },
+    "00-0039918": {
+      "team": "CHI",
+      "status": "ACT"
+    },
+    "00-0039919": {
+      "team": "CHI",
+      "status": "ACT"
+    },
+    "00-0039923": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0040074": {
+      "team": "BAL",
+      "status": "RES"
+    },
+    "00-0040122": {
+      "team": "LV",
+      "status": "ACT"
+    },
+    "00-0040124": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0040126": {
+      "team": "CHI",
+      "status": "ACT"
+    },
+    "00-0040128": {
+      "team": "IND",
+      "status": "ACT"
+    },
+    "00-0040162": {
+      "team": "CLE",
+      "status": "ACT"
+    },
+    "00-0040170": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0040187": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0040189": {
+      "team": "LAC",
+      "status": "ACT"
+    },
+    "00-0040194": {
+      "team": "BUF",
+      "status": "ACT"
+    },
+    "00-0040200": {
+      "team": "NE",
+      "status": "ACT"
+    },
+    "00-0040236": {
+      "team": "CHI",
+      "status": "INA"
+    },
+    "00-0040279": {
+      "team": "CAR",
+      "status": "ACT"
+    },
+    "00-0040584": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0040663": {
+      "team": "CLE",
+      "status": "ACT"
+    },
+    "00-0040666": {
+      "team": "LAC",
+      "status": "ACT"
+    },
+    "00-0040667": {
+      "team": "GB",
+      "status": "ACT"
+    },
+    "00-0040668": {
+      "team": "CLE",
+      "status": "ACT"
+    },
+    "00-0040669": {
+      "team": "DET",
+      "status": "ACT"
+    },
+    "00-0040676": {
+      "team": "TEN",
+      "status": "ACT"
+    },
+    "00-0040691": {
+      "team": "NYG",
+      "status": "RES"
+    },
+    "00-0040715": {
+      "team": "NYG",
+      "status": "ACT"
+    },
+    "00-0040719": {
+      "team": "JAX",
+      "status": "ACT"
+    },
+    "00-0040736": {
+      "team": "NYJ",
+      "status": "ACT"
+    },
+    "00-0040737": {
+      "team": "LAR",
+      "status": "RES"
+    },
+    "00-0040743": {
+      "team": "NO",
+      "status": "ACT"
+    },
+    "00-0040784": {
+      "team": "CLE",
+      "status": "ACT"
+    }
+  }
+}
