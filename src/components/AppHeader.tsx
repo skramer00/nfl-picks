@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
@@ -11,20 +12,28 @@ type ProfileRow = {
   is_admin: boolean | null;
 };
 
+const picksSections = [
+  { href: "/week", label: "Weekly Picks", paths: ["/week"] },
+  { href: "/my-picks", label: "Season Summary", paths: ["/my-picks"] },
+  { href: "/power-rankings", label: "Model Center", paths: ["/power-rankings", "/model"] },
+];
+
 function NavLink({
   href,
   label,
   onSelect,
+  active = false,
 }: {
   href: string;
   label: string;
   onSelect?: () => void;
+  active?: boolean;
 }) {
   return (
     <Link
       href={href}
       onClick={onSelect}
-      className="block whitespace-nowrap rounded-lg px-3 py-2.5 text-sm text-gray-200 hover:bg-gray-800"
+      className={`block whitespace-nowrap rounded-lg px-3 py-2.5 text-sm hover:bg-gray-800 ${active ? "bg-gray-900 font-semibold text-amber-300" : "text-gray-200"}`}
     >
       {label}
     </Link>
@@ -32,6 +41,11 @@ function NavLink({
 }
 
 export default function AppHeader() {
+  const pathname = usePathname();
+  const activePicksSection = picksSections.find(({ paths }) =>
+    paths.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  );
+
   const [user, setUser] = useState<User | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -93,82 +107,101 @@ export default function AppHeader() {
     displayName || (user?.email ? user.email.split("@")[0] : "User");
 
   return (
-    <header className="sticky top-0 z-10 border-b border-gray-800 bg-black/80 backdrop-blur">
-      <div className="mx-auto max-w-6xl px-4 py-3 lg:flex lg:items-center lg:justify-between lg:gap-4">
-        <div className="flex items-center justify-between lg:shrink-0">
-          <Link href="/" className="text-base font-semibold tracking-tight" onClick={() => setMenuOpen(false)}>
-            <span aria-hidden="true" className="mr-1.5">🥨</span>
-            Pretzel Quest
-          </Link>
-          <div className="ml-3 flex items-center gap-2 lg:hidden">
-            {!user ? (
+    <>
+      <header className="sticky top-0 z-10 border-b border-gray-800 bg-black/80 backdrop-blur">
+        <div className="mx-auto max-w-6xl px-4 py-3 lg:flex lg:items-center lg:justify-between lg:gap-4">
+          <div className="flex items-center justify-between lg:shrink-0">
+            <Link href="/" className="text-base font-semibold tracking-tight" onClick={() => setMenuOpen(false)}>
+              <span aria-hidden="true" className="mr-1.5">🥨</span>
+              Pretzel Quest
+            </Link>
+            <div className="ml-3 flex items-center gap-2 lg:hidden">
+              {!user ? (
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+                >
+                  Login
+                </Link>
+              ) : null}
+              <button
+                type="button"
+                className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
+                aria-expanded={menuOpen}
+                aria-controls="site-menu"
+                onClick={() => setMenuOpen((open) => !open)}
+              >
+                {menuOpen ? "Close" : "Menu"}
+              </button>
+            </div>
+          </div>
+
+          <div
+            id="site-menu"
+            className={`${menuOpen ? "flex" : "hidden"} mt-3 flex-col gap-3 border-t border-gray-800 pt-3 lg:mt-0 lg:flex lg:flex-row lg:items-center lg:justify-end lg:border-0 lg:pt-0`}
+          >
+            <nav className="flex flex-col gap-1 lg:flex-row lg:items-center" aria-label="Primary">
+              <NavLink href="/week" label="Picks" active={Boolean(activePicksSection)} onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/draft-duel" label="Draft Duel" onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/roster-rescue" label="Roster Rescue" onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />
+              {isAdmin ? <NavLink href="/admin" label="Admin" onSelect={() => setMenuOpen(false)} /> : null}
+            </nav>
+
+            {user ? (
+              <div className="flex flex-wrap items-center gap-2 border-t border-gray-800 pt-3 lg:border-0 lg:pt-0">
+                <Link
+                  href="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="mr-auto rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white lg:mr-0"
+                >
+                  {userLabel}
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await supabase.auth.signOut();
+                    window.location.assign("/");
+                  }}
+                  className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+                >
+                  Logout
+                </button>
+              </div>
+            ) : (
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
-                className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+                className="hidden rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800 lg:inline-flex"
               >
                 Login
               </Link>
-            ) : null}
-            <button
-              type="button"
-              className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
-              aria-expanded={menuOpen}
-              aria-controls="site-menu"
-              onClick={() => setMenuOpen((open) => !open)}
-            >
-              {menuOpen ? "Close" : "Menu"}
-            </button>
+            )}
           </div>
         </div>
-
-        <div
-          id="site-menu"
-          className={`${menuOpen ? "flex" : "hidden"} mt-3 flex-col gap-3 border-t border-gray-800 pt-3 lg:mt-0 lg:flex lg:flex-row lg:items-center lg:justify-end lg:border-0 lg:pt-0`}
-        >
-          <nav className="flex flex-col gap-1 lg:flex-row lg:items-center" aria-label="Primary">
-            <NavLink href="/week" label="Picks" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/draft-duel" label="Draft Duel" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/roster-rescue" label="Roster Rescue" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/my-picks" label="Season" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/power-rankings" label="Model" onSelect={() => setMenuOpen(false)} />
-            <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />
-            {isAdmin ? <NavLink href="/admin" label="Admin" onSelect={() => setMenuOpen(false)} /> : null}
+      </header>
+      {activePicksSection ? (
+        <div className="border-b border-gray-800 bg-gray-950">
+          <nav aria-label="Picks sections" className="mx-auto flex max-w-6xl flex-wrap gap-x-2 px-4">
+            {picksSections.map((section) => {
+              const active = section === activePicksSection;
+              return (
+                <Link
+                  key={section.href}
+                  href={section.href}
+                  aria-current={active ? (pathname === section.href ? "page" : "location") : undefined}
+                  className={`inline-flex min-h-11 items-center border-b-2 px-2 text-sm font-medium sm:px-3 ${active ? "border-amber-400 text-amber-300" : "border-transparent text-gray-300 hover:bg-gray-900 hover:text-white"}`}
+                >
+                  {section.label}
+                </Link>
+              );
+            })}
           </nav>
-
-          {user ? (
-            <div className="flex flex-wrap items-center gap-2 border-t border-gray-800 pt-3 lg:border-0 lg:pt-0">
-              <Link
-                href="/profile"
-                onClick={() => setMenuOpen(false)}
-                className="mr-auto rounded-lg px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 hover:text-white lg:mr-0"
-              >
-                {userLabel}
-              </Link>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.assign("/");
-                }}
-                className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
-              >
-                Logout
-              </button>
-            </div>
-          ) : (
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="hidden rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800 lg:inline-flex"
-            >
-              Login
-            </Link>
-          )}
         </div>
-      </div>
-    </header>
+      ) : null}
+    </>
   );
 }
