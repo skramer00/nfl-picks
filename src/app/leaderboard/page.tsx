@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import DailyGameStandings from "@/components/DailyGameStandings";
+import { dailyGames, isDailyGame, type DailyGame } from "@/lib/dailyGameScores";
 import { useEffect, useState, type FormEvent } from "react";
 import { getLeaderboard, type LeaderboardRow } from "@/lib/leaderboardDb";
 import { createPool, getMyPools, getPoolMembers, getPoolStandings, joinPool, regeneratePoolInvite, removePoolMember, setPoolInvites, type Pool, type PoolMember } from "@/lib/poolsDb";
@@ -14,6 +16,7 @@ function Standings({ rows }: { rows: LeaderboardRow[] }) {
 }
 
 export default function LeaderboardPage() {
+  const [game, setGame] = useState<"picks" | DailyGame>("picks");
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [pools, setPools] = useState<Pool[]>([]);
   const [members, setMembers] = useState<PoolMember[]>([]);
@@ -27,7 +30,7 @@ export default function LeaderboardPage() {
   const activePool = pools.find((pool) => pool.pool_id === selected) ?? null;
 
   async function refreshPools(selectId?: string) { const next = await getMyPools(); setPools(next); if (selectId) setSelected(selectId); return next; }
-  useEffect(() => { let cancelled = false; async function load() { try { const code = new URLSearchParams(window.location.search).get("invite"); if (code) setInviteCode(code.toUpperCase().slice(0, 8)); const [{ data }, overall] = await Promise.all([supabase.auth.getUser(), getLeaderboard()]); if (cancelled) return; setUserId(data.user?.id ?? null); setRows(overall); if (data.user) setPools(await getMyPools()); } catch (error) { if (!cancelled) setStatus(error instanceof Error ? error.message : "Unable to load standings."); } finally { if (!cancelled) setLoading(false); } } void load(); return () => { cancelled = true; }; }, []);
+  useEffect(() => { let cancelled = false; async function load() { try { const params = new URLSearchParams(window.location.search); const requestedGame = params.get("game"); if (isDailyGame(requestedGame)) setGame(requestedGame); const code = params.get("invite"); if (code) setInviteCode(code.toUpperCase().slice(0, 8)); const [{ data }, overall] = await Promise.all([supabase.auth.getUser(), getLeaderboard()]); if (cancelled) return; setUserId(data.user?.id ?? null); setRows(overall); if (data.user) setPools(await getMyPools()); } catch (error) { if (!cancelled) setStatus(error instanceof Error ? error.message : "Unable to load standings."); } finally { if (!cancelled) setLoading(false); } } void load(); return () => { cancelled = true; }; }, []);
   useEffect(() => { if (selected === "overall") { void getLeaderboard().then(setRows); setMembers([]); return; } let cancelled = false; Promise.all([getPoolStandings(selected, week || undefined), getPoolMembers(selected)]).then(([nextRows, nextMembers]) => { if (!cancelled) { setRows(nextRows); setMembers(nextMembers); } }).catch((error) => { if (!cancelled) setStatus(error instanceof Error ? error.message : "Unable to load pool."); }); return () => { cancelled = true; }; }, [selected, week]);
 
   async function create(event: FormEvent) { event.preventDefault(); setStatus(""); try { const id = await createPool(poolName); await refreshPools(id); setPoolName(""); setStatus("Pool created. Share its invite link when you’re ready."); } catch (error) { setStatus(error instanceof Error ? error.message : "Unable to create pool."); } }
@@ -37,7 +40,17 @@ export default function LeaderboardPage() {
   async function remove(member: PoolMember) { if (!activePool) return; await removePoolMember(activePool.pool_id, member.user_id); setMembers(await getPoolMembers(activePool.pool_id)); setRows(await getPoolStandings(activePool.pool_id, week || undefined)); setStatus(`${member.display_name} was removed.`); }
   async function copyInvite() { if (!activePool) return; await navigator.clipboard.writeText(`${window.location.origin}/leaderboard?invite=${activePool.invite_code}`); setStatus("Invite link copied."); }
 
-  return <main className="mx-auto max-w-5xl p-6"><div className="max-w-3xl"><p className="text-sm font-medium uppercase tracking-widest text-blue-400">Standings</p><h1 className="mt-1 text-3xl font-semibold">Leaderboard</h1><p className="mt-2 text-sm text-gray-400">{selected === "overall" ? "1 point per pick • +1 correct • playoff rounds multiply" : "Pool standings count picks only after kickoff, keeping future selections private."}</p></div>
+  return <main className="mx-auto max-w-5xl p-6"><div className="max-w-3xl"><p className="text-sm font-medium uppercase tracking-widest text-blue-400">Standings</p><h1 className="mt-1 text-3xl font-semibold">Leaderboard</h1></div>
+    <div className="mt-5 flex flex-wrap gap-2" role="group" aria-label="Leaderboard game">
+      {(["picks", "draft-duel", "roster-rescue"] as const).map((option) => (
+        <button key={option} type="button" aria-pressed={game === option} onClick={() => setGame(option)}
+          className={`min-h-11 rounded-lg border px-3 text-sm font-semibold ${game === option ? "border-amber-400 bg-amber-400 text-gray-950" : "border-gray-700 text-gray-200 hover:bg-gray-900"}`}>
+          {option === "picks" ? "NFL Picks" : dailyGames[option].label}
+        </button>
+      ))}
+    </div>
+    {game !== "picks" ? <DailyGameStandings key={game} game={game} /> : <>
+    <p className="mt-4 text-sm text-gray-300">{selected === "overall" ? "1 point per pick • +1 correct • playoff rounds multiply" : "Pool standings count picks only after kickoff, keeping future selections private."}</p>
     {status ? <div className="mt-5 rounded-xl border border-gray-800 bg-gray-950 p-4 text-sm" role="status">{status}</div> : null}
     {loading ? <div className="mt-6 rounded-xl border border-gray-800 p-6">Loading standings…</div> : <>
       <div className="mt-6 flex flex-wrap items-end gap-3"><label className="min-w-56 text-sm text-gray-300">Leaderboard<select value={selected} onChange={(event) => setSelected(event.target.value)} className="mt-1 w-full rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white"><option value="overall">Overall</option>{pools.map((pool) => <option key={pool.pool_id} value={pool.pool_id}>{pool.name} ({pool.member_count})</option>)}</select></label>{selected !== "overall" ? <label className="text-sm text-gray-300">View<select value={week} onChange={(event) => setWeek(Number(event.target.value))} className="mt-1 block rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white"><option value={0}>Season</option>{Array.from({ length: 18 }, (_, index) => <option key={index + 1} value={index + 1}>Week {index + 1}</option>)}</select></label> : null}</div>
@@ -48,6 +61,7 @@ export default function LeaderboardPage() {
         </section> : null}
         <section className="mt-8 grid gap-4 md:grid-cols-2"><form onSubmit={create} className="rounded-2xl border border-gray-800 bg-gray-950 p-5"><h2 className="text-lg font-semibold">Create a pool</h2><p className="mt-1 text-sm text-gray-400">Start a private leaderboard for friends or family.</p><input required minLength={2} maxLength={50} value={poolName} onChange={(event) => setPoolName(event.target.value)} placeholder="Pool name" className="mt-4 w-full rounded-lg border border-gray-700 bg-gray-900 p-3" /><button className="mt-3 w-full rounded-lg bg-blue-600 py-2.5 font-semibold" type="submit">Create pool</button></form><form onSubmit={join} className="rounded-2xl border border-gray-800 bg-gray-950 p-5"><h2 className="text-lg font-semibold">Join a pool</h2><p className="mt-1 text-sm text-gray-400">Enter the eight-character code from an invitation.</p><input required minLength={8} maxLength={8} value={inviteCode} onChange={(event) => setInviteCode(event.target.value.toUpperCase())} placeholder="AB12CD34" className="mt-4 w-full rounded-lg border border-gray-700 bg-gray-900 p-3 uppercase tracking-widest" /><button className="mt-3 w-full rounded-lg border border-gray-700 py-2.5 font-semibold" type="submit">Join pool</button></form></section>
       </>}
+    </>}
     </>}
   </main>;
 }

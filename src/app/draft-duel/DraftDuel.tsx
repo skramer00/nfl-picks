@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { CARDS, TEAMS, POSITIONS, STORAGE_KEY, dailySeed, startDuel, draftCard, roster, score, lineup, legalCards, restoreDuel, sideAt, type Duel, type Position, type Card } from '@/lib/draftDuel';
+import PostDailyScore from '@/components/PostDailyScore';
 import styles from './duel.module.css';
 
 type Saved = { seed:string; mode:Duel['mode']; picks:string[] };
@@ -101,7 +102,7 @@ export default function DraftDuel(){
     <p className={styles.notice} role="status" aria-live="polite">{notice}</p>
     {game?<>
       <section className={styles.scoreboard} aria-label="Matchup score"><div><span>{game.mode==='daily'?'DAILY · '+game.seed.slice(-10):'PRACTICE DRAFT'}</span><h2>{finished?'Final score':`Pick ${game.picks.length+1} of 18 · Your turn`}</h2><p>{finished?'Sum of each roster’s season averages.':`Snake draft · ${game.first==='you'?'You pick':'Computer picks'} first · Plan for the next turn.`}</p></div><div className={styles.scorePair}><strong>{number(yourScore)}<small>YOU</small></strong><span>:</span><strong>{number(cpuScore)}<small>COMPUTER</small></strong></div></section>
-      {finished?<section className={styles.result}><h2>{title}</h2><p>{yourScore===cpuScore?'Both rosters finished with the same total.':`${yourScore>cpuScore?'You won':'You lost'} by ${number(Math.abs(yourScore-cpuScore))} points.`} Compare the lineups below, or draft a new set of legends.</p><button className={styles.primary} onClick={()=>begin('practice')}>Play another draft</button></section>:null}
+      {finished?<section className={styles.result}><h2>{title}</h2><p>{yourScore===cpuScore?'Both rosters finished with the same total.':`${yourScore>cpuScore?'You won':'You lost'} by ${number(Math.abs(yourScore-cpuScore))} points.`} Compare the lineups below, or draft a new set of legends.</p><button className={styles.primary} onClick={()=>begin('practice')}>Play another draft</button>{game.mode==='daily' && <PostDailyScore key={game.seed} game="draft-duel" result={saved(game)} />}</section>:null}
       <div className={styles.rosters}><Roster game={game} side="you"/><Roster game={game} side="cpu"/></div>
       <section className={styles.board} aria-label="Draft board"><div className={styles.boardHeading}><div><p className={styles.eyebrow}>ONE CARD. EVERY FRANCHISE.</p><h2>{finished?'The draft board':'On the clock'}</h2></div><span className={styles.poolCount}>{32-game.picks.length} available / 32</span></div>
         <div className={styles.toolbar}><label className={styles.search}><span>Find a player or team</span><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Name, franchise or season" type="search"/></label><label className={styles.check}><input type="checkbox" checked={showDrafted} onChange={e=>setShowDrafted(e.target.checked)}/> Show drafted cards</label></div>

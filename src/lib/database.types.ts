@@ -14,6 +14,18 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_game_scores: {
+        Row: { user_id: string; game: string; day: string; score: number }
+        Insert: { user_id: string; game: string; day: string; score: number }
+        Update: never
+        Relationships: [{
+          foreignKeyName: "daily_game_scores_user_id_fkey"
+          columns: ["user_id"]
+          isOneToOne: false
+          referencedRelation: "profiles"
+          referencedColumns: ["user_id"]
+        }]
+      }
       model_efficiency_observations: {
         Row: import("./efficiencyModel").EfficiencyObservation
         Insert: import("./efficiencyModel").EfficiencyObservation
