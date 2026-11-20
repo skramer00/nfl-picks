@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { getGamesByWeek, type ScheduleGame } from "@/lib/gamesDb";
-import { getUserPicks, upsertPick } from "@/lib/picksDb";
+import { getPretzelPicks, getUserPicks, savePretzelPick, upsertPick } from "@/lib/picksDb";
 import { supabase } from "@/lib/supabaseClient";
 import { formatFavorability } from "@/lib/favorability";
 import { matchupExplanation } from "@/lib/modelAnalytics";
@@ -37,7 +37,13 @@ export default function WeekPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [picks, setPicks] = useState<Record<string, string>>({});
-  const [signedIn, setSignedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [pretzels, setPretzels] = useState<Record<number, string> | null>(null);
+  const [savingPretzel, setSavingPretzel] = useState(false);
+  const signedIn = Boolean(userId);
+  const pretzelGameId = pretzels?.[week];
+  const pretzelGame = games.find((game) => game.id === pretzelGameId);
+  const pretzelLocked = pretzelGame ? Date.parse(pretzelGame.kickoff_at) <= Date.now() : false;
   const [savingGameId, setSavingGameId] = useState<string | null>(null);
   const [pickMessage, setPickMessage] = useState<string | null>(null);
   const completedPicks = games.filter((game) => Boolean(picks[game.id])).length;
@@ -81,10 +87,11 @@ export default function WeekPage() {
   useEffect(() => {
     async function loadPickState() {
       const { data: { user } } = await supabase.auth.getUser();
-      setSignedIn(Boolean(user));
+      setUserId(user?.id ?? null);
       if (user) {
         try {
-          setPicks(await getUserPicks());
+          setPicks(await getUserPicks(user.id));
+          setPretzels(await getPretzelPicks(SEASON, user.id));
         } catch (pickError) {
           setPickMessage(pickError instanceof Error ? pickError.message : "Unable to load your picks.");
         }
@@ -109,6 +116,22 @@ export default function WeekPage() {
       setPickMessage(pickError instanceof Error ? pickError.message : "Unable to save that pick.");
     } finally {
       setSavingGameId(null);
+    }
+  }
+
+  async function choosePretzel(game: ScheduleGame) {
+    if (!userId || !picks[game.id] || savingPretzel || pretzelLocked) return;
+    setSavingPretzel(true);
+    setPickMessage(null);
+    const remove = pretzelGameId === game.id;
+    try {
+      await savePretzelPick(userId, SEASON, week, game.id, remove);
+      setPretzels(await getPretzelPicks(SEASON, userId));
+      setPickMessage(remove ? "Pretzel Pick removed." : "Pretzel Pick saved.");
+    } catch (error) {
+      setPickMessage(error instanceof Error ? error.message : "Unable to save your Pretzel Pick.");
+    } finally {
+      setSavingPretzel(false);
     }
   }
 
@@ -203,7 +226,13 @@ export default function WeekPage() {
       )}
 
       {!loading && !error && games.length > 0 && (
-        <div className="mt-8 grid gap-4 md:grid-cols-2">
+        <>
+        <p className="mt-6 text-sm text-gray-300">
+          <strong className="text-amber-300">🥨 Pretzel Pick</strong>{" "}
+          Choose one saved pick this week for a chance to earn 1 extra point. You can move it until its game kicks off.
+          {pretzelLocked && " Your Pretzel Pick is locked."}
+        </p>
+        <div className="mt-4 grid gap-4 md:grid-cols-2">
           {games.map((game) => (
             <article key={game.id} className="rounded-2xl border border-gray-800 bg-gray-950 p-5">
               <div className="flex items-start justify-between gap-4">
@@ -250,6 +279,19 @@ export default function WeekPage() {
                 </button>
               </div>
 
+              {signedIn && (picks[game.id] || pretzelGameId === game.id) && (
+                <button
+                  type="button"
+                  aria-pressed={pretzelGameId === game.id}
+                  disabled={pretzels === null || savingPretzel || pretzelLocked || Date.parse(game.kickoff_at) <= Date.now()}
+                  onClick={() => void choosePretzel(game)}
+                  className={`mt-4 min-h-11 rounded-lg border px-3 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-amber-300 disabled:cursor-not-allowed ${pretzelGameId === game.id ? "border-amber-500 bg-amber-950 text-amber-200" : "border-gray-700 text-gray-200 enabled:hover:border-amber-400 disabled:text-gray-500"}`}
+                >
+                  <span aria-hidden="true">🥨 </span>
+                  {pretzelGameId === game.id ? (pretzelLocked ? "Pretzel Pick locked" : "Pretzel Pick selected · Remove") : "Make this my Pretzel Pick"}
+                </button>
+              )}
+
               {game.favorability_override_reason ? (
                 <p className="mt-4 rounded-lg border border-amber-900/80 bg-amber-950/30 px-3 py-2 text-xs text-amber-200">
                   Adjusted favorability: {game.favorability_override_reason}
@@ -281,6 +323,7 @@ export default function WeekPage() {
             </article>
           ))}
         </div>
+        </>
       )}
     </main>
   );

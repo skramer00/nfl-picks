@@ -39,3 +39,18 @@ export async function upsertPick(gameId: string, teamId: string) {
 
   if (error) throw error;
 }
+
+export async function getPretzelPicks(season: number, userId: string) {
+  const { data, error } = await supabase.from("pretzel_picks")
+    .select("week, game_id").eq("season", season).eq("user_id", userId);
+  if (error) throw error;
+  return Object.fromEntries(data.map(({ week, game_id }) => [week, game_id]));
+}
+
+export async function savePretzelPick(userId: string, season: number, week: number, gameId: string, remove: boolean) {
+  const table = supabase.from("pretzel_picks");
+  const { error } = remove
+    ? await table.delete().eq("user_id", userId).eq("season", season).eq("week", week).eq("game_id", gameId)
+    : await table.upsert({ user_id: userId, season, week, game_id: gameId }, { onConflict: "user_id,season,week" });
+  if (error) throw new Error(error.message);
+}

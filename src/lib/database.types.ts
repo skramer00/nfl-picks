@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      pretzel_picks: {
+        Row: { user_id: string; season: number; week: number; game_id: string }
+        Insert: { user_id: string; season: number; week: number; game_id: string }
+        Update: { game_id?: string }
+        Relationships: []
+      }
       daily_game_scores: {
         Row: { user_id: string; game: string; day: string; score: number }
         Insert: { user_id: string; game: string; day: string; score: number }

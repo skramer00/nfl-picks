@@ -50,7 +50,7 @@ export default function LeaderboardPage() {
       ))}
     </div>
     {game !== "picks" ? <DailyGameStandings key={game} game={game} /> : <>
-    <p className="mt-4 text-sm text-gray-300">{selected === "overall" ? "1 point per pick • +1 correct • playoff rounds multiply" : "Pool standings count picks only after kickoff, keeping future selections private."}</p>
+    <p className="mt-4 text-sm text-gray-300">{selected === "overall" ? "1 point per pick • +1 correct • +1 for a correct Pretzel Pick" : "Pool standings count picks after kickoff and award 1 extra point for a correct Pretzel Pick."}</p>
     {status ? <div className="mt-5 rounded-xl border border-gray-800 bg-gray-950 p-4 text-sm" role="status">{status}</div> : null}
     {loading ? <div className="mt-6 rounded-xl border border-gray-800 p-6">Loading standings…</div> : <>
       <div className="mt-6 flex flex-wrap items-end gap-3"><label className="min-w-56 text-sm text-gray-300">Leaderboard<select value={selected} onChange={(event) => setSelected(event.target.value)} className="mt-1 w-full rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white"><option value="overall">Overall</option>{pools.map((pool) => <option key={pool.pool_id} value={pool.pool_id}>{pool.name} ({pool.member_count})</option>)}</select></label>{selected !== "overall" ? <label className="text-sm text-gray-300">View<select value={week} onChange={(event) => setWeek(Number(event.target.value))} className="mt-1 block rounded-xl border border-gray-700 bg-gray-950 px-4 py-3 text-white"><option value={0}>Season</option>{Array.from({ length: 18 }, (_, index) => <option key={index + 1} value={index + 1}>Week {index + 1}</option>)}</select></label> : null}</div>
