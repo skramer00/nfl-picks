@@ -48,9 +48,21 @@ export async function getPretzelPicks(season: number, userId: string) {
 }
 
 export async function savePretzelPick(userId: string, season: number, week: number, gameId: string, remove: boolean) {
-  const table = supabase.from("pretzel_picks");
-  const { error } = remove
-    ? await table.delete().eq("user_id", userId).eq("season", season).eq("week", week).eq("game_id", gameId)
-    : await table.upsert({ user_id: userId, season, week, game_id: gameId }, { onConflict: "user_id,season,week" });
-  if (error) throw new Error(error.message);
+  if (remove) {
+    const { error } = await supabase.from("pretzel_picks").delete()
+      .eq("user_id", userId).eq("season", season).eq("week", week).eq("game_id", gameId);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session || session.user.id !== userId) throw new Error("Log in to save your Pretzel Pick.");
+  const response = await fetch("/api/pretzel-pick", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${session.access_token}` },
+    body: JSON.stringify({ gameId }),
+  });
+  if (!response.ok) {
+    const { error } = await response.json().catch(() => ({}));
+    throw new Error(error ?? "Unable to save your Pretzel Pick.");
+  }
 }

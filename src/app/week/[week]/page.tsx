@@ -9,6 +9,7 @@ import { getPretzelPicks, getUserPicks, savePretzelPick, upsertPick } from "@/li
 import { supabase } from "@/lib/supabaseClient";
 import { formatFavorability } from "@/lib/favorability";
 import { matchupExplanation } from "@/lib/modelAnalytics";
+import { pretzelUnderdog } from "@/lib/pretzelEligibility";
 import { selectedTeamStyle } from "@/lib/teamColors";
 
 const SEASON = 2026;
@@ -104,6 +105,11 @@ export default function WeekPage() {
   async function chooseTeam(game: ScheduleGame, teamId: string) {
     if (!signedIn) {
       setPickMessage("Log in to save picks.");
+      return;
+    }
+
+    if (pretzelGameId === game.id && teamId !== picks[game.id]) {
+      setPickMessage("Remove your Pretzel Pick before switching teams in this matchup.");
       return;
     }
 
@@ -216,12 +222,13 @@ export default function WeekPage() {
         <>
           <p className="mt-4 text-sm text-gray-300">
             <strong className="text-amber-300">🥨 Pretzel Pick</strong>{" · "}
-            One per week · +1 if correct{pretzelLocked && " · Locked"}
+            One underdog per week · +1 if correct{pretzelLocked && " · Locked"}
           </p>
           <div className="mt-3 grid items-start gap-3 md:grid-cols-2">
             {games.map((game) => {
               const locked = Date.parse(game.kickoff_at) <= Date.now();
               const isPretzel = pretzelGameId === game.id;
+              const canSetPretzel = picks[game.id] === pretzelUnderdog(game) && !locked && !pretzelLocked;
               const teams = [
                 { side: "Away", team: game.away_team, probability: game.away_win_prob, opponent: game.home_win_prob },
                 { side: "Home", team: game.home_team, probability: game.home_win_prob, opponent: game.away_win_prob },
@@ -256,7 +263,7 @@ export default function WeekPage() {
                     })}
                   </div>
                   <div className="mt-1 flex flex-wrap items-start gap-x-3">
-                    {signedIn && (isPretzel || (picks[game.id] && !locked && !pretzelLocked)) && (
+                    {signedIn && (isPretzel || canSetPretzel) && (
                       <button type="button" aria-pressed={isPretzel}
                         disabled={pretzels === null || savingPretzel || pretzelLocked || locked}
                         onClick={() => void choosePretzel(game)}

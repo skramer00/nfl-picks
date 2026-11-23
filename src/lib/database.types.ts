@@ -15,8 +15,8 @@ export type Database = {
   public: {
     Tables: {
       pretzel_picks: {
-        Row: { user_id: string; season: number; week: number; game_id: string }
-        Insert: { user_id: string; season: number; week: number; game_id: string }
+        Row: { user_id: string; season: number; week: number; game_id: string; underdog_team_id: string | null }
+        Insert: { user_id: string; season: number; week: number; game_id: string; underdog_team_id: string }
         Update: { game_id?: string }
         Relationships: []
       }
