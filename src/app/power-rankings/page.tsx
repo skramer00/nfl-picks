@@ -187,7 +187,7 @@ export default function PowerRankingsPage() {
   }, [games]);
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <div className="max-w-3xl">
         <p className="text-sm font-medium uppercase tracking-widest text-blue-400">
           {SEASON} model

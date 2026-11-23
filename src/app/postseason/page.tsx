@@ -169,7 +169,7 @@ export default function PostseasonPage() {
   const revoke = async () => { if (!userId) throw new Error("Log in to manage sharing."); const next = await revokeShare(userId, shareKind); setShares((current) => [...current.filter((item) => item.kind !== shareKind), next]); return next; };
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <div className="max-w-3xl">
         <p className="text-sm font-medium uppercase tracking-widest text-blue-400">2026 playoff picture</p>
         <h1 className="mt-1 text-3xl font-semibold">Postseason projection</h1>
@@ -233,7 +233,7 @@ export default function PostseasonPage() {
           <div className="mt-4 h-2 overflow-hidden rounded-full bg-amber-950">
             <div className="h-full rounded-full bg-amber-400" style={{ width: `${progress.total ? (progress.resolved / progress.total) * 100 : 0}%` }} />
           </div>
-          <Link href="/week/1" className="mt-4 inline-block text-amber-200 underline">Continue making picks</Link>
+          <Link href="/week" className="mt-4 inline-block text-amber-200 underline">Continue making picks</Link>
         </div>
       ) : null}
 

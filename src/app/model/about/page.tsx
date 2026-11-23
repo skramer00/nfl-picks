@@ -75,7 +75,7 @@ export default function AboutModelPage() {
           <h2 className="text-xl font-semibold text-amber-100">The fun part is disagreeing.</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-amber-100/70">Use the percentages as context, trust your own read, and see whether you can beat the model over a full season.</p>
         </div>
-        <Link href="/week" className="mt-5 inline-flex shrink-0 rounded-xl bg-amber-400 px-5 py-3 text-sm font-semibold text-gray-950 hover:bg-amber-300 sm:mt-0">Make your picks</Link>
+        <Link href="/week" className="action-primary mt-5 shrink-0 sm:mt-0">Make your picks</Link>
       </section>
     </main>
   );

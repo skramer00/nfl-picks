@@ -147,7 +147,7 @@ function AuthForm() {
   if (mode === "forgot" || mode === "reset") {
     const resetting = mode === "reset";
     return (
-      <main className="mx-auto max-w-md p-6">
+      <main className="mx-auto max-w-md px-4 py-6 sm:px-6">
         <h1 className="text-3xl font-semibold">
           {resetting ? "Choose a new password" : "Reset your password"}
         </h1>
@@ -193,7 +193,7 @@ function AuthForm() {
           )}
           <button
             disabled={isLoading}
-            className="w-full rounded-lg bg-blue-600 py-3 font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+            className="action-primary w-full"
             type="submit"
           >
             {isLoading ? "Working…" : resetting ? "Update password" : "Send reset link"}
@@ -216,7 +216,7 @@ function AuthForm() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-6">
+    <main className="mx-auto max-w-md px-4 py-6 sm:px-6">
       <h1 className="text-3xl font-semibold">
         {mode === "signup" ? "Join Pretzel Quest" : "Welcome back"}
       </h1>
@@ -307,7 +307,7 @@ function AuthForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="mx-auto max-w-md p-6 text-gray-400">Loading…</main>}>
+    <Suspense fallback={<main className="mx-auto max-w-md px-4 py-6 sm:px-6 text-gray-400">Loading…</main>}>
       <AuthForm />
     </Suspense>
   );

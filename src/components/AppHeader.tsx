@@ -23,17 +23,20 @@ function NavLink({
   label,
   onSelect,
   active = false,
+  current = false,
 }: {
   href: string;
   label: string;
   onSelect?: () => void;
   active?: boolean;
+  current?: boolean;
 }) {
   return (
     <Link
       href={href}
       onClick={onSelect}
-      className={`block whitespace-nowrap rounded-lg px-3 py-2.5 text-sm hover:bg-gray-800 ${active ? "bg-gray-900 font-semibold text-amber-300" : "text-gray-200"}`}
+      aria-current={current ? "page" : active ? "location" : undefined}
+      className={`flex min-h-11 items-center whitespace-nowrap rounded-lg px-3 py-2 text-sm hover:bg-gray-800 ${active ? "bg-gray-900 font-semibold text-amber-300" : "text-gray-200"}`}
     >
       {label}
     </Link>
@@ -120,14 +123,14 @@ export default function AppHeader() {
                 <Link
                   href="/login"
                   onClick={() => setMenuOpen(false)}
-                  className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+                  className="action-secondary"
                 >
                   Login
                 </Link>
               ) : null}
               <button
                 type="button"
-                className="rounded-lg border border-gray-700 px-3 py-2 text-sm text-gray-200 hover:bg-gray-800"
+                className="action-secondary"
                 aria-expanded={menuOpen}
                 aria-controls="site-menu"
                 onClick={() => setMenuOpen((open) => !open)}
@@ -143,12 +146,12 @@ export default function AppHeader() {
           >
             <nav className="flex flex-col gap-1 lg:flex-row lg:flex-wrap lg:items-center" aria-label="Primary">
               <NavLink href="/week" label="Picks" active={Boolean(activePicksSection)} onSelect={() => setMenuOpen(false)} />
-              <NavLink href="/draft-duel" label="Draft Duel" onSelect={() => setMenuOpen(false)} />
-              <NavLink href="/roster-rescue" label="Roster Rescue" onSelect={() => setMenuOpen(false)} />
-              <NavLink href="/two-minute-drill" label="Two-Minute Drill" onSelect={() => setMenuOpen(false)} />
-              <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
-              <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />
-              {isAdmin ? <NavLink href="/admin" label="Admin" onSelect={() => setMenuOpen(false)} /> : null}
+              <NavLink href="/draft-duel" label="Draft Duel" active={pathname === "/draft-duel"} current={pathname === "/draft-duel"} onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/roster-rescue" label="Roster Rescue" active={pathname === "/roster-rescue"} current={pathname === "/roster-rescue"} onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/two-minute-drill" label="Two-Minute Drill" active={pathname === "/two-minute-drill"} current={pathname === "/two-minute-drill"} onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/postseason" label="Postseason" active={pathname === "/postseason"} current={pathname === "/postseason"} onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/leaderboard" label="Leaderboard" active={pathname === "/leaderboard"} current={pathname === "/leaderboard"} onSelect={() => setMenuOpen(false)} />
+              {isAdmin ? <NavLink href="/admin" label="Admin" active={pathname === "/admin"} current={pathname === "/admin"} onSelect={() => setMenuOpen(false)} /> : null}
             </nav>
 
             {user ? (
@@ -167,7 +170,7 @@ export default function AppHeader() {
                     await supabase.auth.signOut();
                     window.location.assign("/");
                   }}
-                  className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800"
+                  className="action-secondary"
                 >
                   Logout
                 </button>
@@ -176,7 +179,7 @@ export default function AppHeader() {
               <Link
                 href="/login"
                 onClick={() => setMenuOpen(false)}
-                className="hidden rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-800 lg:inline-flex"
+                className="action-secondary hidden lg:inline-flex"
               >
                 Login
               </Link>

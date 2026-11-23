@@ -155,7 +155,7 @@ function FavorabilityEditor({
               type="button"
               onClick={reset}
               disabled={saving}
-              className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-900 disabled:opacity-50"
+              className="action-secondary"
             >
               Reset
             </button>
@@ -164,7 +164,7 @@ function FavorabilityEditor({
             type="button"
             onClick={save}
             disabled={saving}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
+            className="action-primary"
           >
             {saving ? "Saving…" : "Save"}
           </button>
@@ -284,11 +284,11 @@ export default function AdminPage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-6xl p-6">Loading admin tools…</main>;
-  if (!authorized) return <main className="mx-auto max-w-6xl p-6">Administrator access required.</main>;
+  if (loading) return <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">Loading admin tools…</main>;
+  if (!authorized) return <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">Administrator access required.</main>;
 
   return (
-    <main className="mx-auto max-w-6xl p-6">
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm text-gray-400">Operations</p>
@@ -306,7 +306,7 @@ export default function AdminPage() {
             type="button"
             onClick={checkProvider}
             disabled={checking || syncing}
-            className="rounded-lg border border-gray-700 px-4 py-2 text-sm hover:bg-gray-900 disabled:opacity-50"
+            className="action-secondary"
           >
             {checking ? "Checking…" : "Dry run"}
           </button>
@@ -314,7 +314,7 @@ export default function AdminPage() {
             type="button"
             onClick={syncNow}
             disabled={syncing || checking}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500 disabled:opacity-50"
+            className="action-primary"
           >
             {syncing ? "Syncing…" : "Sync now"}
           </button>
@@ -422,7 +422,7 @@ export default function AdminPage() {
             <h2 className="text-xl font-semibold">Season readiness</h2>
             <p className="mt-1 text-sm text-gray-400">Live checks for the schedule, model lock, results, and reminders.</p>
           </div>
-          <button type="button" onClick={refresh} className="rounded-lg border border-gray-700 px-3 py-2 text-sm hover:bg-gray-900">Refresh checks</button>
+          <button type="button" onClick={refresh} className="action-secondary">Refresh checks</button>
         </div>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {system ? [

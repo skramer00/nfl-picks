@@ -52,7 +52,7 @@ export default function TwoMinuteDrill() {
         <button type="button" disabled={Boolean(daily && drive)} onClick={() => begin(true)}
           className="min-h-11 rounded-lg bg-amber-400 px-4 font-bold text-gray-950 disabled:bg-amber-200">Daily drive</button>
         <button type="button" onClick={() => begin(false)}
-          className="min-h-11 rounded-lg border border-gray-600 px-4 font-semibold hover:bg-gray-900">Practice drive</button>
+          className="action-secondary">Practice drive</button>
       </div>
       {drive && (
         <section className="mt-6 rounded-2xl border border-gray-700 bg-gray-950 p-4 sm:p-6" aria-label="Drive">
@@ -82,7 +82,7 @@ export default function TwoMinuteDrill() {
                 ))}
               </div>
               <button type="button" disabled={!drive.clockRunning || !drive.timeouts} onClick={() => update(callTimeout(drive))}
-                className="mt-3 min-h-11 rounded-lg border border-gray-600 px-4 font-semibold enabled:hover:bg-gray-800 disabled:text-gray-500">Call timeout</button>
+                className="action-secondary mt-3">Call timeout</button>
             </>
           )}
         </section>

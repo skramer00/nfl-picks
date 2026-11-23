@@ -74,9 +74,9 @@ export default function OnboardingPage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-3xl p-6 text-gray-400">Setting up your season…</main>;
+  if (loading) return <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6 text-gray-400">Setting up your season…</main>;
   if (signedOut) {
-    return <main className="mx-auto max-w-3xl p-6"><h1 className="text-3xl font-semibold">Log in to continue</h1><Link href="/login" className="mt-5 inline-block text-blue-300 underline">Go to login</Link></main>;
+    return <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6"><h1 className="text-3xl font-semibold">Log in to continue</h1><Link href="/login" className="mt-5 inline-block text-blue-300 underline">Go to login</Link></main>;
   }
 
   return (
@@ -98,7 +98,7 @@ export default function OnboardingPage() {
           <input required maxLength={40} value={displayName} onChange={(event) => setDisplayName(event.target.value)} className="mt-2 w-full rounded-xl border border-gray-700 bg-gray-900 p-3 text-white" autoComplete="nickname" />
         </label>
         <p className="mt-2 text-xs text-gray-500">This is the name other players will see on the leaderboard.</p>
-        <button disabled={saving || !displayName.trim()} type="submit" className="mt-5 w-full rounded-xl bg-amber-400 py-3 font-semibold text-gray-950 hover:bg-amber-300 disabled:opacity-50">
+        <button disabled={saving || !displayName.trim()} type="submit" className="action-primary mt-5 w-full">
           {saving ? "Saving…" : "Start making picks"}
         </button>
       </form>

@@ -47,10 +47,10 @@ export default function TeamModelPage() {
     ? Math.round(teamGames.reduce((total, game) => total + (game.home_team_id === team.id ? game.home_win_prob ?? 0.5 : game.away_win_prob ?? 0.5), 0) / teamGames.length * 100)
     : null;
 
-  if (loading) return <main className="mx-auto max-w-5xl p-6 text-gray-400">Loading team model…</main>;
+  if (loading) return <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6 text-gray-400">Loading team model…</main>;
   if (error || !team || !projected) {
     return (
-      <main className="mx-auto max-w-5xl p-6">
+      <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
         <h1 className="text-2xl font-semibold">Team not available</h1>
         <p className="mt-2 text-gray-400">{error || "The model could not find that team."}</p>
         <Link href="/power-rankings" className="mt-5 inline-block text-blue-300 underline">Back to Model</Link>
@@ -60,7 +60,7 @@ export default function TeamModelPage() {
 
   const theme = getTeamTheme(team.abbreviation);
   return (
-    <main className="mx-auto max-w-5xl p-6">
+    <main className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
       <Link href="/power-rankings" className="text-sm text-gray-400 hover:text-white">← Model Center</Link>
       <header className="mt-5 overflow-hidden rounded-3xl border bg-gray-950 p-6 sm:p-8" style={{ borderColor: theme.accent }}>
         <div className="flex items-center gap-4">

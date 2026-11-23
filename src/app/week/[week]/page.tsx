@@ -147,8 +147,8 @@ export default function WeekPage() {
       <main className="mx-auto max-w-5xl p-6">
         <h1 className="text-3xl font-semibold">Week not found</h1>
         <p className="mt-3 text-gray-400">Choose a regular-season week from 1–18.</p>
-        <Link className="mt-5 inline-block text-blue-400 underline" href="/week/1">
-          Go to Week 1
+        <Link className="mt-5 inline-block text-blue-400 underline" href="/week">
+          Go to the current week
         </Link>
       </main>
     );
@@ -185,6 +185,16 @@ export default function WeekPage() {
           </Link>
         ))}
       </nav>
+
+      <details className="mt-3 rounded-lg border border-gray-800 bg-gray-950 px-3">
+        <summary className="min-h-11 cursor-pointer py-3 font-semibold text-gray-100">How to play Weekly Picks</summary>
+        <ol className="mb-4 list-decimal space-y-2 border-t border-gray-800 pt-3 pl-5 text-gray-300">
+          <li>Log in, choose a week, and tap the team you think will win. The percentages show the model’s chances for each team.</li>
+          <li>Change picks anytime before each game kicks off. Earn 1 point for making a pick and 1 more for picking the winner.</li>
+          <li>Save one pick on a team labeled <strong>Underdog</strong>, then select <strong>Set Pretzel Pick</strong> for a chance at 1 extra point. You can move or remove the Pretzel until its game starts.</li>
+        </ol>
+        <Link className="mb-4 inline-block text-sm text-amber-300 underline" href="/leaderboard">View the leaderboard</Link>
+      </details>
 
       {pickMessage && (
         <div className="mt-5 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm text-gray-200" role="status">

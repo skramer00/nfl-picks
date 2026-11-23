@@ -93,16 +93,16 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <main className="mx-auto max-w-md p-6">Loading profile…</main>;
+  if (loading) return <main className="mx-auto max-w-md px-4 py-6 sm:px-6">Loading profile…</main>;
 
   if (signedOut) {
     return (
-      <main className="mx-auto max-w-md p-6">
+      <main className="mx-auto max-w-md px-4 py-6 sm:px-6">
         <h1 className="text-3xl font-semibold">Profile</h1>
         <div className="mt-4 rounded-xl border border-blue-900 bg-blue-950/30 p-5">
           <h2 className="font-semibold text-blue-100">Log in to manage your profile</h2>
           <p className="mt-2 text-sm text-gray-300">Sign in to update the name shown throughout NFL Picks.</p>
-          <Link href="/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">
+          <Link href="/login" className="action-primary mt-4">
             Log in
           </Link>
         </div>
@@ -111,7 +111,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-3xl px-4 py-6 sm:px-6">
       <h1 className="text-3xl font-semibold">Profile</h1>
       {status && <div className="mt-4 rounded-lg border border-gray-800 bg-gray-950 p-3 text-sm" role="status">{status}</div>}
       {userId && (
@@ -120,7 +120,7 @@ export default function ProfilePage() {
             Display name
             <input maxLength={40} value={displayName} onChange={(event) => setDisplayName(event.target.value)} className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 p-3 text-white" />
           </label>
-          <button onClick={save} disabled={saving} className="w-full rounded-lg bg-blue-600 py-2 text-white hover:bg-blue-500 disabled:opacity-50" type="button">
+          <button onClick={save} disabled={saving} className="action-primary w-full" type="button">
             {saving ? "Saving…" : "Save profile"}
           </button>
         </div>

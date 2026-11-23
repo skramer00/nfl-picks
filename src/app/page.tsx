@@ -23,70 +23,54 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-16">
-      <section className="overflow-hidden rounded-3xl border border-gray-800 bg-[radial-gradient(circle_at_top_left,_rgba(245,158,11,0.18),_transparent_42%),linear-gradient(145deg,#111827,#030712)] px-6 py-12 sm:px-12 sm:py-16">
-        <div className="max-w-3xl">
-          <div className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-400">
-            🥨 Pretzel Quest
-          </div>
-          <h1 className="mt-4 text-4xl font-bold tracking-tight sm:text-6xl">
-            Pick every game. Outsmart the model.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-gray-300 sm:text-xl">
-            Make your NFL picks, see where you disagree with the model, and follow your season all the way through the playoffs.
-          </p>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            {signedIn === false ? (
-              <>
-            <Link
-              href="/login?mode=signup"
-              className="rounded-xl bg-amber-400 px-6 py-3.5 text-center font-semibold text-gray-950 transition hover:bg-amber-300"
-            >
-              Sign up free
-            </Link>
-            <Link
-              href="/login"
-              className="rounded-xl border border-gray-600 bg-black/20 px-6 py-3.5 text-center font-semibold text-white transition hover:border-gray-400 hover:bg-white/5"
-            >
-              Log in
-            </Link>
-              </>
-            ) : null}
-            <Link
-              href="/week"
-              className="px-4 py-3.5 text-center font-medium text-gray-300 transition hover:text-white"
-            >
-              Explore the picks →
-            </Link>
-          </div>
+    <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+      <section className="rounded-2xl border border-gray-800 bg-[radial-gradient(ellipse_at_top_right,#422006_0%,#111827_42%,#030712_80%)] p-6 sm:p-10">
+        <h1 className="max-w-3xl text-4xl font-bold tracking-tight sm:text-6xl">NFL picks and football games</h1>
+        <p className="mt-4 max-w-2xl text-lg leading-relaxed text-gray-200">
+          Make weekly picks, see how you stack up against the model, or play a football challenge anytime.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Link href="/week" className="action-primary">Open Weekly Picks</Link>
+          <Link href="#games" className="action-secondary">Explore games</Link>
+          {signedIn === false && <Link href="/login?mode=signup" className="action-secondary">Sign up</Link>}
         </div>
       </section>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3" aria-label="What you can do">
-        {[
-          ["Make your call", "Pick every matchup before kickoff and track your accuracy all season."],
-          ["Challenge the model", "Use favorability, rest, and matchup context—then decide where the model is wrong."],
-          ["See the whole season", "Follow projected playoffs, power rankings, and the leaderboard in one place."],
-        ].map(([title, description]) => (
-          <div key={title} className="rounded-2xl border border-gray-800 bg-gray-950 p-6">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-gray-400">{description}</p>
-          </div>
-        ))}
+      <section id="games" aria-labelledby="games-heading" className="mt-8 scroll-mt-24">
+        <h2 id="games-heading" className="text-2xl font-bold">Football games</h2>
+        <div className="mt-3 grid gap-3 md:grid-cols-3">
+          {games.map(({ href, title, description }) => <Feature key={href} href={href} title={title} description={description} />)}
+        </div>
       </section>
 
-      <section className="mt-8 rounded-2xl border border-gray-800 p-6 sm:flex sm:items-center sm:justify-between sm:gap-8 sm:p-8">
-        <div>
-          <h2 className="text-xl font-semibold">Simple scoring, meaningful choices</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-400">
-            Earn a point for every pick, another for getting it right, and a bonus for calling an underdog. Picks lock when each game kicks off.
-          </p>
+      <section aria-labelledby="season-heading" className="mt-8">
+        <h2 id="season-heading" className="text-2xl font-bold">Follow the NFL season</h2>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {features.map(({ href, title, description }) => <Feature key={href} href={href} title={title} description={description} />)}
         </div>
-        <Link href="/leaderboard" className="mt-5 inline-flex shrink-0 text-sm font-semibold text-amber-400 hover:text-amber-300 sm:mt-0">
-          View leaderboard →
-        </Link>
       </section>
     </main>
+  );
+}
+
+const games = [
+  { href: "/draft-duel", title: "Draft Duel", description: "Draft a fantasy lineup from 32 franchises and take on the computer. Every card shows its scoring average." },
+  { href: "/roster-rescue", title: "Roster Rescue", description: "Make up to three swaps to improve a fantasy lineup, then see how close you came to the best possible roster." },
+  { href: "/two-minute-drill", title: "Two-Minute Drill", description: "Call plays and manage timeouts to drive 65 yards for a touchdown. The play options show the yardage, time, and risk." },
+];
+
+const features = [
+  { href: "/my-picks", title: "Season Summary", description: "Review your picks, accuracy, and weekly recaps." },
+  { href: "/power-rankings", title: "Model Center", description: "Explore team rankings, matchup probabilities, and how the model has performed." },
+  { href: "/postseason", title: "Postseason", description: "See the projected playoff field and how your picks could change it." },
+  { href: "/leaderboard", title: "Leaderboard", description: "Check overall NFL Picks standings, private pools, and daily game standings for Draft Duel and Roster Rescue." },
+];
+
+function Feature({ href, title, description }: { href: string; title: string; description: string }) {
+  return (
+    <Link href={href} className="block rounded-xl border border-gray-800 bg-gray-950 p-4 transition-colors hover:border-amber-400 hover:bg-gray-900 sm:p-5">
+      <h3 className="text-lg font-semibold text-amber-300">{title}</h3>
+      <p className="mt-2 leading-relaxed text-gray-300">{description}</p>
+    </Link>
   );
 }

@@ -182,17 +182,17 @@ export default function MyPicksPage() {
   }, [games]);
 
   if (loading) {
-    return <main className="mx-auto max-w-4xl p-6">Loading your picks…</main>;
+    return <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">Loading your picks…</main>;
   }
 
   if (signedIn === false) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
+      <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
         <h1 className="text-2xl font-semibold">Season Summary</h1>
         <div className="mt-4 rounded-xl border border-blue-900 bg-blue-950/30 p-5">
           <h2 className="font-semibold text-blue-100">Log in to view your season</h2>
           <p className="mt-2 text-sm text-gray-300">Your saved picks, accuracy, and weekly results will appear here.</p>
-          <Link href="/login" className="mt-4 inline-block rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500">
+          <Link href="/login" className="action-primary mt-4">
             Log in
           </Link>
         </div>
@@ -201,7 +201,7 @@ export default function MyPicksPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
+    <main className="mx-auto max-w-4xl px-4 py-6 sm:px-6">
       <h1 className="text-2xl font-semibold">Season Summary</h1>
       {hasResults ? <div className="mt-5 inline-flex rounded-xl border border-gray-800 bg-gray-950 p-1" aria-label="Season view">
         <button type="button" onClick={() => { setSection("summary"); history.replaceState(null, "", "/my-picks"); }} className={`rounded-lg px-4 py-2 text-sm ${section === "summary" ? "bg-gray-800 text-white" : "text-gray-400 hover:text-white"}`}>Summary</button>
