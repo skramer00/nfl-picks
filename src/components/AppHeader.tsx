@@ -141,10 +141,11 @@ export default function AppHeader() {
             id="site-menu"
             className={`${menuOpen ? "flex" : "hidden"} mt-3 flex-col gap-3 border-t border-gray-800 pt-3 lg:mt-0 lg:flex lg:flex-row lg:items-center lg:justify-end lg:border-0 lg:pt-0`}
           >
-            <nav className="flex flex-col gap-1 lg:flex-row lg:items-center" aria-label="Primary">
+            <nav className="flex flex-col gap-1 lg:flex-row lg:flex-wrap lg:items-center" aria-label="Primary">
               <NavLink href="/week" label="Picks" active={Boolean(activePicksSection)} onSelect={() => setMenuOpen(false)} />
               <NavLink href="/draft-duel" label="Draft Duel" onSelect={() => setMenuOpen(false)} />
               <NavLink href="/roster-rescue" label="Roster Rescue" onSelect={() => setMenuOpen(false)} />
+              <NavLink href="/two-minute-drill" label="Two-Minute Drill" onSelect={() => setMenuOpen(false)} />
               <NavLink href="/postseason" label="Postseason" onSelect={() => setMenuOpen(false)} />
               <NavLink href="/leaderboard" label="Leaderboard" onSelect={() => setMenuOpen(false)} />
               {isAdmin ? <NavLink href="/admin" label="Admin" onSelect={() => setMenuOpen(false)} /> : null}
