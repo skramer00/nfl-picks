@@ -94,7 +94,7 @@ export default function DraftDuel(){
   return <main className={styles.page}>
     <section className={styles.hero}>
       <div className={styles.heroCopy}><p className={styles.eyebrow}>PRETZEL QUEST · PLAY ANYTIME</p><h1>Draft <em>Duel</em><span className={styles.beta}>BETA</span></h1><p className={styles.tagline}>{title}</p><p className={styles.intro}>32 franchises. Nine picks. Every player at their best.<br/>Take on the computer in a draft across football eras.</p>
-      <div className={styles.actions}><button className={styles.primary} disabled={!ready||busy} onClick={()=>requestStart('practice')}>{game?'New practice draft':'Start a draft'} <span aria-hidden="true">↗</span></button><button className={styles.secondary} disabled={!ready||busy} onClick={()=>requestStart('daily')}>Daily challenge</button></div>
+      <div className={styles.actions}><button className={styles.primary} disabled={!ready||busy} onClick={()=>requestStart('practice')}>{game?'New practice draft':'Start a draft'} <span aria-hidden="true">↗</span></button><button className={styles.secondary} disabled={!ready||busy} onClick={()=>requestStart('daily')}>Daily challenge</button></div><p className={styles.muted}>Signed-in daily scores post automatically with your display name.</p>
       <p className={styles.muted}>{!ready?'Loading your draft…':`No login needed · No timer · ${archive.completed.length} completed draft${archive.completed.length===1?'':'s'} saved here`}</p></div>
       <div className={styles.heroArt} aria-hidden="true"><div className={styles.field}><span>THE DRAFT ROOM</span><b>32</b><span>FRANCHISES</span><div className={styles.fieldLine}/><strong>YOU <i>vs</i> CPU</strong></div></div>
     </section>
